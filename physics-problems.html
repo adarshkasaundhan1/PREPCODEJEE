@@ -219,8 +219,11 @@
 <section class="topics" id="topicTabs"></section>
     <section class="grid" id="problemGrid"></section>
 
-<p class="footer">MVP • localStorage keys: phy_solved_ids, phy_bookmark_ids</p>
+<p class="footer">MVP • localStorage + Supabase sync</p>
   </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
 
 <script>
     const LS = {
@@ -331,6 +334,39 @@ searchInput.value = searchText;
     sortSelect.value = sortBy;
 
 const topics = ["All", ...new Set(problems.map(p => p.topic))];
+
+async function loadCloudState() {
+      try {
+        if (!window.PC || !window.sb) return;
+        const user = await PC.getUser();
+        if (!user) return;
+
+const { data: attempts, error: attemptsErr } = await sb
+          .from("problem_attempts")
+          .select("problem_id")
+          .eq("user_id", user.id)
+          .eq("subject", "Physics")
+          .eq("is_correct", true);
+
+if (!attemptsErr && Array.isArray(attempts)) {
+          solvedIds = [...new Set(attempts.map(x => Number(x.problem_id)).filter(Number.isFinite))];
+          localStorage.setItem(LS.solved, JSON.stringify(solvedIds));
+        }
+
+const { data: bms, error: bmsErr } = await sb
+          .from("bookmarks")
+          .select("problem_id")
+          .eq("user_id", user.id)
+          .eq("subject", "Physics");
+
+if (!bmsErr && Array.isArray(bms)) {
+          bookmarkIds = [...new Set(bms.map(x => Number(x.problem_id)).filter(Number.isFinite))];
+          localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+        }
+      } catch (e) {
+        console.error("Cloud sync read error:", e);
+      }
+    }
 
 function renderTopics(){
       topicTabs.innerHTML = topics.map(t => `
@@ -456,7 +492,7 @@ if(!data.length){
 problemGrid.innerHTML = data.map(problemCard).join("");
 
 problemGrid.querySelectorAll("button[data-action]").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           const id = Number(btn.dataset.id);
           const action = btn.dataset.action;
           const p = problems.find(x => x.id === id);
@@ -475,6 +511,26 @@ if(action === "bookmark"){
             }
             localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
             render();
+
+try {
+              const user = await PC.getUser();
+              if (user) {
+               const res = await PC.toggleBookmark(user.id, "Physics", id);
+if (res.ok) {
+  const state = res.bookmarked;
+  if (state) {
+    if (!bookmarkIds.includes(id)) bookmarkIds.push(id);
+  } else {
+    bookmarkIds = bookmarkIds.filter(x => x !== id);
+  }
+}
+
+                localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+                render();
+              }
+            } catch (e) {
+              console.error("Bookmark sync error:", e);
+            }
           }
         });
       });
@@ -508,7 +564,10 @@ backBtn.addEventListener("click", () => {
       window.location.href = "index.html";
     });
 
-render();
+(async function init(){
+      await loadCloudState();
+      render();
+    })();
   </script>
 </body>
 </html>
