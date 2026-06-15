@@ -1,15 +1,21 @@
 // supabase-client.js
 
 const SUPABASE_URL = "https://foxxccgiktgrwfdlxkrx.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZveHhjY2dpa3RncndmZGx4a3J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MjgwMTUsImV4cCI6MjA5NzEwNDAxNX0.2ba1TVUvHoCzQfSF0H97V4X-5KoZ6BbgIzzW1zPihHQ";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZveHhjY2dpa3RncndmZGx4a3J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MjgwMTUsImV4cCI6MjA5NzEwNDAxNX0.2ba1TVUvHoCzQfSF0H97V4X-5KoZ6BbgIzzW1zPihHQ"; // keep your real key here
+
+// Your production app URL (GitHub Pages project site)
+const PROD_REDIRECT_URL = "https://adarshkasaundhan1.github.io/PREPCODEJEE/";
+
+// Optional local fallback for desktop testing
+const LOCAL_REDIRECT_URL = "http://localhost:5500/";
 
 if (!window.supabase) {
   throw new Error("Supabase SDK not loaded. Add @supabase/supabase-js CDN before this file.");
 }
-if (!SUPABASE_URL || SUPABASE_URL.includes("PASTE_PROJECT_URL")) {
+if (!SUPABASE_URL) {
   console.warn("SUPABASE_URL is not configured in supabase-client.js");
 }
-if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("PASTE_ANON_KEY")) {
+if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("YOUR_SUPABASE_ANON_KEY_HERE")) {
   console.warn("SUPABASE_ANON_KEY is not configured in supabase-client.js");
 }
 
@@ -20,6 +26,12 @@ window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     detectSessionInUrl: true
   }
 });
+
+function getEmailRedirectTo() {
+  const host = window.location.hostname;
+  if (host === "localhost" || host === "127.0.0.1") return LOCAL_REDIRECT_URL;
+  return PROD_REDIRECT_URL;
+}
 
 function normalizeSubject(subject) {
   const s = String(subject || "").trim().toLowerCase();
@@ -50,8 +62,14 @@ async signInWithEmail(email) {
     const cleanEmail = String(email || "").trim().toLowerCase();
     if (!cleanEmail) return { ok: false, error: { message: "Email is required." } };
 
-const { data, error } = await sb.auth.signInWithOtp({ email: cleanEmail });
-    if (error) {
+const redirectTo = getEmailRedirectTo();
+
+const { data, error } = await sb.auth.signInWithOtp({
+      email: cleanEmail,
+      options: { emailRedirectTo: redirectTo }
+    });
+
+if (error) {
       console.error("signInWithEmail error:", error);
       return { ok: false, error };
     }
