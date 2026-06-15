@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode • Physics Problems</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#111b31;
+      --panel2:#162442;
+      --line:#25385d;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --blue:#3b82f6;
+      --yellow:#f59e0b;
+      --red:#ef4444;
+    }
+
+*{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 10% -10%, #1d3b67 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1e2f56 0%, transparent 30%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+
+.container{max-width:1200px;margin:0 auto;padding:16px}
+    .topbar{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+.brand{display:flex;align-items:center;gap:10px}
+    .brand .icon{color:var(--green);font-size:22px;font-weight:800}
+    .brand h1{font-size:24px;line-height:1}
+    .brand p{font-size:12px;color:var(--muted);margin-top:2px}
+
+.btn{
+      border:none;cursor:pointer;border-radius:10px;padding:10px 12px;font-weight:700;color:#fff;
+    }
+    .btn-back{background:#334155}
+    .btn-primary{background:#16a34a}
+    .btn-outline{background:transparent;border:1px solid var(--line);color:var(--text)}
+
+.hero{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      background:linear-gradient(180deg, rgba(59,130,246,.14), rgba(255,255,255,.02));
+      margin-bottom:14px;
+    }
+    .hero h2{font-size:30px;margin-bottom:6px}
+    .hero p{color:var(--muted)}
+
+.stats{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+    }
+    .stat{
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;
+      padding:12px;
+      background:rgba(255,255,255,.03);
+      font-size:12px;color:var(--muted);
+    }
+    .stat strong{display:block;color:var(--text);font-size:22px;margin-top:4px}
+
+.controls{
+      display:grid;
+      grid-template-columns:1.2fr .8fr .8fr;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .input,.select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--panel);
+      color:var(--text);
+      padding:11px 12px;
+      outline:none;
+    }
+    .input::placeholder{color:#8ca2cd}
+
+.topics{
+      display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;
+    }
+    .topic{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 12px;
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .topic.active{
+      border-color:rgba(34,197,94,.5);
+      background:rgba(34,197,94,.12);
+      color:#baffcf;
+    }
+
+.grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(250px,1fr));
+      gap:12px;
+    }
+    .card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;flex-direction:column;gap:10px;
+    }
+    .head{
+      display:flex;justify-content:space-between;gap:8px;align-items:flex-start;
+    }
+    .title{font-size:18px;font-weight:700;line-height:1.3}
+    .meta{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;
+      font-size:12px;color:var(--muted);
+    }
+    .meta div{
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:9px;padding:8px;background:rgba(255,255,255,.02);
+    }
+    .meta strong{display:block;color:var(--text);font-size:13px;margin-top:3px}
+
+.badge{
+      font-size:11px;padding:5px 9px;border-radius:999px;border:1px solid transparent;font-weight:700;
+      white-space:nowrap;
+    }
+    .easy{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4);color:#baffcf}
+    .medium{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#ffdca3}
+    .hard{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#ffc7c7}
+
+.actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap;}
+
+.empty{
+      grid-column:1/-1;
+      border:1px dashed var(--line);
+      border-radius:12px;
+      padding:20px;
+      text-align:center;
+      color:var(--muted);
+    }
+
+.footer{
+      margin-top:14px;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+@media(max-width:1020px){
+      .grid{grid-template-columns:repeat(2,minmax(220px,1fr))}
+      .controls{grid-template-columns:1fr}
+      .stats{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:680px){
+      .grid{grid-template-columns:1fr}
+      .hero h2{font-size:25px}
+      .stats{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode</h1>
+          <p>LeetCode for JEE • Physics Problems</p>
+        </div>
+      </div>
+      <button class="btn btn-back" id="backBtn">← Back to Dashboard</button>
+    </header>
+
+<section class="hero">
+      <h2>⚛ Physics Problem Bank</h2>
+      <p>Practice chapter-wise questions for JEE with topic filters and difficulty levels.</p>
+      <div class="stats">
+        <div class="stat">Total Problems<strong id="totalProblems">0</strong></div>
+        <div class="stat">Solved<strong id="solvedCount">0</strong></div>
+        <div class="stat">Bookmarked<strong id="bookmarkCount">0</strong></div>
+        <div class="stat">Progress<strong id="progressCount">0%</strong></div>
+      </div>
+    </section>
+
+<section class="controls">
+      <input id="searchInput" class="input" placeholder="Search by title or topic..." />
+      <select id="difficultySelect" class="select">
+        <option value="all">Difficulty: All</option>
+        <option value="Easy">Easy</option>
+        <option value="Medium">Medium</option>
+        <option value="Hard">Hard</option>
+      </select>
+      <select id="sortSelect" class="select">
+        <option value="default">Sort: Default</option>
+        <option value="marks">Sort: Highest Marks</option>
+        <option value="topic">Sort: Topic A-Z</option>
+      </select>
+    </section>
+
+<section class="topics" id="topicTabs"></section>
+    <section class="grid" id="problemGrid"></section>
+
+<p class="footer">MVP • localStorage keys: phy_solved_ids, phy_bookmark_ids</p>
+  </div>
+
+<script>
+    const LS = {
+      solved: "phy_solved_ids",
+      bookmarked: "phy_bookmark_ids",
+      topic: "phy_selected_topic",
+      search: "phy_search_text",
+      difficulty: "phy_difficulty",
+      sort: "phy_sort"
+    };
+
+const problems = [
+      {
+        id: 1, title: "Velocity from Position Function", topic: "Kinematics", difficulty: "Easy", marks: 4, source: "JEE Main",
+        text: "A particle moves along a straight line with position x(t)=3t²−4t+1. Find velocity at t=2 s.",
+        a: "8 m/s", b: "10 m/s", c: "12 m/s", d: "14 m/s", correct: "A",
+        explain: "v(t)=dx/dt=6t−4. At t=2, v=8 m/s."
+      },
+      {
+        id: 2, title: "Relative Velocity of Two Cars", topic: "Kinematics", difficulty: "Medium", marks: 4, source: "JEE Main",
+        text: "Car A moves east at 20 m/s and Car B moves west at 15 m/s. Relative speed of A w.r.t B is?",
+        a: "5 m/s", b: "35 m/s", c: "20 m/s", d: "15 m/s", correct: "B",
+        explain: "Opposite directions → relative speed = 20 + 15 = 35 m/s."
+      },
+      {
+        id: 3, title: "Projectile Maximum Height", topic: "Kinematics", difficulty: "Medium", marks: 4, source: "JEE Main",
+        text: "A projectile is launched at speed 20 m/s at 30°. Take g=10 m/s². Maximum height is?",
+        a: "2.5 m", b: "5 m", c: "10 m", d: "15 m", correct: "B",
+        explain: "H = u²sin²θ/(2g) = 400*(1/4)/20 = 5 m."
+      },
+      {
+        id: 4, title: "Friction on Inclined Plane", topic: "Laws of Motion", difficulty: "Easy", marks: 4, source: "JEE Main",
+        text: "A 2 kg block rests on a rough horizontal surface with μ=0.2. Take g=10. Maximum static friction is?",
+        a: "2 N", b: "4 N", c: "8 N", d: "10 N", correct: "B",
+        explain: "f_max = μN = 0.2*(2*10)=4 N."
+      },
+      {
+        id: 5, title: "Pulley System Tension", topic: "Laws of Motion", difficulty: "Hard", marks: 4, source: "JEE Advanced",
+        text: "In an ideal Atwood machine with masses 3 kg and 2 kg, tension in string is?",
+        a: "20 N", b: "24 N", c: "30 N", d: "12 N", correct: "B",
+        explain: "a=(m1−m2)g/(m1+m2)=2 m/s², T=m1(g−a)=3*(8)=24 N."
+      },
+      {
+        id: 6, title: "Work Done by Variable Force", topic: "Work Power Energy", difficulty: "Medium", marks: 4, source: "JEE Main",
+        text: "Force varies as F=2x N. Work done from x=0 to x=3 m is?",
+        a: "3 J", b: "6 J", c: "9 J", d: "18 J", correct: "C",
+        explain: "W=∫0→3 2x dx = [x²]0→3 = 9 J."
+      },
+      {
+        id: 7, title: "Collision and Momentum", topic: "Momentum", difficulty: "Medium", marks: 4, source: "JEE Main",
+        text: "A 2 kg body moving at 6 m/s hits a 1 kg body at rest and sticks. Final speed is?",
+        a: "2 m/s", b: "3 m/s", c: "4 m/s", d: "6 m/s", correct: "C",
+        explain: "Conservation of momentum: v = (2*6)/(2+1)=4 m/s."
+      },
+      {
+        id: 8, title: "Moment of Inertia of Rod", topic: "Rotational Motion", difficulty: "Hard", marks: 4, source: "JEE Advanced",
+        text: "Moment of inertia of a uniform rod (mass M, length L) about center and perpendicular to length is?",
+        a: "ML²/12", b: "ML²/3", c: "ML²/2", d: "ML²", correct: "A",
+        explain: "Standard result: I_center = ML²/12."
+      },
+      {
+        id: 9, title: "SHM Time Period", topic: "Oscillations", difficulty: "Easy", marks: 4, source: "JEE Main",
+        text: "For mass-spring system, m=1 kg, k=100 N/m. Time period is?",
+        a: "0.2π s", b: "0.5π s", c: "2π s", d: "10π s", correct: "A",
+        explain: "T=2π√(m/k)=2π√(1/100)=0.2π s."
+      },
+      {
+        id: 10, title: "Wave Speed in String", topic: "Waves", difficulty: "Easy", marks: 4, source: "JEE Main",
+        text: "Tension in string is 100 N and linear density is 0.25 kg/m. Wave speed is?",
+        a: "10 m/s", b: "20 m/s", c: "30 m/s", d: "40 m/s", correct: "B",
+        explain: "v=√(T/μ)=√(100/0.25)=√400=20 m/s."
+      },
+      {
+        id: 11, title: "Electric Field on Axis of Ring", topic: "Electrostatics", difficulty: "Hard", marks: 4, source: "JEE Advanced",
+        text: "Electric field at center of uniformly charged ring is?",
+        a: "Maximum", b: "Non-zero constant", c: "Zero", d: "Depends on radius only", correct: "C",
+        explain: "Symmetry cancels all field components at center."
+      },
+      {
+        id: 12, title: "Current in RC Circuit", topic: "Current Electricity", difficulty: "Medium", marks: 4, source: "JEE Main",
+        text: "Initially uncharged capacitor in RC charging circuit has current at t=0 equal to?",
+        a: "0", b: "V/R", c: "R/V", d: "∞", correct: "B",
+        explain: "At t=0 capacitor behaves like short circuit, so i(0)=V/R."
+      }
+    ];
+
+const topicTabs = document.getElementById("topicTabs");
+    const problemGrid = document.getElementById("problemGrid");
+    const searchInput = document.getElementById("searchInput");
+    const difficultySelect = document.getElementById("difficultySelect");
+    const sortSelect = document.getElementById("sortSelect");
+    const backBtn = document.getElementById("backBtn");
+
+const totalProblemsEl = document.getElementById("totalProblems");
+    const solvedCountEl = document.getElementById("solvedCount");
+    const bookmarkCountEl = document.getElementById("bookmarkCount");
+    const progressCountEl = document.getElementById("progressCount");
+
+let solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(Number);
+    let bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(Number);
+    let selectedTopic = localStorage.getItem(LS.topic) || "All";
+    let searchText = localStorage.getItem(LS.search) || "";
+    let difficulty = localStorage.getItem(LS.difficulty) || "all";
+    let sortBy = localStorage.getItem(LS.sort) || "default";
+
+searchInput.value = searchText;
+    difficultySelect.value = difficulty;
+    sortSelect.value = sortBy;
+
+const topics = ["All", ...new Set(problems.map(p => p.topic))];
+
+function renderTopics(){
+      topicTabs.innerHTML = topics.map(t => `
+        <button class="topic ${selectedTopic === t ? "active" : ""}" data-topic="${t}">${t}</button>
+      `).join("");
+
+topicTabs.querySelectorAll(".topic").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedTopic = btn.dataset.topic;
+          localStorage.setItem(LS.topic, selectedTopic);
+          render();
+        });
+      });
+    }
+
+function getFiltered(){
+      let data = [...problems];
+
+if(selectedTopic !== "All"){
+        data = data.filter(p => p.topic === selectedTopic);
+      }
+
+if(searchText.trim()){
+        const q = searchText.toLowerCase();
+        data = data.filter(p =>
+          p.title.toLowerCase().includes(q) ||
+          p.topic.toLowerCase().includes(q)
+        );
+      }
+
+if(difficulty !== "all"){
+        data = data.filter(p => p.difficulty === difficulty);
+      }
+
+if(sortBy === "marks"){
+        data.sort((a,b) => b.marks - a.marks);
+      } else if(sortBy === "topic"){
+        data.sort((a,b) => a.topic.localeCompare(b.topic));
+      }
+
+return data;
+    }
+
+function difficultyClass(level){
+      if(level === "Easy") return "easy";
+      if(level === "Medium") return "medium";
+      return "hard";
+    }
+
+function renderStats(){
+      solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(Number);
+      bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(Number);
+
+const solved = solvedIds.length;
+      const bookmarked = bookmarkIds.length;
+      const total = problems.length;
+      const progress = Math.round((solved / total) * 100);
+
+totalProblemsEl.textContent = total;
+      solvedCountEl.textContent = solved;
+      bookmarkCountEl.textContent = bookmarked;
+      progressCountEl.textContent = `${progress}%`;
+    }
+
+function buildSolveUrl(p){
+      const params = new URLSearchParams({
+        id: String(p.id),
+        subject: "Physics",
+        topic: p.topic,
+        difficulty: p.difficulty,
+        marks: String(p.marks),
+        title: p.title,
+        text: p.text,
+        a: p.a,
+        b: p.b,
+        c: p.c,
+        d: p.d,
+        correct: p.correct,
+        explain: p.explain,
+        back: "physics-problems.html"
+      });
+      return `solve-problem.html?${params.toString()}`;
+    }
+
+function problemCard(p){
+      const solved = solvedIds.includes(Number(p.id));
+      const bookmarked = bookmarkIds.includes(Number(p.id));
+
+return `
+        <article class="card">
+          <div class="head">
+            <h3 class="title">${p.title}</h3>
+            <span class="badge ${difficultyClass(p.difficulty)}">${p.difficulty}</span>
+          </div>
+
+<div class="meta">
+            <div>Topic<strong>${p.topic}</strong></div>
+            <div>Marks<strong>+${p.marks}</strong></div>
+            <div>Source<strong>${p.source}</strong></div>
+            <div>Status<strong>${solved ? "Solved" : "Unsolved"}</strong></div>
+          </div>
+
+<div class="actions">
+            <button class="btn btn-primary" data-action="solve" data-id="${p.id}">
+              ${solved ? "✅ Solved" : "Solve"}
+            </button>
+            <button class="btn btn-outline" data-action="bookmark" data-id="${p.id}">
+              ${bookmarked ? "⭐ Bookmarked" : "🔖 Bookmark"}
+            </button>
+          </div>
+        </article>
+      `;
+    }
+
+function renderGrid(){
+      const data = getFiltered();
+
+if(!data.length){
+        problemGrid.innerHTML = `<div class="empty">No problems found for current filters.</div>`;
+        return;
+      }
+
+problemGrid.innerHTML = data.map(problemCard).join("");
+
+problemGrid.querySelectorAll("button[data-action]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.dataset.id);
+          const action = btn.dataset.action;
+          const p = problems.find(x => x.id === id);
+          if(!p) return;
+
+if(action === "solve"){
+            window.location.href = buildSolveUrl(p);
+            return;
+          }
+
+if(action === "bookmark"){
+            if(bookmarkIds.includes(id)){
+              bookmarkIds = bookmarkIds.filter(x => x !== id);
+            } else {
+              bookmarkIds.push(id);
+            }
+            localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+            render();
+          }
+        });
+      });
+    }
+
+function render(){
+      renderStats();
+      renderTopics();
+      renderGrid();
+    }
+
+searchInput.addEventListener("input", e => {
+      searchText = e.target.value;
+      localStorage.setItem(LS.search, searchText);
+      renderGrid();
+    });
+
+difficultySelect.addEventListener("change", e => {
+      difficulty = e.target.value;
+      localStorage.setItem(LS.difficulty, difficulty);
+      renderGrid();
+    });
+
+sortSelect.addEventListener("change", e => {
+      sortBy = e.target.value;
+      localStorage.setItem(LS.sort, sortBy);
+      renderGrid();
+    });
+
+backBtn.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+
+render();
+  </script>
+</body>
+</html>
