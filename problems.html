@@ -269,6 +269,9 @@
 <p class="footer">© 2026 PrepCode • Problems gateway page</p>
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+
 <script>
     // -------- Elements --------
     const backBtn = document.getElementById("backBtn");
@@ -281,15 +284,73 @@ const phySolvedStat = document.getElementById("phySolvedStat");
     const chemSolvedStat = document.getElementById("chemSolvedStat");
     const mathSolvedStat = document.getElementById("mathSolvedStat");
 
-// -------- Stats from localStorage --------
-    function loadStats(){
-      const phy = JSON.parse(localStorage.getItem("phy_solved_ids") || "[]").length;
-      const chem = JSON.parse(localStorage.getItem("chem_solved_ids") || "[]").length;
-      const math = JSON.parse(localStorage.getItem("math_solved_ids") || "[]").length;
+// -------- Local helpers --------
+    function dedupeNumeric(arr) {
+      return [...new Set((arr || []).map(Number).filter(Number.isFinite))];
+    }
+
+function localSolvedCount(key) {
+      return dedupeNumeric(JSON.parse(localStorage.getItem(key) || "[]")).length;
+    }
+
+// -------- Load stats (local first, then cloud if logged in) --------
+    function renderStatsFromLocal() {
+      const phy = localSolvedCount("phy_solved_ids");
+      const chem = localSolvedCount("chem_solved_ids");
+      const math = localSolvedCount("math_solved_ids");
 
 phySolvedStat.textContent = phy;
       chemSolvedStat.textContent = chem;
       mathSolvedStat.textContent = math;
+    }
+
+async function syncStatsFromCloud() {
+      try {
+        if (!window.PC || !window.sb) return;
+        const user = await PC.getUser();
+        if (!user) return;
+
+const [phyRes, chemRes, mathRes, mathAltRes] = await Promise.all([
+          sb.from("problem_attempts")
+            .select("problem_id")
+            .eq("user_id", user.id)
+            .eq("subject", "Physics")
+            .eq("is_correct", true),
+
+sb.from("problem_attempts")
+            .select("problem_id")
+            .eq("user_id", user.id)
+            .eq("subject", "Chemistry")
+            .eq("is_correct", true),
+
+sb.from("problem_attempts")
+            .select("problem_id")
+            .eq("user_id", user.id)
+            .eq("subject", "Mathematics")
+            .eq("is_correct", true),
+
+sb.from("problem_attempts")
+            .select("problem_id")
+            .eq("user_id", user.id)
+            .eq("subject", "Math")
+            .eq("is_correct", true)
+        ]);
+
+const phyIds = !phyRes.error ? dedupeNumeric((phyRes.data || []).map(x => x.problem_id)) : [];
+        const chemIds = !chemRes.error ? dedupeNumeric((chemRes.data || []).map(x => x.problem_id)) : [];
+        const mathIdsA = !mathRes.error ? dedupeNumeric((mathRes.data || []).map(x => x.problem_id)) : [];
+        const mathIdsB = !mathAltRes.error ? dedupeNumeric((mathAltRes.data || []).map(x => x.problem_id)) : [];
+        const mathIds = dedupeNumeric([...mathIdsA, ...mathIdsB]);
+
+// sync local caches so subject pages and hub stay consistent
+        localStorage.setItem("phy_solved_ids", JSON.stringify(phyIds));
+        localStorage.setItem("chem_solved_ids", JSON.stringify(chemIds));
+        localStorage.setItem("math_solved_ids", JSON.stringify(mathIds));
+
+renderStatsFromLocal();
+      } catch (err) {
+        console.error("Problems hub cloud sync error:", err);
+      }
     }
 
 // -------- Navigation --------
@@ -305,7 +366,7 @@ goButtons.forEach(btn => {
     });
 
 // -------- Search Filter --------
-    function filterCards(){
+    function filterCards() {
       const q = searchInput.value.trim().toLowerCase();
 
 subjectCards.forEach(card => {
@@ -324,7 +385,11 @@ clearBtn.addEventListener("click", () => {
     });
 
 // -------- Init --------
-    loadStats();
+    (async function init() {
+      renderStatsFromLocal();     // instant render
+      await syncStatsFromCloud(); // replace with cloud counts if logged in
+      filterCards();
+    })();
   </script>
 </body>
 </html>
