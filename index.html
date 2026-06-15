@@ -235,9 +235,14 @@
         </nav>
         <div class="right-actions">
           <div class="streak">🔥 <span id="streakNum">7</span> Day Streak</div>
-          <div class="profile">
-            <div class="avatar">P</div>
-            <div>PrepCoder ▾</div>
+
+<!-- Added auth buttons -->
+          <button id="loginBtn" class="btn btn-outline">Login</button>
+          <button id="logoutBtn" class="btn btn-outline">Logout</button>
+
+<div class="profile">
+            <div class="avatar" id="avatarLetter">P</div>
+            <div id="profileName">PrepCoder ▾</div>
           </div>
         </div>
       </header>
@@ -319,6 +324,9 @@
     </main>
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+
 <script>
     // -------- Local Storage Keys --------
     const KEYS = {
@@ -347,6 +355,12 @@ const explorePhysicsBtn = document.getElementById("explorePhysicsBtn");
     const exploreChemBtn = document.getElementById("exploreChemBtn");
     const exploreMathBtn = document.getElementById("exploreMathBtn");
 
+// Auth elements
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const profileName = document.getElementById("profileName");
+    const avatarLetter = document.getElementById("avatarLetter");
+
 // -------- Init State --------
     let streak = Number(localStorage.getItem(KEYS.streak) || 7);
     let solved = Number(localStorage.getItem(KEYS.solved) || 3);
@@ -366,6 +380,51 @@ if (selected) {
         input.closest(".opt").classList.add("active");
       }
     }
+
+// -------- Auth Logic (Supabase) --------
+    loginBtn?.addEventListener("click", async () => {
+      const email = prompt("Enter your email:");
+      if (!email) return;
+
+const { error } = await PC.signInWithEmail(email);
+      if (error) {
+        alert(error.message);
+      } else {
+        alert("Magic link sent. Check email and click the link, then return to this page.");
+      }
+    });
+
+logoutBtn?.addEventListener("click", async () => {
+      await PC.signOut();
+      alert("Logged out");
+      location.reload();
+    });
+
+async function renderAuthState() {
+      try {
+        const user = await PC.getUser();
+        if (user) {
+          await PC.ensureProfile(user);
+
+const name = user.email ? user.email.split("@")[0] : "PrepCoder";
+          profileName.textContent = name + " ▾";
+          avatarLetter.textContent = name.charAt(0).toUpperCase();
+
+loginBtn.style.display = "none";
+          logoutBtn.style.display = "inline-block";
+        } else {
+          profileName.textContent = "PrepCoder ▾";
+          avatarLetter.textContent = "P";
+
+loginBtn.style.display = "inline-block";
+          logoutBtn.style.display = "none";
+        }
+      } catch (e) {
+        console.error("Auth state error:", e);
+      }
+    }
+
+renderAuthState();
 
 // -------- Events: Subject Explore --------
     explorePhysicsBtn.addEventListener("click", () => {
