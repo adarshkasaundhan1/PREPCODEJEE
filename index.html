@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode - LeetCode for JEE (MVP)</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#0f1a2f;
+      --panel-2:#121f39;
+      --line:#233354;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --blue:#3b82f6;
+      --yellow:#f59e0b;
+      --purple:#8b5cf6;
+      --danger:#ef4444;
+      --ok:#16a34a;
+    }
+
+*{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% -10%, #193562 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1f2f55 0%, transparent 30%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      min-height:100vh;
+    }
+
+.app{
+      display:grid;
+      grid-template-columns:260px 1fr;
+      min-height:100vh;
+    }
+
+/* Sidebar */
+    .sidebar{
+      border-right:1px solid var(--line);
+      background:rgba(8,14,27,.85);
+      padding:18px 14px;
+      position:sticky;
+      top:0;
+      height:100vh;
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;margin-bottom:20px;
+    }
+    .brand .icon{color:var(--green);font-weight:900;font-size:22px}
+    .brand h1{font-size:30px;line-height:1}
+    .brand p{font-size:12px;color:var(--muted)}
+    .menu{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+    .menu button{
+      background:transparent;border:1px solid transparent;color:var(--text);
+      text-align:left;padding:10px 12px;border-radius:10px;cursor:pointer;
+      font-weight:600;
+    }
+    .menu button:hover{background:rgba(255,255,255,.04)}
+    .menu button.active{
+      background:rgba(34,197,94,.13);border-color:rgba(34,197,94,.25);color:#b9ffcf;
+    }
+
+.subjects{
+      margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
+    }
+    .subjects h4{font-size:12px;color:var(--muted);margin-bottom:10px;letter-spacing:.5px}
+    .sub-item{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.02);margin-bottom:8px;
+      border:1px solid rgba(255,255,255,.04);
+    }
+    .sub-item span{font-size:13px}
+    .sub-item small{color:var(--muted)}
+
+.premium{
+      margin-top:18px;padding:12px;border:1px solid var(--line);border-radius:12px;
+      background:linear-gradient(180deg, rgba(245,158,11,.12), rgba(245,158,11,.03));
+    }
+    .premium h5{color:#ffd58a;margin-bottom:8px}
+    .premium p{font-size:12px;color:var(--muted);margin-bottom:10px}
+    .premium button{
+      width:100%;padding:9px;border:none;border-radius:8px;background:#16a34a;color:#fff;font-weight:700;cursor:pointer;
+    }
+
+/* Main */
+    .main{display:flex;flex-direction:column}
+    .topbar{
+      height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+      padding:0 20px;background:rgba(9,15,30,.78);backdrop-filter:blur(6px);position:sticky;top:0;z-index:20;
+    }
+    .top-links{display:flex;gap:6px;flex-wrap:wrap}
+    .top-links button{
+      border:none;background:transparent;color:var(--text);padding:10px 12px;border-radius:9px;cursor:pointer;font-weight:600;position:relative;
+    }
+    .top-links button:hover{background:rgba(255,255,255,.06)}
+    .top-links button.active{color:#b7ffd2}
+    .top-links button.active::after{
+      content:"";position:absolute;left:10px;right:10px;bottom:-10px;height:2px;border-radius:2px;background:var(--green);
+      box-shadow:0 0 10px var(--green);
+    }
+    .right-actions{display:flex;gap:10px;align-items:center}
+    .streak{
+      border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);padding:8px 10px;border-radius:10px;
+      font-weight:700;color:#ffd58a;font-size:14px;
+    }
+    .profile{
+      border:1px solid var(--line);border-radius:999px;padding:5px 9px 5px 5px;background:rgba(255,255,255,.03);
+      display:flex;align-items:center;gap:8px;
+    }
+    .avatar{
+      width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--blue);font-weight:700;font-size:12px;
+    }
+
+.content{padding:22px;max-width:1200px}
+    .section-title{font-size:32px;margin-bottom:14px}
+    .muted{color:var(--muted)}
+    .cards{
+      display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:14px;margin-bottom:20px;
+    }
+    .subject-card{
+      border:1px solid var(--line);border-radius:14px;padding:16px;background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    }
+    .subject-card h3{font-size:26px;margin-bottom:8px}
+    .subject-card p{color:var(--muted);margin-bottom:10px}
+    .subject-card button{
+      border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:700;color:#fff;
+    }
+    .physics{box-shadow:inset 0 0 0 1px rgba(59,130,246,.3)}
+    .chem{box-shadow:inset 0 0 0 1px rgba(245,158,11,.3)}
+    .math{box-shadow:inset 0 0 0 1px rgba(139,92,246,.3)}
+    .physics button{background:#1d4ed8}
+    .chem button{background:#b45309}
+    .math button{background:#6d28d9}
+
+.panel{
+      border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      padding:16px;margin-bottom:16px;
+    }
+
+.continue-row{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    }
+    .progress-wrap{display:flex;align-items:center;gap:10px;min-width:260px}
+    .bar{width:180px;height:8px;background:#263550;border-radius:999px;overflow:hidden}
+    .bar>span{display:block;height:100%;background:var(--green);width:30%}
+    .btn{
+      border:none;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;
+      background:#16a34a;color:#fff;
+    }
+
+.recent{
+      display:grid;grid-template-columns:1.1fr .9fr;gap:14px;
+    }
+    .q-meta{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:13px;margin-bottom:10px}
+    .badge{padding:4px 8px;border-radius:999px;font-size:12px;border:1px solid rgba(34,197,94,.35);color:#b6ffcf;background:rgba(34,197,94,.08)}
+    .question{font-size:28px;line-height:1.4;margin:10px 0 14px}
+    .options .opt{
+      border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer;
+      background:rgba(255,255,255,.02);display:flex;align-items:center;gap:10px;
+    }
+    .options .opt input{accent-color:var(--green)}
+    .options .opt.active{border-color:rgba(34,197,94,.55);background:rgba(34,197,94,.09)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn-outline{
+      background:transparent;color:var(--text);border:1px solid var(--line);
+    }
+    .success{
+      margin-top:10px;padding:10px;border-radius:10px;border:1px solid rgba(34,197,94,.35);
+      background:rgba(34,197,94,.08);color:#b7ffce;display:none;
+    }
+    .error{
+      margin-top:10px;padding:10px;border-radius:10px;border:1px solid rgba(239,68,68,.35);
+      background:rgba(239,68,68,.08);color:#ffc8c8;display:none;
+    }
+
+.footer{margin-top:14px;color:var(--muted);font-size:13px}
+
+@media (max-width:1050px){
+      .app{grid-template-columns:1fr}
+      .sidebar{position:relative;height:auto}
+      .recent{grid-template-columns:1fr}
+      .cards{grid-template-columns:1fr}
+      .topbar{flex-direction:column;height:auto;padding:12px;gap:10px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode</h1>
+          <p>LeetCode for JEE</p>
+        </div>
+      </div>
+
+<div class="menu" id="sideMenu">
+        <button data-tab="dashboard" class="active">🏠 Dashboard</button>
+        <button data-tab="problems">☰ Problems</button>
+        <button data-tab="contests">🏆 Contests</button>
+        <button data-tab="progress">📈 Progress</button>
+        <button data-tab="bookmarks">🔖 Bookmarks</button>
+        <button data-tab="settings">⚙ Settings</button>
+      </div>
+
+<div class="subjects">
+        <h4>SUBJECTS</h4>
+        <div class="sub-item"><span>Physics</span><small id="phySolved">12 / 50</small></div>
+        <div class="sub-item"><span>Chemistry</span><small id="chemSolved">8 / 40</small></div>
+        <div class="sub-item"><span>Mathematics</span><small id="mathSolved">15 / 60</small></div>
+      </div>
+
+<div class="premium">
+        <h5>⭐ Go Premium</h5>
+        <p>Unlock AI solutions, analytics, and mock tests.</p>
+        <button>Upgrade Now</button>
+      </div>
+    </aside>
+
+<!-- Main -->
+    <main class="main">
+      <header class="topbar">
+        <nav class="top-links" id="topNav">
+          <button class="active" data-tab="home">Home</button>
+          <button data-tab="problems">Problems</button>
+          <button data-tab="contests">Contests</button>
+          <button data-tab="progress">Progress</button>
+          <button data-tab="leaderboard">Leaderboard</button>
+        </nav>
+        <div class="right-actions">
+          <div class="streak">🔥 <span id="streakNum">7</span> Day Streak</div>
+          <div class="profile">
+            <div class="avatar">P</div>
+            <div>PrepCoder ▾</div>
+          </div>
+        </div>
+      </header>
+
+<section class="content">
+        <h2 class="section-title">Choose a Subject</h2>
+        <div class="cards">
+          <article class="subject-card physics">
+            <h3>⚛ Physics</h3>
+            <p>50 Topics · 512 Problems</p>
+            <button id="explorePhysicsBtn">Explore</button>
+          </article>
+          <article class="subject-card chem">
+            <h3>🧪 Chemistry</h3>
+            <p>40 Topics · 420 Problems</p>
+            <button id="exploreChemBtn">Explore</button>
+          </article>
+          <article class="subject-card math">
+            <h3>π Mathematics</h3>
+            <p>60 Topics · 620 Problems</p>
+            <button id="exploreMathBtn">Explore</button>
+          </article>
+        </div>
+
+<div class="panel">
+          <h3 style="margin-bottom:10px;">Continue Practice</h3>
+          <div class="continue-row">
+            <div>
+              <strong>Kinematics - Basics</strong>
+              <p class="muted">Physics · Easy</p>
+            </div>
+            <div class="progress-wrap">
+              <strong id="solvedCounter">3 / 10 solved</strong>
+              <div class="bar"><span id="solveBar"></span></div>
+            </div>
+            <button class="btn">Continue</button>
+          </div>
+        </div>
+
+<h3 style="margin-bottom:8px;">Recent Problems</h3>
+        <div class="panel recent">
+          <div>
+            <div class="q-meta">
+              <span style="color:#60a5fa">Physics</span>
+              <span>›</span>
+              <span>Kinematics</span>
+              <span class="badge">Easy</span>
+            </div>
+            <p class="question">
+              A particle moves along a straight line with position
+              <strong>x(t) = 3t² − 4t + 1</strong>. Find velocity at <strong>t = 2 s</strong>.
+            </p>
+            <p class="muted">Difficulty: Easy · Marks: +4 · From: JEE Main</p>
+
+<div class="actions" style="margin-top:12px;">
+              <button class="btn btn-outline" id="bookmarkBtn">🔖 Bookmark</button>
+            </div>
+          </div>
+
+<div>
+            <h4 style="margin-bottom:10px;">Select the correct option</h4>
+            <div class="options" id="options">
+              <label class="opt"><input type="radio" name="ans" value="A"> A. 8 m/s</label>
+              <label class="opt"><input type="radio" name="ans" value="B"> B. 10 m/s</label>
+              <label class="opt"><input type="radio" name="ans" value="C"> C. 12 m/s</label>
+              <label class="opt"><input type="radio" name="ans" value="D"> D. 14 m/s</label>
+            </div>
+            <div class="actions">
+              <button class="btn" id="submitBtn">Submit</button>
+              <button class="btn btn-outline" id="resetBtn">Reset</button>
+            </div>
+            <div class="success" id="successMsg">✅ Correct! Well done. Streak +1</div>
+            <div class="error" id="errorMsg">❌ Wrong answer. Correct option is B (10 m/s).</div>
+          </div>
+        </div>
+
+<p class="footer">© 2026 PrepCode. MVP in pure HTML/CSS/JS + localStorage.</p>
+      </section>
+    </main>
+  </div>
+
+<script>
+    // -------- Local Storage Keys --------
+    const KEYS = {
+      topTab: "jee_top_tab",
+      sideTab: "jee_side_tab",
+      streak: "jee_streak",
+      solved: "jee_solved",
+      selectedOption: "jee_selected_option",
+      bookmarked: "jee_bookmarked"
+    };
+
+// -------- Elements --------
+    const topBtns = document.querySelectorAll("#topNav button");
+    const sideBtns = document.querySelectorAll("#sideMenu button");
+    const streakNum = document.getElementById("streakNum");
+    const solvedCounter = document.getElementById("solvedCounter");
+    const solveBar = document.getElementById("solveBar");
+    const optionsWrap = document.getElementById("options");
+    const submitBtn = document.getElementById("submitBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const successMsg = document.getElementById("successMsg");
+    const errorMsg = document.getElementById("errorMsg");
+    const bookmarkBtn = document.getElementById("bookmarkBtn");
+
+const explorePhysicsBtn = document.getElementById("explorePhysicsBtn");
+    const exploreChemBtn = document.getElementById("exploreChemBtn");
+    const exploreMathBtn = document.getElementById("exploreMathBtn");
+
+// -------- Init State --------
+    let streak = Number(localStorage.getItem(KEYS.streak) || 7);
+    let solved = Number(localStorage.getItem(KEYS.solved) || 3);
+    let selected = localStorage.getItem(KEYS.selectedOption) || "";
+    let bookmarked = localStorage.getItem(KEYS.bookmarked) === "true";
+
+setTopTab(localStorage.getItem(KEYS.topTab) || "home");
+    setSideTab(localStorage.getItem(KEYS.sideTab) || "dashboard");
+    renderStreak();
+    renderSolved();
+    renderBookmark();
+
+if (selected) {
+      const input = document.querySelector(`input[name="ans"][value="${selected}"]`);
+      if (input) {
+        input.checked = true;
+        input.closest(".opt").classList.add("active");
+      }
+    }
+
+// -------- Events: Subject Explore --------
+    explorePhysicsBtn.addEventListener("click", () => {
+      window.location.href = "physics-problems.html";
+    });
+
+exploreChemBtn.addEventListener("click", () => {
+      window.location.href = "chemistry-problems.html";
+    });
+
+exploreMathBtn.addEventListener("click", () => {
+      window.location.href = "math-problems.html";
+    });
+
+// -------- Events: Tabs --------
+    topBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const tab = btn.dataset.tab;
+
+if (tab === "problems") {
+          window.location.href = "problems.html";
+          return;
+        }
+
+if (tab === "contests") {
+          window.location.href = "contesthome.html";
+          return;
+        }
+
+setTopTab(tab);
+        localStorage.setItem(KEYS.topTab, tab);
+      });
+    });
+
+sideBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const tab = btn.dataset.tab;
+
+if (tab === "problems") {
+          window.location.href = "problems.html";
+          return;
+        }
+
+if (tab === "contests") {
+          window.location.href = "contesthome.html";
+          return;
+        }
+
+setSideTab(tab);
+        localStorage.setItem(KEYS.sideTab, tab);
+      });
+    });
+
+function setTopTab(tab){
+      topBtns.forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+    }
+    function setSideTab(tab){
+      sideBtns.forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+    }
+
+// -------- Events: Options --------
+    optionsWrap.querySelectorAll(".opt").forEach(opt => {
+      opt.addEventListener("click", () => {
+        optionsWrap.querySelectorAll(".opt").forEach(o => o.classList.remove("active"));
+        opt.classList.add("active");
+        const val = opt.querySelector("input").value;
+        localStorage.setItem(KEYS.selectedOption, val);
+      });
+    });
+
+// -------- Submit Logic --------
+    submitBtn.addEventListener("click", () => {
+      successMsg.style.display = "none";
+      errorMsg.style.display = "none";
+
+const checked = document.querySelector('input[name="ans"]:checked');
+      if (!checked) {
+        alert("Please select an option first.");
+        return;
+      }
+
+const answer = checked.value;
+      localStorage.setItem(KEYS.selectedOption, answer);
+
+if (answer === "B") {
+        successMsg.style.display = "block";
+        solved = Math.min(10, solved + 1);
+        streak = streak + 1;
+        localStorage.setItem(KEYS.solved, solved);
+        localStorage.setItem(KEYS.streak, streak);
+        renderSolved();
+        renderStreak();
+      } else {
+        errorMsg.style.display = "block";
+      }
+    });
+
+resetBtn.addEventListener("click", () => {
+      document.querySelectorAll('input[name="ans"]').forEach(i => i.checked = false);
+      optionsWrap.querySelectorAll(".opt").forEach(o => o.classList.remove("active"));
+      successMsg.style.display = "none";
+      errorMsg.style.display = "none";
+      localStorage.removeItem(KEYS.selectedOption);
+    });
+
+// -------- Bookmark --------
+    bookmarkBtn.addEventListener("click", () => {
+      bookmarked = !bookmarked;
+      localStorage.setItem(KEYS.bookmarked, bookmarked);
+      renderBookmark();
+    });
+
+function renderBookmark(){
+      bookmarkBtn.textContent = bookmarked ? "✅ Bookmarked" : "🔖 Bookmark";
+      bookmarkBtn.style.borderColor = bookmarked ? "rgba(34,197,94,.4)" : "";
+      bookmarkBtn.style.color = bookmarked ? "#b7ffcf" : "";
+    }
+
+// -------- UI Helpers --------
+    function renderStreak(){
+      streakNum.textContent = streak;
+    }
+
+function renderSolved(){
+      solvedCounter.textContent = `${solved} / 10 solved`;
+      const pct = Math.max(0, Math.min(100, (solved / 10) * 100));
+      solveBar.style.width = pct + "%";
+      document.getElementById("phySolved").textContent = `${Math.min(50, 12 + solved)} / 50`;
+      document.getElementById("chemSolved").textContent = "8 / 40";
+      document.getElementById("mathSolved").textContent = "15 / 60";
+    }
+  </script>
+</body>
+</html>
