@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode • Problems Hub</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#111b31;
+      --line:#25385d;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --blue:#3b82f6;
+      --amber:#f59e0b;
+      --purple:#8b5cf6;
+    }
+
+*{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 15% -10%, #1b3b69 0%, transparent 36%),
+        radial-gradient(circle at 100% 0%, #2b2958 0%, transparent 34%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+
+.container{max-width:1200px;margin:0 auto;padding:16px}
+    .topbar{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+.brand{display:flex;align-items:center;gap:10px}
+    .brand .icon{color:var(--green);font-size:22px;font-weight:900}
+    .brand h1{font-size:24px;line-height:1}
+    .brand p{font-size:12px;color:var(--muted)}
+
+.btn{
+      border:none;cursor:pointer;border-radius:10px;padding:10px 12px;font-weight:700;color:#fff;
+    }
+    .btn-back{background:#334155}
+    .btn-primary{background:#16a34a}
+    .btn-outline{background:transparent;border:1px solid var(--line);color:var(--text)}
+
+.hero{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      background:linear-gradient(180deg, rgba(34,197,94,.13), rgba(255,255,255,.02));
+      margin-bottom:14px;
+    }
+    .hero h2{font-size:30px;margin-bottom:6px}
+    .hero p{color:var(--muted)}
+
+.stats{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+    }
+    .stat{
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;
+      padding:12px;
+      background:rgba(255,255,255,.03);
+      font-size:12px;color:var(--muted);
+    }
+    .stat strong{display:block;color:var(--text);font-size:22px;margin-top:4px}
+
+.toolbar{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .input{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--panel);
+      color:var(--text);
+      padding:11px 12px;
+      outline:none;
+    }
+    .input::placeholder{color:#8ca2cd}
+
+.cards{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(250px,1fr));
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      transition:.2s ease;
+    }
+    .card:hover{transform:translateY(-2px)}
+    .card h3{font-size:24px}
+    .card p{color:var(--muted);font-size:14px}
+    .meta{
+      display:flex;gap:8px;flex-wrap:wrap;
+    }
+    .pill{
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:999px;
+      padding:5px 9px;
+      font-size:12px;
+      color:var(--muted);
+      background:rgba(255,255,255,.03);
+    }
+
+.physics{box-shadow:inset 0 0 0 1px rgba(59,130,246,.35)}
+    .physics .btn-go{background:#1d4ed8}
+    .chem{box-shadow:inset 0 0 0 1px rgba(245,158,11,.35)}
+    .chem .btn-go{background:#b45309}
+    .math{box-shadow:inset 0 0 0 1px rgba(139,92,246,.35)}
+    .math .btn-go{background:#6d28d9}
+
+.btn-go{
+      margin-top:auto;
+      border:none;border-radius:10px;padding:10px 12px;
+      color:#fff;font-weight:700;cursor:pointer;
+    }
+
+.panel{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    }
+
+.recent{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .recent-item{
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;
+      padding:12px;
+      background:rgba(255,255,255,.03);
+    }
+    .recent-item h4{font-size:15px;margin-bottom:5px}
+    .recent-item p{color:var(--muted);font-size:13px}
+    .recent-item button{
+      margin-top:8px;
+      border:none;border-radius:8px;padding:8px 10px;
+      font-weight:700;cursor:pointer;background:#16a34a;color:#fff;
+    }
+
+.footer{
+      margin-top:14px;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+@media (max-width:1020px){
+      .cards{grid-template-columns:1fr 1fr}
+      .recent{grid-template-columns:1fr}
+      .stats{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width:680px){
+      .cards{grid-template-columns:1fr}
+      .toolbar{grid-template-columns:1fr}
+      .stats{grid-template-columns:1fr}
+      .hero h2{font-size:25px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode</h1>
+          <p>LeetCode for JEE • Problems Hub</p>
+        </div>
+      </div>
+      <button class="btn btn-back" id="backBtn">← Back to Dashboard</button>
+    </header>
+
+<section class="hero">
+      <h2>Choose Your Subject</h2>
+      <p>Start solving chapter-wise problems from Physics, Chemistry, or Mathematics.</p>
+      <div class="stats">
+        <div class="stat">Total Subjects<strong>3</strong></div>
+        <div class="stat">Physics Solved<strong id="phySolvedStat">0</strong></div>
+        <div class="stat">Chemistry Solved<strong id="chemSolvedStat">0</strong></div>
+        <div class="stat">Math Solved<strong id="mathSolvedStat">0</strong></div>
+      </div>
+    </section>
+
+<section class="toolbar">
+      <input id="searchInput" class="input" placeholder="Search subject (physics / chemistry / mathematics)" />
+      <button class="btn btn-outline" id="clearBtn">Clear</button>
+    </section>
+
+<section class="cards" id="subjectCards">
+      <article class="card physics" data-name="physics">
+        <h3>⚛ Physics</h3>
+        <p>Kinematics, Mechanics, Electrostatics, Current Electricity, Waves, and more.</p>
+        <div class="meta">
+          <span class="pill">50 Topics</span>
+          <span class="pill">512 Problems</span>
+        </div>
+        <button class="btn-go" data-target="physics-problems.html">Explore Physics</button>
+      </article>
+
+<article class="card chem" data-name="chemistry">
+        <h3>🧪 Chemistry</h3>
+        <p>Mole Concept, Bonding, Equilibrium, Organic Reactions, Electrochemistry, etc.</p>
+        <div class="meta">
+          <span class="pill">40 Topics</span>
+          <span class="pill">420 Problems</span>
+        </div>
+        <button class="btn-go" data-target="chemistry-problems.html">Explore Chemistry</button>
+      </article>
+
+<article class="card math" data-name="mathematics maths math">
+        <h3>π Mathematics</h3>
+        <p>Algebra, Calculus, Coordinate Geometry, Probability, Vectors & 3D.</p>
+        <div class="meta">
+          <span class="pill">60 Topics</span>
+          <span class="pill">620 Problems</span>
+        </div>
+        <button class="btn-go" data-target="math-problems.html">Explore Mathematics</button>
+      </article>
+    </section>
+
+<section class="panel">
+      <h3>Quick Access</h3>
+      <div class="recent">
+        <div class="recent-item">
+          <h4>Recent: Physics</h4>
+          <p>Kinematics • Easy</p>
+          <button data-target="physics-problems.html">Continue</button>
+        </div>
+        <div class="recent-item">
+          <h4>Recent: Chemistry</h4>
+          <p>Mole Concept • Medium</p>
+          <button data-target="chemistry-problems.html">Continue</button>
+        </div>
+        <div class="recent-item">
+          <h4>Recent: Mathematics</h4>
+          <p>Algebra • Easy</p>
+          <button data-target="math-problems.html">Continue</button>
+        </div>
+      </div>
+    </section>
+
+<p class="footer">© 2026 PrepCode • Problems gateway page</p>
+  </div>
+
+<script>
+    // -------- Elements --------
+    const backBtn = document.getElementById("backBtn");
+    const searchInput = document.getElementById("searchInput");
+    const clearBtn = document.getElementById("clearBtn");
+    const subjectCards = document.querySelectorAll("#subjectCards .card");
+    const goButtons = document.querySelectorAll("button[data-target]");
+
+const phySolvedStat = document.getElementById("phySolvedStat");
+    const chemSolvedStat = document.getElementById("chemSolvedStat");
+    const mathSolvedStat = document.getElementById("mathSolvedStat");
+
+// -------- Stats from localStorage --------
+    function loadStats(){
+      const phy = JSON.parse(localStorage.getItem("phy_solved_ids") || "[]").length;
+      const chem = JSON.parse(localStorage.getItem("chem_solved_ids") || "[]").length;
+      const math = JSON.parse(localStorage.getItem("math_solved_ids") || "[]").length;
+
+phySolvedStat.textContent = phy;
+      chemSolvedStat.textContent = chem;
+      mathSolvedStat.textContent = math;
+    }
+
+// -------- Navigation --------
+    backBtn.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+
+goButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.target;
+        window.location.href = target;
+      });
+    });
+
+// -------- Search Filter --------
+    function filterCards(){
+      const q = searchInput.value.trim().toLowerCase();
+
+subjectCards.forEach(card => {
+        const name = card.dataset.name.toLowerCase();
+        const visible = q === "" || name.includes(q);
+        card.style.display = visible ? "flex" : "none";
+      });
+    }
+
+searchInput.addEventListener("input", filterCards);
+
+clearBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      filterCards();
+      searchInput.focus();
+    });
+
+// -------- Init --------
+    loadStats();
+  </script>
+</body>
+</html>
