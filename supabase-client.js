@@ -1,7 +1,7 @@
 // supabase-client.js
 
 const SUPABASE_URL = "https://foxxccgiktgrwfdlxkrx.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZveHhjY2dpa3RncndmZGx4a3J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MjgwMTUsImV4cCI6MjA5NzEwNDAxNX0.2ba1TVUvHoCzQfSF0H97V4X-5KoZ6BbgIzzW1zPihHQ"; // keep your real key here
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZveHhjY2dpa3RncndmZGx4a3J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MjgwMTUsImV4cCI6MjA5NzEwNDAxNX0.2ba1TVUvHoCzQfSF0H97V4X-5KoZ6BbgIzzW1zPihHQ";
 
 // Your production app URL (GitHub Pages project site)
 const PROD_REDIRECT_URL = "https://adarshkasaundhan1.github.io/PREPCODEJEE/index.html";
@@ -15,7 +15,7 @@ if (!window.supabase) {
 if (!SUPABASE_URL) {
   console.warn("SUPABASE_URL is not configured in supabase-client.js");
 }
-if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("YOUR_SUPABASE_ANON_KEY_HERE")) {
+if (!SUPABASE_ANON_KEY) {
   console.warn("SUPABASE_ANON_KEY is not configured in supabase-client.js");
 }
 
@@ -46,6 +46,12 @@ function toProblemId(value) {
   if (Number.isFinite(n) && n > 0) return n;
   const m = String(value || "").match(/\d+/);
   return m ? Number(m[0]) : 1;
+}
+
+function daysDiffUTC(fromDateStr, toDateStr) {
+  const from = new Date(fromDateStr + "T00:00:00Z");
+  const to = new Date(toDateStr + "T00:00:00Z");
+  return Math.floor((to - from) / (1000 * 60 * 60 * 24));
 }
 
 window.PC = {
@@ -191,5 +197,131 @@ const { data, error } = await sb.from("recent_activity").insert(payload);
       return { ok: false, error };
     }
     return { ok: true, data };
+  },
+
+// -------------------------
+  // STREAK METHODS (DB-based)
+  // Rule:
+  // - +1 only once per day when at least one correct solve happens
+  // - same-day correct solves do not increase again
+  // - if a day is missed, streak becomes 0
+  // -------------------------
+
+async getStreak(userId) {
+    const { data, error } = await sb
+      .from("user_streaks")
+      .select("current_streak,best_streak,last_solved_date")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+if (error) {
+      console.error("getStreak error:", error);
+      return { ok: false, error };
+    }
+
+// Auto-create row if not exists
+    if (!data) {
+      const seed = {
+        user_id: userId,
+        current_streak: 0,
+        best_streak: 0,
+        last_solved_date: null,
+        updated_at: new Date().toISOString()
+      };
+
+const { data: ins, error: insErr } = await sb
+        .from("user_streaks")
+        .insert(seed)
+        .select()
+        .single();
+
+if (insErr) {
+        console.error("getStreak seed insert error:", insErr);
+        return { ok: false, error: insErr };
+      }
+
+return { ok: true, data: ins };
+    }
+
+// Lazy reset: if missed at least one full day after last solved day => streak = 0
+    if (data.last_solved_date) {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const diff = daysDiffUTC(data.last_solved_date, todayStr);
+
+// diff 0 => same day, diff 1 => yesterday (still valid), diff >1 => missed day(s)
+      if (diff > 1 && data.current_streak !== 0) {
+        const { data: upd, error: updErr } = await sb
+          .from("user_streaks")
+          .update({
+            current_streak: 0,
+            updated_at: new Date().toISOString()
+          })
+          .eq("user_id", userId)
+          .select()
+          .single();
+
+if (updErr) {
+          console.error("getStreak lazy reset error:", updErr);
+          return { ok: false, error: updErr };
+        }
+
+return { ok: true, data: upd };
+      }
+    }
+
+return { ok: true, data };
+  },
+
+async updateStreakOnSolve(userId) {
+    // Call this ONLY when answer is correct
+    const baseRes = await this.getStreak(userId);
+    if (!baseRes.ok) return baseRes;
+
+const row = baseRes.data;
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+let current = row.current_streak || 0;
+    let best = row.best_streak || 0;
+    const last = row.last_solved_date;
+
+if (!last) {
+      current = 1;
+    } else {
+      const diff = daysDiffUTC(last, todayStr);
+
+if (diff === 0) {
+        // already counted today -> no increment
+      } else if (diff === 1) {
+        // consecutive day
+        current += 1;
+      } else {
+        // missed day(s), start new streak today
+        current = 1;
+      }
+    }
+
+if (current > best) best = current;
+
+const { data, error } = await sb
+      .from("user_streaks")
+      .upsert(
+        {
+          user_id: userId,
+          current_streak: current,
+          best_streak: best,
+          last_solved_date: todayStr,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: "user_id" }
+      )
+      .select()
+      .single();
+
+if (error) {
+      console.error("updateStreakOnSolve error:", error);
+      return { ok: false, error };
+    }
+
+return { ok: true, data };
   }
 };
