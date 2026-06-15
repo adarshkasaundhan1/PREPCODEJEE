@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode • Mathematics Problems</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#111b31;
+      --panel2:#162442;
+      --line:#25385d;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --purple:#8b5cf6;
+      --violet:#7c3aed;
+      --yellow:#f59e0b;
+      --red:#ef4444;
+    }
+
+*{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 10% -10%, #2a1b57 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #312160 0%, transparent 30%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+
+.container{max-width:1200px;margin:0 auto;padding:16px}
+    .topbar{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+.brand{display:flex;align-items:center;gap:10px}
+    .brand .icon{color:var(--green);font-size:22px;font-weight:800}
+    .brand h1{font-size:24px;line-height:1}
+    .brand p{font-size:12px;color:var(--muted);margin-top:2px}
+
+.btn{
+      border:none;cursor:pointer;border-radius:10px;padding:10px 12px;font-weight:700;color:#fff;
+    }
+    .btn-back{background:#334155}
+    .btn-primary{background:#16a34a}
+    .btn-outline{background:transparent;border:1px solid var(--line);color:var(--text)}
+
+.hero{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      background:linear-gradient(180deg, rgba(139,92,246,.18), rgba(255,255,255,.02));
+      margin-bottom:14px;
+    }
+    .hero h2{font-size:30px;margin-bottom:6px}
+    .hero p{color:var(--muted)}
+
+.stats{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+    }
+    .stat{
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;
+      padding:12px;
+      background:rgba(255,255,255,.03);
+      font-size:12px;color:var(--muted);
+    }
+    .stat strong{display:block;color:var(--text);font-size:22px;margin-top:4px}
+
+.controls{
+      display:grid;
+      grid-template-columns:1.2fr .8fr .8fr;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .input,.select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--panel);
+      color:var(--text);
+      padding:11px 12px;
+      outline:none;
+    }
+    .input::placeholder{color:#8ca2cd}
+
+.topics{
+      display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;
+    }
+    .topic{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 12px;
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .topic.active{
+      border-color:rgba(34,197,94,.5);
+      background:rgba(34,197,94,.12);
+      color:#baffcf;
+    }
+
+.grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(250px,1fr));
+      gap:12px;
+    }
+    .card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;flex-direction:column;gap:10px;
+    }
+    .head{
+      display:flex;justify-content:space-between;gap:8px;align-items:flex-start;
+    }
+    .title{font-size:18px;font-weight:700;line-height:1.3}
+    .meta{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;
+      font-size:12px;color:var(--muted);
+    }
+    .meta div{
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:9px;padding:8px;background:rgba(255,255,255,.02);
+    }
+    .meta strong{display:block;color:var(--text);font-size:13px;margin-top:3px}
+
+.badge{
+      font-size:11px;padding:5px 9px;border-radius:999px;border:1px solid transparent;font-weight:700;
+      white-space:nowrap;
+    }
+    .easy{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4);color:#baffcf}
+    .medium{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#ffdca3}
+    .hard{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#ffc7c7}
+
+.actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+.empty{
+      grid-column:1/-1;
+      border:1px dashed var(--line);
+      border-radius:12px;
+      padding:20px;
+      text-align:center;
+      color:var(--muted);
+    }
+
+.footer{
+      margin-top:14px;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+@media(max-width:1020px){
+      .grid{grid-template-columns:repeat(2,minmax(220px,1fr))}
+      .controls{grid-template-columns:1fr}
+      .stats{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:680px){
+      .grid{grid-template-columns:1fr}
+      .hero h2{font-size:25px}
+      .stats{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode</h1>
+          <p>LeetCode for JEE • Mathematics Problems</p>
+        </div>
+      </div>
+      <button class="btn btn-back" id="backBtn">← Back to Dashboard</button>
+    </header>
+
+<section class="hero">
+      <h2>π Mathematics Problem Bank</h2>
+      <p>Practice Algebra, Calculus, Coordinate Geometry, and more with filters.</p>
+      <div class="stats">
+        <div class="stat">Total Problems<strong id="totalProblems">0</strong></div>
+        <div class="stat">Solved<strong id="solvedCount">0</strong></div>
+        <div class="stat">Bookmarked<strong id="bookmarkCount">0</strong></div>
+        <div class="stat">Progress<strong id="progressCount">0%</strong></div>
+      </div>
+    </section>
+
+<section class="controls">
+      <input id="searchInput" class="input" placeholder="Search by title or topic..." />
+      <select id="difficultySelect" class="select">
+        <option value="all">Difficulty: All</option>
+        <option value="Easy">Easy</option>
+        <option value="Medium">Medium</option>
+        <option value="Hard">Hard</option>
+      </select>
+      <select id="sortSelect" class="select">
+        <option value="default">Sort: Default</option>
+        <option value="marks">Sort: Highest Marks</option>
+        <option value="topic">Sort: Topic A-Z</option>
+      </select>
+    </section>
+
+<section class="topics" id="topicTabs"></section>
+    <section class="grid" id="problemGrid"></section>
+
+<p class="footer">MVP • localStorage keys: math_solved_ids, math_bookmark_ids</p>
+  </div>
+
+<script>
+    const LS = {
+      solved: "math_solved_ids",
+      bookmarked: "math_bookmark_ids",
+      topic: "math_selected_topic",
+      search: "math_search_text",
+      difficulty: "math_difficulty",
+      sort: "math_sort"
+    };
+
+const problems = [
+      {id:1,title:"Quadratic Equation Roots Range",topic:"Algebra",difficulty:"Easy",marks:4,source:"JEE Main",text:"If x²−5x+6=0, find roots.",a:"2, 3",b:"1, 6",c:"-2, -3",d:"3, 6",correct:"A",explain:"x²−5x+6=(x−2)(x−3)."},
+      {id:2,title:"Complex Number Locus",topic:"Complex Numbers",difficulty:"Hard",marks:4,source:"JEE Advanced",text:"Locus of z such that |z−2|=3 is:",a:"Line",b:"Circle center 2 radius 3",c:"Parabola",d:"Circle center 0 radius 3",correct:"B",explain:"|z-a|=r => circle centered at a."},
+      {id:3,title:"Binomial Middle Term",topic:"Binomial Theorem",difficulty:"Medium",marks:4,source:"JEE Main",text:"Middle term in (x+1)^6 is:",a:"15x³",b:"20x³",c:"20x²",d:"6x³",correct:"B",explain:"T4 = C(6,3)x³ = 20x³."},
+      {id:4,title:"AP-GP Mixed Sequence",topic:"Sequences & Series",difficulty:"Medium",marks:4,source:"JEE Main",text:"Sum of first 10 natural numbers is:",a:"45",b:"50",c:"55",d:"60",correct:"C",explain:"n(n+1)/2 = 10×11/2 = 55."},
+      {id:5,title:"Limit Using Expansion",topic:"Limits",difficulty:"Easy",marks:4,source:"JEE Main",text:"lim(x→0) sinx/x =",a:"0",b:"1",c:"∞",d:"-1",correct:"B",explain:"Standard limit."},
+      {id:6,title:"Definite Integral Property",topic:"Integrals",difficulty:"Medium",marks:4,source:"JEE Main",text:"∫₀¹ x dx =",a:"1",b:"1/2",c:"2",d:"0",correct:"B",explain:"[x²/2]₀¹ = 1/2."},
+      {id:7,title:"Area Under Curve",topic:"Applications of Integrals",difficulty:"Hard",marks:4,source:"JEE Advanced",text:"Area under y=x² from 0 to 2 is:",a:"4/3",b:"8/3",c:"2",d:"4",correct:"B",explain:"∫₀²x²dx = 8/3."},
+      {id:8,title:"Tangent and Normal",topic:"Differentiation",difficulty:"Easy",marks:4,source:"JEE Main",text:"If y=x², slope at x=2:",a:"2",b:"4",c:"6",d:"8",correct:"B",explain:"dy/dx=2x => 4."},
+      {id:9,title:"Circle Common Chord",topic:"Coordinate Geometry",difficulty:"Medium",marks:4,source:"JEE Main",text:"x²+y²=25 represents:",a:"Parabola",b:"Ellipse",c:"Circle radius 5",d:"Line",correct:"C",explain:"r²=25 => r=5."},
+      {id:10,title:"3D Distance Between Skew Lines",topic:"3D Geometry",difficulty:"Hard",marks:4,source:"JEE Advanced",text:"Distance between (0,0,0) and (1,2,2):",a:"2",b:"3",c:"4",d:"5",correct:"B",explain:"√(1+4+4)=3."},
+      {id:11,title:"Probability with Conditional Event",topic:"Probability",difficulty:"Medium",marks:4,source:"JEE Main",text:"For fair coin toss, P(H)=",a:"0",b:"1/4",c:"1/2",d:"1",correct:"C",explain:"One favorable out of 2."},
+      {id:12,title:"Matrix Determinant Identity",topic:"Matrices & Determinants",difficulty:"Easy",marks:4,source:"JEE Main",text:"det(I₃) =",a:"0",b:"1",c:"3",d:"-1",correct:"B",explain:"det(Iₙ)=1."}
+    ];
+
+const topicTabs = document.getElementById("topicTabs");
+    const problemGrid = document.getElementById("problemGrid");
+    const searchInput = document.getElementById("searchInput");
+    const difficultySelect = document.getElementById("difficultySelect");
+    const sortSelect = document.getElementById("sortSelect");
+    const backBtn = document.getElementById("backBtn");
+
+const totalProblemsEl = document.getElementById("totalProblems");
+    const solvedCountEl = document.getElementById("solvedCount");
+    const bookmarkCountEl = document.getElementById("bookmarkCount");
+    const progressCountEl = document.getElementById("progressCount");
+
+let solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(Number);
+    let bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(Number);
+    let selectedTopic = localStorage.getItem(LS.topic) || "All";
+    let searchText = localStorage.getItem(LS.search) || "";
+    let difficulty = localStorage.getItem(LS.difficulty) || "all";
+    let sortBy = localStorage.getItem(LS.sort) || "default";
+
+searchInput.value = searchText;
+    difficultySelect.value = difficulty;
+    sortSelect.value = sortBy;
+
+const topics = ["All", ...new Set(problems.map(p => p.topic))];
+
+function renderTopics(){
+      topicTabs.innerHTML = topics.map(t => `
+        <button class="topic ${selectedTopic === t ? "active" : ""}" data-topic="${t}">${t}</button>
+      `).join("");
+
+topicTabs.querySelectorAll(".topic").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedTopic = btn.dataset.topic;
+          localStorage.setItem(LS.topic, selectedTopic);
+          render();
+        });
+      });
+    }
+
+function getFiltered(){
+      let data = [...problems];
+
+if(selectedTopic !== "All") data = data.filter(p => p.topic === selectedTopic);
+
+if(searchText.trim()){
+        const q = searchText.toLowerCase();
+        data = data.filter(p =>
+          p.title.toLowerCase().includes(q) ||
+          p.topic.toLowerCase().includes(q)
+        );
+      }
+
+if(difficulty !== "all") data = data.filter(p => p.difficulty === difficulty);
+
+if(sortBy === "marks"){
+        data.sort((a,b) => b.marks - a.marks);
+      } else if(sortBy === "topic"){
+        data.sort((a,b) => a.topic.localeCompare(b.topic));
+      }
+
+return data;
+    }
+
+function difficultyClass(level){
+      if(level === "Easy") return "easy";
+      if(level === "Medium") return "medium";
+      return "hard";
+    }
+
+function renderStats(){
+      solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(Number);
+      bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(Number);
+
+const solved = solvedIds.length;
+      const bookmarked = bookmarkIds.length;
+      const total = problems.length;
+      const progress = Math.round((solved / total) * 100);
+
+totalProblemsEl.textContent = total;
+      solvedCountEl.textContent = solved;
+      bookmarkCountEl.textContent = bookmarked;
+      progressCountEl.textContent = `${progress}%`;
+    }
+
+function buildSolveUrl(p){
+      const params = new URLSearchParams({
+        id: String(p.id),
+        subject: "Mathematics",
+        topic: p.topic,
+        difficulty: p.difficulty,
+        marks: String(p.marks),
+        title: p.title,
+        text: p.text,
+        a: p.a,
+        b: p.b,
+        c: p.c,
+        d: p.d,
+        correct: p.correct,
+        explain: p.explain,
+        back: "math-problems.html"
+      });
+      return `solve-problem.html?${params.toString()}`;
+    }
+
+function problemCard(p){
+      const solved = solvedIds.includes(Number(p.id));
+      const bookmarked = bookmarkIds.includes(Number(p.id));
+
+return `
+        <article class="card">
+          <div class="head">
+            <h3 class="title">${p.title}</h3>
+            <span class="badge ${difficultyClass(p.difficulty)}">${p.difficulty}</span>
+          </div>
+
+<div class="meta">
+            <div>Topic<strong>${p.topic}</strong></div>
+            <div>Marks<strong>+${p.marks}</strong></div>
+            <div>Source<strong>${p.source}</strong></div>
+            <div>Status<strong>${solved ? "Solved" : "Unsolved"}</strong></div>
+          </div>
+
+<div class="actions">
+            <button class="btn btn-primary" data-action="solve" data-id="${p.id}">
+              ${solved ? "✅ Solved" : "Solve"}
+            </button>
+            <button class="btn btn-outline" data-action="bookmark" data-id="${p.id}">
+              ${bookmarked ? "⭐ Bookmarked" : "🔖 Bookmark"}
+            </button>
+          </div>
+        </article>
+      `;
+    }
+
+function renderGrid(){
+      const data = getFiltered();
+
+if(!data.length){
+        problemGrid.innerHTML = `<div class="empty">No problems found for current filters.</div>`;
+        return;
+      }
+
+problemGrid.innerHTML = data.map(problemCard).join("");
+
+problemGrid.querySelectorAll("button[data-action]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.dataset.id);
+          const action = btn.dataset.action;
+          const p = problems.find(x => x.id === id);
+          if(!p) return;
+
+if(action === "solve"){
+            window.location.href = buildSolveUrl(p);
+            return;
+          }
+
+if(action === "bookmark"){
+            if(bookmarkIds.includes(id)){
+              bookmarkIds = bookmarkIds.filter(x => x !== id);
+            } else {
+              bookmarkIds.push(id);
+            }
+            localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+            render();
+          }
+        });
+      });
+    }
+
+function render(){
+      renderStats();
+      renderTopics();
+      renderGrid();
+    }
+
+searchInput.addEventListener("input", e => {
+      searchText = e.target.value;
+      localStorage.setItem(LS.search, searchText);
+      renderGrid();
+    });
+
+difficultySelect.addEventListener("change", e => {
+      difficulty = e.target.value;
+      localStorage.setItem(LS.difficulty, difficulty);
+      renderGrid();
+    });
+
+sortSelect.addEventListener("change", e => {
+      sortBy = e.target.value;
+      localStorage.setItem(LS.sort, sortBy);
+      renderGrid();
+    });
+
+backBtn.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+
+render();
+  </script>
+</body>
+</html>
