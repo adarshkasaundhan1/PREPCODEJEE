@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode • Solve Problem</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#111b31;
+      --line:#25385d;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --blue:#3b82f6;
+      --red:#ef4444;
+      --amber:#f59e0b;
+    }
+
+*{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 10% -10%, #1d3b67 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1e2f56 0%, transparent 30%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+
+.container{max-width:980px;margin:0 auto;padding:16px}
+    .topbar{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+.brand{display:flex;align-items:center;gap:10px}
+    .brand .icon{color:var(--green);font-size:22px;font-weight:800}
+    .brand h1{font-size:22px}
+    .brand p{font-size:12px;color:var(--muted)}
+
+.btn{
+      border:none;cursor:pointer;border-radius:10px;padding:10px 12px;font-weight:700;color:#fff;
+    }
+    .btn-back{background:#334155}
+    .btn-primary{background:#16a34a}
+    .btn-outline{background:transparent;border:1px solid var(--line);color:var(--text)}
+
+.panel{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      padding:16px;
+      margin-bottom:14px;
+    }
+
+.meta{
+      display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;
+    }
+    .pill{
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:999px;
+      padding:4px 10px;
+      font-size:12px;
+      color:var(--muted);
+      background:rgba(255,255,255,.03);
+    }
+
+.question-title{
+      font-size:28px;line-height:1.35;margin-bottom:10px;
+    }
+
+.question-text{
+      font-size:18px;line-height:1.6;color:#dce8ff;margin-bottom:16px;
+    }
+
+.options .opt{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:12px;
+      margin-bottom:10px;
+      cursor:pointer;
+      background:rgba(255,255,255,.02);
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      transition:.15s ease;
+    }
+    .options .opt:hover{border-color:rgba(59,130,246,.5)}
+    .options .opt input{margin-top:3px;accent-color:var(--green)}
+    .options .opt.active{
+      border-color:rgba(34,197,94,.55);
+      background:rgba(34,197,94,.10);
+    }
+
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+.success,.error{
+      margin-top:12px;padding:10px;border-radius:10px;display:none;font-weight:600;
+    }
+    .success{
+      border:1px solid rgba(34,197,94,.35);
+      background:rgba(34,197,94,.08);
+      color:#b7ffce;
+    }
+    .error{
+      border:1px solid rgba(239,68,68,.35);
+      background:rgba(239,68,68,.08);
+      color:#ffc8c8;
+    }
+
+.explain{
+      margin-top:12px;
+      border:1px dashed rgba(255,255,255,.18);
+      border-radius:10px;
+      padding:10px;
+      color:#d7e4ff;
+      background:rgba(255,255,255,.02);
+    }
+
+.footer{
+      text-align:center;color:var(--muted);font-size:12px;margin-top:6px;
+    }
+
+@media(max-width:700px){
+      .question-title{font-size:22px}
+      .question-text{font-size:16px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode</h1>
+          <p>Solve Problem</p>
+        </div>
+      </div>
+      <button class="btn btn-back" id="backBtn">← Back</button>
+    </header>
+
+<section class="panel">
+      <div class="meta">
+        <span class="pill" id="subjectPill">Subject: Physics</span>
+        <span class="pill" id="topicPill">Topic: Kinematics</span>
+        <span class="pill" id="difficultyPill">Difficulty: Easy</span>
+        <span class="pill" id="marksPill">Marks: +4</span>
+      </div>
+
+<h2 class="question-title" id="problemTitle">Velocity from Position Function</h2>
+      <p class="question-text" id="problemText">
+        A particle moves along a straight line with position x(t)=3t²−4t+1. Find velocity at t=2 s.
+      </p>
+
+<div class="options" id="optionsWrap"></div>
+
+<div class="actions">
+        <button class="btn btn-primary" id="submitBtn">Submit</button>
+        <button class="btn btn-outline" id="resetBtn">Reset</button>
+        <button class="btn btn-outline" id="bookmarkBtn">🔖 Bookmark</button>
+      </div>
+
+<div class="success" id="successMsg">✅ Correct! Great work.</div>
+      <div class="error" id="errorMsg">❌ Wrong answer.</div>
+
+<div class="explain" id="explainBox">
+        <strong>Explanation:</strong>
+        <span id="explainText">Differentiate x(t) to get v(t), then substitute t = 2.</span>
+      </div>
+    </section>
+
+<p class="footer">MVP • shared solver page for Physics/Chemistry/Math</p>
+  </div>
+
+<script>
+    // -------- Helpers --------
+    const qs = new URLSearchParams(window.location.search);
+    const byId = (id) => document.getElementById(id);
+
+// -------- Fallback default problem --------
+    const defaultProblem = {
+      id: "phy-1",
+      subject: "Physics",
+      topic: "Kinematics",
+      difficulty: "Easy",
+      marks: "4",
+      title: "Velocity from Position Function",
+      text: "A particle moves along a straight line with position x(t)=3t²−4t+1. Find velocity at t=2 s.",
+      a: "8 m/s",
+      b: "10 m/s",
+      c: "12 m/s",
+      d: "14 m/s",
+      correct: "B",
+      explain: "x(t)=3t²−4t+1 ⇒ v(t)=dx/dt=6t−4. At t=2, v=12−4=8 m/s. (Correct option: A)"
+    };
+
+// -------- Read from URL --------
+    const problem = {
+      id: qs.get("id") || defaultProblem.id,
+      subject: qs.get("subject") || defaultProblem.subject,
+      topic: qs.get("topic") || defaultProblem.topic,
+      difficulty: qs.get("difficulty") || defaultProblem.difficulty,
+      marks: qs.get("marks") || defaultProblem.marks,
+      title: qs.get("title") || defaultProblem.title,
+      text: qs.get("text") || defaultProblem.text,
+      a: qs.get("a") || defaultProblem.a,
+      b: qs.get("b") || defaultProblem.b,
+      c: qs.get("c") || defaultProblem.c,
+      d: qs.get("d") || defaultProblem.d,
+      correct: (qs.get("correct") || defaultProblem.correct).toUpperCase(),
+      explain: qs.get("explain") || defaultProblem.explain,
+      back: qs.get("back") || "" // optional explicit back page
+    };
+
+// -------- Keys --------
+    const ATTEMPT_KEY = `pc_attempt_${problem.id}`;
+    const BOOKMARK_KEY = `pc_bookmark_${problem.id}`;
+    const SUBJECT_SOLVED_KEY_MAP = {
+      physics: "phy_solved_ids",
+      chemistry: "chem_solved_ids",
+      mathematics: "math_solved_ids",
+      maths: "math_solved_ids",
+      math: "math_solved_ids"
+    };
+
+// -------- Elements --------
+    const backBtn = byId("backBtn");
+    const subjectPill = byId("subjectPill");
+    const topicPill = byId("topicPill");
+    const difficultyPill = byId("difficultyPill");
+    const marksPill = byId("marksPill");
+    const problemTitle = byId("problemTitle");
+    const problemText = byId("problemText");
+    const optionsWrap = byId("optionsWrap");
+    const submitBtn = byId("submitBtn");
+    const resetBtn = byId("resetBtn");
+    const bookmarkBtn = byId("bookmarkBtn");
+    const successMsg = byId("successMsg");
+    const errorMsg = byId("errorMsg");
+    const explainText = byId("explainText");
+
+let selected = localStorage.getItem(ATTEMPT_KEY) || "";
+    let bookmarked = localStorage.getItem(BOOKMARK_KEY) === "true";
+
+// -------- Render Header --------
+    subjectPill.textContent = `Subject: ${problem.subject}`;
+    topicPill.textContent = `Topic: ${problem.topic}`;
+    difficultyPill.textContent = `Difficulty: ${problem.difficulty}`;
+    marksPill.textContent = `Marks: +${problem.marks}`;
+    problemTitle.textContent = problem.title;
+    problemText.textContent = problem.text;
+    explainText.textContent = problem.explain;
+
+// -------- Render Options --------
+    const labels = [
+      {key:"A", text: problem.a},
+      {key:"B", text: problem.b},
+      {key:"C", text: problem.c},
+      {key:"D", text: problem.d}
+    ];
+
+optionsWrap.innerHTML = labels.map(opt => `
+      <label class="opt" data-val="${opt.key}">
+        <input type="radio" name="ans" value="${opt.key}" ${selected === opt.key ? "checked" : ""} />
+        <span>${opt.key}. ${opt.text}</span>
+      </label>
+    `).join("");
+
+// highlight selected if any
+    if (selected) {
+      const active = optionsWrap.querySelector(`.opt[data-val="${selected}"]`);
+      if (active) active.classList.add("active");
+    }
+
+optionsWrap.querySelectorAll(".opt").forEach(opt => {
+      opt.addEventListener("click", () => {
+        optionsWrap.querySelectorAll(".opt").forEach(x => x.classList.remove("active"));
+        opt.classList.add("active");
+        selected = opt.dataset.val;
+        localStorage.setItem(ATTEMPT_KEY, selected);
+      });
+    });
+
+// -------- Bookmark --------
+    function renderBookmark(){
+      bookmarkBtn.textContent = bookmarked ? "✅ Bookmarked" : "🔖 Bookmark";
+      bookmarkBtn.style.borderColor = bookmarked ? "rgba(34,197,94,.45)" : "";
+      bookmarkBtn.style.color = bookmarked ? "#b7ffcf" : "";
+    }
+    renderBookmark();
+
+bookmarkBtn.addEventListener("click", () => {
+      bookmarked = !bookmarked;
+      localStorage.setItem(BOOKMARK_KEY, bookmarked);
+      renderBookmark();
+    });
+
+// -------- Submit --------
+    submitBtn.addEventListener("click", () => {
+      successMsg.style.display = "none";
+      errorMsg.style.display = "none";
+
+const checked = document.querySelector('input[name="ans"]:checked');
+      if (!checked) {
+        alert("Please select an option first.");
+        return;
+      }
+
+const ans = checked.value.toUpperCase();
+      localStorage.setItem(ATTEMPT_KEY, ans);
+
+if (ans === problem.correct) {
+        successMsg.style.display = "block";
+        errorMsg.style.display = "none";
+        markSolvedInSubject(problem.subject, problem.id);
+      } else {
+        errorMsg.textContent = `❌ Wrong answer. Correct option is ${problem.correct}.`;
+        errorMsg.style.display = "block";
+      }
+    });
+
+// -------- Reset --------
+    resetBtn.addEventListener("click", () => {
+      document.querySelectorAll('input[name="ans"]').forEach(i => i.checked = false);
+      optionsWrap.querySelectorAll(".opt").forEach(x => x.classList.remove("active"));
+      selected = "";
+      localStorage.removeItem(ATTEMPT_KEY);
+      successMsg.style.display = "none";
+      errorMsg.style.display = "none";
+    });
+
+// -------- Back --------
+    backBtn.addEventListener("click", () => {
+      if (problem.back) {
+        window.location.href = problem.back;
+        return;
+      }
+      if (document.referrer) {
+        history.back();
+        return;
+      }
+      window.location.href = "problems.html";
+    });
+
+// -------- Mark solved in subject list --------
+    function markSolvedInSubject(subject, id){
+      const key = SUBJECT_SOLVED_KEY_MAP[String(subject).toLowerCase()];
+      if (!key) return;
+      const arr = JSON.parse(localStorage.getItem(key) || "[]");
+      if (!arr.includes(id)) {
+        arr.push(id);
+        localStorage.setItem(key, JSON.stringify(arr));
+      }
+    }
+  </script>
+</body>
+</html>
