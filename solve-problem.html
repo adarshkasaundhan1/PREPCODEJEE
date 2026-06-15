@@ -179,10 +179,38 @@
 <p class="footer">MVP • shared solver page for Physics/Chemistry/Math</p>
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+
 <script>
     // -------- Helpers --------
     const qs = new URLSearchParams(window.location.search);
     const byId = (id) => document.getElementById(id);
+
+function normalizeSubject(subject) {
+      const s = String(subject || "").toLowerCase();
+      if (s.includes("phys")) return "Physics";
+      if (s.includes("chem")) return "Chemistry";
+      return "Mathematics";
+    }
+
+function toNumericProblemId(rawId) {
+      // DB requires int problem_id
+      const n = Number(rawId);
+      if (Number.isFinite(n)) return n;
+      const m = String(rawId).match(/\d+/);
+      return m ? Number(m[0]) : 1;
+    }
+
+async function getCurrentUserOrNull() {
+      try {
+        if (!window.PC) return null;
+        return await PC.getUser();
+      } catch (e) {
+        console.error("Auth fetch error:", e);
+        return null;
+      }
+    }
 
 // -------- Fallback default problem --------
     const defaultProblem = {
@@ -197,7 +225,7 @@
       b: "10 m/s",
       c: "12 m/s",
       d: "14 m/s",
-      correct: "B",
+      correct: "A",
       explain: "x(t)=3t²−4t+1 ⇒ v(t)=dx/dt=6t−4. At t=2, v=12−4=8 m/s. (Correct option: A)"
     };
 
@@ -216,8 +244,11 @@
       d: qs.get("d") || defaultProblem.d,
       correct: (qs.get("correct") || defaultProblem.correct).toUpperCase(),
       explain: qs.get("explain") || defaultProblem.explain,
-      back: qs.get("back") || "" // optional explicit back page
+      back: qs.get("back") || ""
     };
+
+const subjectNormalized = normalizeSubject(problem.subject);
+    const dbProblemId = toNumericProblemId(problem.id);
 
 // -------- Keys --------
     const ATTEMPT_KEY = `pc_attempt_${problem.id}`;
@@ -250,7 +281,7 @@ let selected = localStorage.getItem(ATTEMPT_KEY) || "";
     let bookmarked = localStorage.getItem(BOOKMARK_KEY) === "true";
 
 // -------- Render Header --------
-    subjectPill.textContent = `Subject: ${problem.subject}`;
+    subjectPill.textContent = `Subject: ${subjectNormalized}`;
     topicPill.textContent = `Topic: ${problem.topic}`;
     difficultyPill.textContent = `Difficulty: ${problem.difficulty}`;
     marksPill.textContent = `Marks: +${problem.marks}`;
@@ -260,10 +291,10 @@ let selected = localStorage.getItem(ATTEMPT_KEY) || "";
 
 // -------- Render Options --------
     const labels = [
-      {key:"A", text: problem.a},
-      {key:"B", text: problem.b},
-      {key:"C", text: problem.c},
-      {key:"D", text: problem.d}
+      { key: "A", text: problem.a },
+      { key: "B", text: problem.b },
+      { key: "C", text: problem.c },
+      { key: "D", text: problem.d }
     ];
 
 optionsWrap.innerHTML = labels.map(opt => `
@@ -273,8 +304,7 @@ optionsWrap.innerHTML = labels.map(opt => `
       </label>
     `).join("");
 
-// highlight selected if any
-    if (selected) {
+if (selected) {
       const active = optionsWrap.querySelector(`.opt[data-val="${selected}"]`);
       if (active) active.classList.add("active");
     }
@@ -289,21 +319,38 @@ optionsWrap.querySelectorAll(".opt").forEach(opt => {
     });
 
 // -------- Bookmark --------
-    function renderBookmark(){
+    function renderBookmark() {
       bookmarkBtn.textContent = bookmarked ? "✅ Bookmarked" : "🔖 Bookmark";
       bookmarkBtn.style.borderColor = bookmarked ? "rgba(34,197,94,.45)" : "";
       bookmarkBtn.style.color = bookmarked ? "#b7ffcf" : "";
     }
     renderBookmark();
 
-bookmarkBtn.addEventListener("click", () => {
+bookmarkBtn.addEventListener("click", async () => {
+      // local fallback first
       bookmarked = !bookmarked;
       localStorage.setItem(BOOKMARK_KEY, bookmarked);
       renderBookmark();
+
+// supabase sync
+      const user = await getCurrentUserOrNull();
+      if (!user) return;
+
+try {
+        const res = await PC.toggleBookmark(user.id, subjectNormalized, dbProblemId);
+if (res.ok) {
+  bookmarked = !!res.bookmarked;
+  localStorage.setItem(BOOKMARK_KEY, bookmarked);
+  renderBookmark();
+}
+
+      } catch (e) {
+        console.error("Bookmark sync error:", e);
+      }
     });
 
 // -------- Submit --------
-    submitBtn.addEventListener("click", () => {
+    submitBtn.addEventListener("click", async () => {
       successMsg.style.display = "none";
       errorMsg.style.display = "none";
 
@@ -316,13 +363,32 @@ const checked = document.querySelector('input[name="ans"]:checked');
 const ans = checked.value.toUpperCase();
       localStorage.setItem(ATTEMPT_KEY, ans);
 
-if (ans === problem.correct) {
+const isCorrect = ans === problem.correct;
+
+if (isCorrect) {
         successMsg.style.display = "block";
         errorMsg.style.display = "none";
-        markSolvedInSubject(problem.subject, problem.id);
+        markSolvedInSubject(subjectNormalized, problem.id);
       } else {
         errorMsg.textContent = `❌ Wrong answer. Correct option is ${problem.correct}.`;
         errorMsg.style.display = "block";
+      }
+
+// supabase sync
+      const user = await getCurrentUserOrNull();
+      if (!user) return;
+
+try {
+        await PC.markSolved(user.id, subjectNormalized, dbProblemId, ans, isCorrect);
+
+if (isCorrect) {
+          await PC.pushRecent(user.id, {
+            ...problem,
+            subject: subjectNormalized
+          });
+        }
+      } catch (e) {
+        console.error("Submit sync error:", e);
       }
     });
 
@@ -349,8 +415,8 @@ if (ans === problem.correct) {
       window.location.href = "problems.html";
     });
 
-// -------- Mark solved in subject list --------
-    function markSolvedInSubject(subject, id){
+// -------- Mark solved in local subject list --------
+    function markSolvedInSubject(subject, id) {
       const key = SUBJECT_SOLVED_KEY_MAP[String(subject).toLowerCase()];
       if (!key) return;
       const arr = JSON.parse(localStorage.getItem(key) || "[]");
