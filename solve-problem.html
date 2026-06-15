@@ -338,12 +338,11 @@ bookmarkBtn.addEventListener("click", async () => {
 
 try {
         const res = await PC.toggleBookmark(user.id, subjectNormalized, dbProblemId);
-if (res.ok) {
-  bookmarked = !!res.bookmarked;
-  localStorage.setItem(BOOKMARK_KEY, bookmarked);
-  renderBookmark();
-}
-
+        if (res.ok) {
+          bookmarked = !!res.bookmarked;
+          localStorage.setItem(BOOKMARK_KEY, bookmarked);
+          renderBookmark();
+        }
       } catch (e) {
         console.error("Bookmark sync error:", e);
       }
@@ -386,6 +385,9 @@ if (isCorrect) {
             ...problem,
             subject: subjectNormalized
           });
+
+// ✅ DB streak update (once per day rule handled in supabase-client.js)
+          await PC.updateStreakOnSolve(user.id);
         }
       } catch (e) {
         console.error("Submit sync error:", e);
