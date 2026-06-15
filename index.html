@@ -234,10 +234,9 @@
           <button data-tab="leaderboard">Leaderboard</button>
         </nav>
         <div class="right-actions">
-          <div class="streak">🔥 <span id="streakNum">7</span> Day Streak</div>
+          <div class="streak">🔥 <span id="streakNum">0</span> Day Streak</div>
 
-<!-- Added auth buttons -->
-          <button id="loginBtn" class="btn btn-outline">Login</button>
+<button id="loginBtn" class="btn btn-outline">Login</button>
           <button id="logoutBtn" class="btn btn-outline">Logout</button>
 
 <div class="profile">
@@ -314,12 +313,12 @@
               <button class="btn" id="submitBtn">Submit</button>
               <button class="btn btn-outline" id="resetBtn">Reset</button>
             </div>
-            <div class="success" id="successMsg">✅ Correct! Well done. Streak +1</div>
+            <div class="success" id="successMsg">✅ Correct! Well done.</div>
             <div class="error" id="errorMsg">❌ Wrong answer. Correct option is B (10 m/s).</div>
           </div>
         </div>
 
-<p class="footer">© 2026 PrepCode. MVP in pure HTML/CSS/JS + localStorage.</p>
+<p class="footer">© 2026 PrepCode. MVP in pure HTML/CSS/JS + Supabase.</p>
       </section>
     </main>
   </div>
@@ -328,11 +327,10 @@
   <script src="supabase-client.js"></script>
 
 <script>
-    // -------- Local Storage Keys --------
+    // -------- Local Storage Keys (streak removed from local) --------
     const KEYS = {
       topTab: "jee_top_tab",
       sideTab: "jee_side_tab",
-      streak: "jee_streak",
       solved: "jee_solved",
       selectedOption: "jee_selected_option",
       bookmarked: "jee_bookmarked"
@@ -362,10 +360,11 @@ const explorePhysicsBtn = document.getElementById("explorePhysicsBtn");
     const avatarLetter = document.getElementById("avatarLetter");
 
 // -------- Init State --------
-    let streak = Number(localStorage.getItem(KEYS.streak) || 7);
+    let streak = 0; // now DB-backed
     let solved = Number(localStorage.getItem(KEYS.solved) || 3);
     let selected = localStorage.getItem(KEYS.selectedOption) || "";
     let bookmarked = localStorage.getItem(KEYS.bookmarked) === "true";
+    let currentUser = null;
 
 setTopTab(localStorage.getItem(KEYS.topTab) || "home");
     setSideTab(localStorage.getItem(KEYS.sideTab) || "dashboard");
@@ -388,9 +387,9 @@ if (selected) {
 
 const { error } = await PC.signInWithEmail(email);
       if (error) {
-        alert(error.message);
+        alert(error.message || "Login failed");
       } else {
-        alert("Magic link sent. Check email and click the link, then return to this page.");
+        alert("Magic link sent. Check email, open link, then come back to this page.");
       }
     });
 
@@ -403,7 +402,9 @@ logoutBtn?.addEventListener("click", async () => {
 async function renderAuthState() {
       try {
         const user = await PC.getUser();
-        if (user) {
+        currentUser = user;
+
+if (user) {
           await PC.ensureProfile(user);
 
 const name = user.email ? user.email.split("@")[0] : "PrepCoder";
@@ -424,7 +425,30 @@ loginBtn.style.display = "inline-block";
       }
     }
 
-renderAuthState();
+async function loadDbStreak() {
+      try {
+        if (!currentUser) {
+          streak = 0;
+          renderStreak();
+          return;
+        }
+
+const res = await PC.getStreak(currentUser.id);
+        if (res?.ok) {
+          streak = Number(res.data?.current_streak || 0);
+          renderStreak();
+        }
+      } catch (e) {
+        console.error("loadDbStreak error:", e);
+      }
+    }
+
+async function boot() {
+      await renderAuthState();
+      await loadDbStreak();
+    }
+
+boot();
 
 // -------- Events: Subject Explore --------
     explorePhysicsBtn.addEventListener("click", () => {
@@ -496,7 +520,7 @@ function setTopTab(tab){
     });
 
 // -------- Submit Logic --------
-    submitBtn.addEventListener("click", () => {
+    submitBtn.addEventListener("click", async () => {
       successMsg.style.display = "none";
       errorMsg.style.display = "none";
 
@@ -511,12 +535,23 @@ const answer = checked.value;
 
 if (answer === "B") {
         successMsg.style.display = "block";
+
+// local solved demo counter (unchanged)
         solved = Math.min(10, solved + 1);
-        streak = streak + 1;
         localStorage.setItem(KEYS.solved, solved);
-        localStorage.setItem(KEYS.streak, streak);
         renderSolved();
-        renderStreak();
+
+// DB streak update (only if logged in)
+        if (currentUser) {
+          const sr = await PC.updateStreakOnSolve(currentUser.id);
+          if (sr?.ok) {
+            streak = Number(sr.data?.current_streak || 0);
+            renderStreak();
+          }
+        } else {
+          // guest mode: streak not stored locally anymore
+          successMsg.textContent = "✅ Correct! Login to save your daily streak.";
+        }
       } else {
         errorMsg.style.display = "block";
       }
