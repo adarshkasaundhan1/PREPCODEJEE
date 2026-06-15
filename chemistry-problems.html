@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode • Chemistry Problems</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#111b31;
+      --panel2:#162442;
+      --line:#25385d;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --amber:#f59e0b;
+      --orange:#ea580c;
+      --red:#ef4444;
+    }
+
+*{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 10% -10%, #4a2b07 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #5a2f0a 0%, transparent 30%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+
+.container{max-width:1200px;margin:0 auto;padding:16px}
+    .topbar{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+.brand{display:flex;align-items:center;gap:10px}
+    .brand .icon{color:var(--green);font-size:22px;font-weight:800}
+    .brand h1{font-size:24px;line-height:1}
+    .brand p{font-size:12px;color:var(--muted);margin-top:2px}
+
+.btn{
+      border:none;cursor:pointer;border-radius:10px;padding:10px 12px;font-weight:700;color:#fff;
+    }
+    .btn-back{background:#334155}
+    .btn-primary{background:#16a34a}
+    .btn-outline{background:transparent;border:1px solid var(--line);color:var(--text)}
+
+.hero{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      background:linear-gradient(180deg, rgba(245,158,11,.16), rgba(255,255,255,.02));
+      margin-bottom:14px;
+    }
+    .hero h2{font-size:30px;margin-bottom:6px}
+    .hero p{color:var(--muted)}
+
+.stats{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+    }
+    .stat{
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;
+      padding:12px;
+      background:rgba(255,255,255,.03);
+      font-size:12px;color:var(--muted);
+    }
+    .stat strong{display:block;color:var(--text);font-size:22px;margin-top:4px}
+
+.controls{
+      display:grid;
+      grid-template-columns:1.2fr .8fr .8fr;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .input,.select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--panel);
+      color:var(--text);
+      padding:11px 12px;
+      outline:none;
+    }
+    .input::placeholder{color:#8ca2cd}
+
+.topics{
+      display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;
+    }
+    .topic{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 12px;
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .topic.active{
+      border-color:rgba(34,197,94,.5);
+      background:rgba(34,197,94,.12);
+      color:#baffcf;
+    }
+
+.grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(250px,1fr));
+      gap:12px;
+    }
+    .card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;flex-direction:column;gap:10px;
+    }
+    .head{
+      display:flex;justify-content:space-between;gap:8px;align-items:flex-start;
+    }
+    .title{font-size:18px;font-weight:700;line-height:1.3}
+    .meta{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;
+      font-size:12px;color:var(--muted);
+    }
+    .meta div{
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:9px;padding:8px;background:rgba(255,255,255,.02);
+    }
+    .meta strong{display:block;color:var(--text);font-size:13px;margin-top:3px}
+
+.badge{
+      font-size:11px;padding:5px 9px;border-radius:999px;border:1px solid transparent;font-weight:700;
+      white-space:nowrap;
+    }
+    .easy{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4);color:#baffcf}
+    .medium{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#ffdca3}
+    .hard{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#ffc7c7}
+
+.actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+.empty{
+      grid-column:1/-1;
+      border:1px dashed var(--line);
+      border-radius:12px;
+      padding:20px;
+      text-align:center;
+      color:var(--muted);
+    }
+
+.footer{
+      margin-top:14px;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+@media(max-width:1020px){
+      .grid{grid-template-columns:repeat(2,minmax(220px,1fr))}
+      .controls{grid-template-columns:1fr}
+      .stats{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:680px){
+      .grid{grid-template-columns:1fr}
+      .hero h2{font-size:25px}
+      .stats{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode</h1>
+          <p>LeetCode for JEE • Chemistry Problems</p>
+        </div>
+      </div>
+      <button class="btn btn-back" id="backBtn">← Back to Dashboard</button>
+    </header>
+
+<section class="hero">
+      <h2>🧪 Chemistry Problem Bank</h2>
+      <p>Practice Physical, Organic, and Inorganic chemistry chapter-wise with filters.</p>
+      <div class="stats">
+        <div class="stat">Total Problems<strong id="totalProblems">0</strong></div>
+        <div class="stat">Solved<strong id="solvedCount">0</strong></div>
+        <div class="stat">Bookmarked<strong id="bookmarkCount">0</strong></div>
+        <div class="stat">Progress<strong id="progressCount">0%</strong></div>
+      </div>
+    </section>
+
+<section class="controls">
+      <input id="searchInput" class="input" placeholder="Search by title or topic..." />
+      <select id="difficultySelect" class="select">
+        <option value="all">Difficulty: All</option>
+        <option value="Easy">Easy</option>
+        <option value="Medium">Medium</option>
+        <option value="Hard">Hard</option>
+      </select>
+      <select id="sortSelect" class="select">
+        <option value="default">Sort: Default</option>
+        <option value="marks">Sort: Highest Marks</option>
+        <option value="topic">Sort: Topic A-Z</option>
+      </select>
+    </section>
+
+<section class="topics" id="topicTabs"></section>
+    <section class="grid" id="problemGrid"></section>
+
+<p class="footer">MVP • localStorage keys: chem_solved_ids, chem_bookmark_ids</p>
+  </div>
+
+<script>
+    const LS = {
+      solved: "chem_solved_ids",
+      bookmarked: "chem_bookmark_ids",
+      topic: "chem_selected_topic",
+      search: "chem_search_text",
+      difficulty: "chem_difficulty",
+      sort: "chem_sort"
+    };
+
+const problems = [
+      {
+        id: 1, title: "Moles from Mass (CO₂)", topic: "Mole Concept", difficulty: "Easy", marks: 4, source: "JEE Main",
+        text: "How many moles are present in 44 g of CO₂? (Molar mass of CO₂ = 44 g/mol)",
+        a: "0.5 mol", b: "1 mol", c: "2 mol", d: "44 mol", correct: "B",
+        explain: "Moles = mass/molar mass = 44/44 = 1 mol."
+      },
+      {
+        id: 2, title: "Empirical Formula from % Composition", topic: "Mole Concept", difficulty: "Medium", marks: 4, source: "JEE Main",
+        text: "A compound has 40% C, 6.67% H, and 53.33% O by mass. Empirical formula is?",
+        a: "CH₂O", b: "C₂H₄O₂", c: "CH₄O", d: "C₃H₆O₃", correct: "A",
+        explain: "For 100 g: C=40/12=3.33, H=6.67/1=6.67, O=53.33/16=3.33. Ratio ≈ 1:2:1 → CH₂O."
+      },
+      {
+        id: 3, title: "Rate Law from Initial Data", topic: "Chemical Kinetics", difficulty: "Medium", marks: 4, source: "JEE Main",
+        text: "If doubling concentration of A doubles rate, and doubling B quadruples rate, rate law is?",
+        a: "k[A][B]", b: "k[A]²[B]", c: "k[A][B]²", d: "k[A]²[B]²", correct: "C",
+        explain: "Order in A = 1, order in B = 2 ⇒ rate = k[A][B]²."
+      },
+      {
+        id: 4, title: "Half-life and Order of Reaction", topic: "Chemical Kinetics", difficulty: "Hard", marks: 4, source: "JEE Advanced",
+        text: "For a first-order reaction, if t1/2 is 20 min, rate constant k is?",
+        a: "0.0693 min⁻¹", b: "0.03465 min⁻¹", c: "0.3465 min⁻¹", d: "0.003465 min⁻¹", correct: "B",
+        explain: "k = 0.693/t1/2 = 0.693/20 = 0.03465 min⁻¹."
+      },
+      {
+        id: 5, title: "pH of Strong Acid Mixture", topic: "Ionic Equilibrium", difficulty: "Easy", marks: 4, source: "JEE Main",
+        text: "pH of 10⁻³ M HCl solution is?",
+        a: "1", b: "2", c: "3", d: "11", correct: "C",
+        explain: "[H⁺]=10⁻³ ⇒ pH = 3."
+      },
+      {
+        id: 6, title: "Buffer Solution pH", topic: "Ionic Equilibrium", difficulty: "Medium", marks: 4, source: "JEE Main",
+        text: "For buffer with [salt]=[acid], pH equals?",
+        a: "7", b: "pKa", c: "pKb", d: "14-pKa", correct: "B",
+        explain: "Henderson equation: pH = pKa + log([salt]/[acid]) = pKa."
+      },
+      {
+        id: 7, title: "Nernst Equation Application", topic: "Electrochemistry", difficulty: "Hard", marks: 4, source: "JEE Advanced",
+        text: "At 25°C, for n=1, the Nernst term is (0.0591/n)logQ. Coefficient before logQ is?",
+        a: "0.0591", b: "0.02955", c: "0.1182", d: "1.0", correct: "A",
+        explain: "For n=1, coefficient remains 0.0591."
+      },
+      {
+        id: 8, title: "Equivalent Conductance at Infinite Dilution", topic: "Electrochemistry", difficulty: "Medium", marks: 4, source: "JEE Main",
+        text: "Λ°(CH₃COOH) can be found by which relation?",
+        a: "Λ°(HCl)+Λ°(NaOH)-Λ°(NaCl)",
+        b: "Λ°(HCl)+Λ°(CH₃COONa)-Λ°(NaCl)",
+        c: "Λ°(NaCl)+Λ°(NaOH)-Λ°(HCl)",
+        d: "Λ°(KCl)-Λ°(HCl)",
+        correct: "B",
+        explain: "By Kohlrausch law: Λ°(CH₃COOH)=Λ°(HCl)+Λ°(CH₃COONa)-Λ°(NaCl)."
+      },
+      {
+        id: 9, title: "SN1 vs SN2 Product Prediction", topic: "Organic Reaction Mechanism", difficulty: "Medium", marks: 4, source: "JEE Main",
+        text: "Tertiary alkyl halides usually prefer which mechanism in polar protic solvents?",
+        a: "SN2", b: "SN1", c: "E2 only", d: "No reaction", correct: "B",
+        explain: "Tertiary carbocation stability favors SN1 in polar protic medium."
+      },
+      {
+        id: 10, title: "Aldol Condensation Product", topic: "Carbonyl Compounds", difficulty: "Hard", marks: 4, source: "JEE Advanced",
+        text: "Aldol reaction requires which key feature in the reacting aldehyde/ketone?",
+        a: "No alpha-hydrogen", b: "At least one alpha-hydrogen", c: "Only aromatic ring", d: "Only tertiary carbonyl", correct: "B",
+        explain: "Alpha-hydrogen is needed to form enolate/enol for aldol reaction."
+      },
+      {
+        id: 11, title: "Hybridization and Geometry", topic: "Chemical Bonding", difficulty: "Easy", marks: 4, source: "JEE Main",
+        text: "Hybridization of carbon in methane (CH₄) is?",
+        a: "sp", b: "sp²", c: "sp³", d: "dsp²", correct: "C",
+        explain: "CH₄ has tetrahedral geometry with sp³ hybridization."
+      },
+      {
+        id: 12, title: "Periodic Trend Comparison", topic: "Periodic Table", difficulty: "Easy", marks: 4, source: "JEE Main",
+        text: "Across a period (left to right), atomic radius generally:",
+        a: "Increases", b: "Decreases", c: "Remains same", d: "First increases then decreases", correct: "B",
+        explain: "Effective nuclear charge increases, pulling electrons closer."
+      }
+    ];
+
+const topicTabs = document.getElementById("topicTabs");
+    const problemGrid = document.getElementById("problemGrid");
+    const searchInput = document.getElementById("searchInput");
+    const difficultySelect = document.getElementById("difficultySelect");
+    const sortSelect = document.getElementById("sortSelect");
+    const backBtn = document.getElementById("backBtn");
+
+const totalProblemsEl = document.getElementById("totalProblems");
+    const solvedCountEl = document.getElementById("solvedCount");
+    const bookmarkCountEl = document.getElementById("bookmarkCount");
+    const progressCountEl = document.getElementById("progressCount");
+
+let solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(Number);
+    let bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(Number);
+    let selectedTopic = localStorage.getItem(LS.topic) || "All";
+    let searchText = localStorage.getItem(LS.search) || "";
+    let difficulty = localStorage.getItem(LS.difficulty) || "all";
+    let sortBy = localStorage.getItem(LS.sort) || "default";
+
+searchInput.value = searchText;
+    difficultySelect.value = difficulty;
+    sortSelect.value = sortBy;
+
+const topics = ["All", ...new Set(problems.map(p => p.topic))];
+
+function renderTopics(){
+      topicTabs.innerHTML = topics.map(t => `
+        <button class="topic ${selectedTopic === t ? "active" : ""}" data-topic="${t}">${t}</button>
+      `).join("");
+
+topicTabs.querySelectorAll(".topic").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedTopic = btn.dataset.topic;
+          localStorage.setItem(LS.topic, selectedTopic);
+          render();
+        });
+      });
+    }
+
+function getFiltered(){
+      let data = [...problems];
+
+if(selectedTopic !== "All") data = data.filter(p => p.topic === selectedTopic);
+
+if(searchText.trim()){
+        const q = searchText.toLowerCase();
+        data = data.filter(p =>
+          p.title.toLowerCase().includes(q) ||
+          p.topic.toLowerCase().includes(q)
+        );
+      }
+
+if(difficulty !== "all") data = data.filter(p => p.difficulty === difficulty);
+
+if(sortBy === "marks"){
+        data.sort((a,b) => b.marks - a.marks);
+      } else if(sortBy === "topic"){
+        data.sort((a,b) => a.topic.localeCompare(b.topic));
+      }
+
+return data;
+    }
+
+function difficultyClass(level){
+      if(level === "Easy") return "easy";
+      if(level === "Medium") return "medium";
+      return "hard";
+    }
+
+function renderStats(){
+      solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(Number);
+      bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(Number);
+
+const solved = solvedIds.length;
+      const bookmarked = bookmarkIds.length;
+      const total = problems.length;
+      const progress = Math.round((solved / total) * 100);
+
+totalProblemsEl.textContent = total;
+      solvedCountEl.textContent = solved;
+      bookmarkCountEl.textContent = bookmarked;
+      progressCountEl.textContent = `${progress}%`;
+    }
+
+function buildSolveUrl(p){
+      const params = new URLSearchParams({
+        id: String(p.id),
+        subject: "Chemistry",
+        topic: p.topic,
+        difficulty: p.difficulty,
+        marks: String(p.marks),
+        title: p.title,
+        text: p.text,
+        a: p.a,
+        b: p.b,
+        c: p.c,
+        d: p.d,
+        correct: p.correct,
+        explain: p.explain,
+        back: "chemistry-problems.html"
+      });
+      return `solve-problem.html?${params.toString()}`;
+    }
+
+function problemCard(p){
+      const solved = solvedIds.includes(Number(p.id));
+      const bookmarked = bookmarkIds.includes(Number(p.id));
+
+return `
+        <article class="card">
+          <div class="head">
+            <h3 class="title">${p.title}</h3>
+            <span class="badge ${difficultyClass(p.difficulty)}">${p.difficulty}</span>
+          </div>
+
+<div class="meta">
+            <div>Topic<strong>${p.topic}</strong></div>
+            <div>Marks<strong>+${p.marks}</strong></div>
+            <div>Source<strong>${p.source}</strong></div>
+            <div>Status<strong>${solved ? "Solved" : "Unsolved"}</strong></div>
+          </div>
+
+<div class="actions">
+            <button class="btn btn-primary" data-action="solve" data-id="${p.id}">
+              ${solved ? "✅ Solved" : "Solve"}
+            </button>
+            <button class="btn btn-outline" data-action="bookmark" data-id="${p.id}">
+              ${bookmarked ? "⭐ Bookmarked" : "🔖 Bookmark"}
+            </button>
+          </div>
+        </article>
+      `;
+    }
+
+function renderGrid(){
+      const data = getFiltered();
+
+if(!data.length){
+        problemGrid.innerHTML = `<div class="empty">No problems found for current filters.</div>`;
+        return;
+      }
+
+problemGrid.innerHTML = data.map(problemCard).join("");
+
+problemGrid.querySelectorAll("button[data-action]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.dataset.id);
+          const action = btn.dataset.action;
+          const p = problems.find(x => x.id === id);
+          if(!p) return;
+
+if(action === "solve"){
+            window.location.href = buildSolveUrl(p);
+            return;
+          }
+
+if(action === "bookmark"){
+            if(bookmarkIds.includes(id)){
+              bookmarkIds = bookmarkIds.filter(x => x !== id);
+            } else {
+              bookmarkIds.push(id);
+            }
+            localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+            render();
+          }
+        });
+      });
+    }
+
+function render(){
+      renderStats();
+      renderTopics();
+      renderGrid();
+    }
+
+searchInput.addEventListener("input", e => {
+      searchText = e.target.value;
+      localStorage.setItem(LS.search, searchText);
+      renderGrid();
+    });
+
+difficultySelect.addEventListener("change", e => {
+      difficulty = e.target.value;
+      localStorage.setItem(LS.difficulty, difficulty);
+      renderGrid();
+    });
+
+sortSelect.addEventListener("change", e => {
+      sortBy = e.target.value;
+      localStorage.setItem(LS.sort, sortBy);
+      renderGrid();
+    });
+
+backBtn.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+
+render();
+  </script>
+</body>
+</html>
