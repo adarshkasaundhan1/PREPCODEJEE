@@ -59,9 +59,7 @@
       margin-bottom:14px;
     }
 
-.meta{
-      display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;
-    }
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
     .pill{
       border:1px solid rgba(255,255,255,.15);
       border-radius:999px;
@@ -71,13 +69,8 @@
       background:rgba(255,255,255,.03);
     }
 
-.question-title{
-      font-size:28px;line-height:1.35;margin-bottom:10px;
-    }
-
-.question-text{
-      font-size:18px;line-height:1.6;color:#dce8ff;margin-bottom:16px;
-    }
+.question-title{font-size:28px;line-height:1.35;margin-bottom:10px}
+    .question-text{font-size:18px;line-height:1.6;color:#dce8ff;margin-bottom:16px}
 
 .options .opt{
       border:1px solid var(--line);
@@ -123,9 +116,7 @@
       background:rgba(255,255,255,.02);
     }
 
-.footer{
-      text-align:center;color:var(--muted);font-size:12px;margin-top:6px;
-    }
+.footer{text-align:center;color:var(--muted);font-size:12px;margin-top:6px}
 
 @media(max-width:700px){
       .question-title{font-size:22px}
@@ -183,7 +174,6 @@
   <script src="supabase-client.js"></script>
 
 <script>
-    // -------- Helpers --------
     const qs = new URLSearchParams(window.location.search);
     const byId = (id) => document.getElementById(id);
 
@@ -194,27 +184,22 @@ function normalizeSubject(subject) {
       return "Mathematics";
     }
 
-function toNumericProblemId(rawId) {
-      // DB requires int problem_id
-      const n = Number(rawId);
-      if (Number.isFinite(n)) return n;
-      const m = String(rawId).match(/\d+/);
-      return m ? Number(m[0]) : 1;
+function isUuid(v) {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
     }
 
 async function getCurrentUserOrNull() {
       try {
-        if (!window.PC) return null;
-        return await PC.getUser();
+        if (!window.PC?.getUser) return null;
+        return await window.PC.getUser();
       } catch (e) {
         console.error("Auth fetch error:", e);
         return null;
       }
     }
 
-// -------- Fallback default problem --------
-    const defaultProblem = {
-      id: "phy-1",
+const defaultProblem = {
+      id: "",
       subject: "Physics",
       topic: "Kinematics",
       difficulty: "Easy",
@@ -226,11 +211,10 @@ async function getCurrentUserOrNull() {
       c: "12 m/s",
       d: "14 m/s",
       correct: "A",
-      explain: "x(t)=3t²−4t+1 ⇒ v(t)=dx/dt=6t−4. At t=2, v=12−4=8 m/s. (Correct option: A)"
+      explain: "x(t)=3t²−4t+1 ⇒ v(t)=dx/dt=6t−4. At t=2, v=8 m/s. (Correct option: A)"
     };
 
-// -------- Read from URL --------
-    const problem = {
+const problem = {
       id: qs.get("id") || defaultProblem.id,
       subject: qs.get("subject") || defaultProblem.subject,
       topic: qs.get("topic") || defaultProblem.topic,
@@ -248,12 +232,10 @@ async function getCurrentUserOrNull() {
     };
 
 const subjectNormalized = normalizeSubject(problem.subject);
-    const dbProblemId = toNumericProblemId(problem.id);
 
-// -------- Keys --------
-    const ATTEMPT_KEY = `pc_attempt_${problem.id}`;
-    const BOOKMARK_KEY = `pc_bookmark_${problem.id}`;
-    const RECENT_LIST_KEY = "pc_recent_list_v1";
+const ATTEMPT_KEY = `pc_attempt_${problem.id || "temp"}`;
+    const BOOKMARK_KEY = `pc_bookmark_${problem.id || "temp"}`;
+    const RECENT_LIST_KEY = "pc_recent_list_v2";
     const SUBJECT_SOLVED_KEY_MAP = {
       physics: "phy_solved_ids",
       chemistry: "chem_solved_ids",
@@ -262,8 +244,7 @@ const subjectNormalized = normalizeSubject(problem.subject);
       math: "math_solved_ids"
     };
 
-// -------- Elements --------
-    const backBtn = byId("backBtn");
+const backBtn = byId("backBtn");
     const subjectPill = byId("subjectPill");
     const topicPill = byId("topicPill");
     const difficultyPill = byId("difficultyPill");
@@ -281,8 +262,7 @@ const subjectNormalized = normalizeSubject(problem.subject);
 let selected = localStorage.getItem(ATTEMPT_KEY) || "";
     let bookmarked = localStorage.getItem(BOOKMARK_KEY) === "true";
 
-// -------- Render Header --------
-    subjectPill.textContent = `Subject: ${subjectNormalized}`;
+subjectPill.textContent = `Subject: ${subjectNormalized}`;
     topicPill.textContent = `Topic: ${problem.topic}`;
     difficultyPill.textContent = `Difficulty: ${problem.difficulty}`;
     marksPill.textContent = `Marks: +${problem.marks}`;
@@ -290,8 +270,7 @@ let selected = localStorage.getItem(ATTEMPT_KEY) || "";
     problemText.textContent = problem.text;
     explainText.textContent = problem.explain;
 
-// -------- Render Options --------
-    const labels = [
+const labels = [
       { key: "A", text: problem.a },
       { key: "B", text: problem.b },
       { key: "C", text: problem.c },
@@ -319,12 +298,9 @@ optionsWrap.querySelectorAll(".opt").forEach(opt => {
       });
     });
 
-// -------- Recent local save (for index Recent Problem) --------
-    function saveRecentProblemLocal(problemObj, selectedAns, isCorrect) {
-      // Save only solved-correct questions as "recent solved"
+function saveRecentProblemLocal(problemObj, selectedAns, isCorrect) {
       if (!isCorrect) return;
-
-const item = {
+      const item = {
         id: problemObj.id,
         subject: subjectNormalized,
         topic: problemObj.topic,
@@ -348,8 +324,7 @@ const list = JSON.parse(localStorage.getItem(RECENT_LIST_KEY) || "[]");
       localStorage.setItem(RECENT_LIST_KEY, JSON.stringify(filtered.slice(0, 20)));
     }
 
-// -------- Bookmark --------
-    function renderBookmark() {
+function renderBookmark() {
       bookmarkBtn.textContent = bookmarked ? "✅ Bookmarked" : "🔖 Bookmark";
       bookmarkBtn.style.borderColor = bookmarked ? "rgba(34,197,94,.45)" : "";
       bookmarkBtn.style.color = bookmarked ? "#b7ffcf" : "";
@@ -357,19 +332,21 @@ const list = JSON.parse(localStorage.getItem(RECENT_LIST_KEY) || "[]");
     renderBookmark();
 
 bookmarkBtn.addEventListener("click", async () => {
-      // local fallback first
       bookmarked = !bookmarked;
       localStorage.setItem(BOOKMARK_KEY, bookmarked);
       renderBookmark();
 
-// supabase sync
-      const user = await getCurrentUserOrNull();
+const user = await getCurrentUserOrNull();
       if (!user) return;
 
+// only if your backend still supports bookmarks
+      if (!window.PC?.toggleBookmark) return;
+      if (!isUuid(problem.id)) return;
+
 try {
-        const res = await PC.toggleBookmark(user.id, subjectNormalized, dbProblemId);
-        if (res.ok) {
-          bookmarked = !!res.bookmarked;
+        const res = await PC.toggleBookmark(user.id, subjectNormalized, problem.id);
+        if (res?.ok && typeof res.bookmarked === "boolean") {
+          bookmarked = res.bookmarked;
           localStorage.setItem(BOOKMARK_KEY, bookmarked);
           renderBookmark();
         }
@@ -378,16 +355,12 @@ try {
       }
     });
 
-// -------- Submit --------
-    submitBtn.addEventListener("click", async () => {
+submitBtn.addEventListener("click", async () => {
       successMsg.style.display = "none";
       errorMsg.style.display = "none";
 
 const checked = document.querySelector('input[name="ans"]:checked');
-      if (!checked) {
-        alert("Please select an option first.");
-        return;
-      }
+      if (!checked) return alert("Please select an option first.");
 
 const ans = checked.value.toUpperCase();
       localStorage.setItem(ATTEMPT_KEY, ans);
@@ -398,32 +371,38 @@ if (isCorrect) {
         successMsg.style.display = "block";
         errorMsg.style.display = "none";
         markSolvedInSubject(subjectNormalized, problem.id);
-        saveRecentProblemLocal(problem, ans, isCorrect); // ✅ recent solved updated
+        saveRecentProblemLocal(problem, ans, true);
       } else {
         errorMsg.textContent = `❌ Wrong answer. Correct option is ${problem.correct}.`;
         errorMsg.style.display = "block";
       }
 
-// supabase sync
-      const user = await getCurrentUserOrNull();
+const user = await getCurrentUserOrNull();
       if (!user) return;
 
 try {
-        await PC.markSolved(user.id, subjectNormalized, dbProblemId, ans, isCorrect);
+        // IMPORTANT: only write DB solved row if question id is a UUID
+        if (isUuid(problem.id)) {
+          if (window.PC?.saveUserSolved) {
+            await PC.saveUserSolved(user.id, problem.id, isCorrect);
+          } else if (window.PC?.markSolved) {
+            await PC.markSolved(user.id, subjectNormalized, problem.id, ans, isCorrect);
+          }
+        } else {
+          console.warn("Skipping DB save: invalid/non-UUID question id:", problem.id);
+        }
 
-if (isCorrect) {
-          // ✅ Update streak FIRST
+if (isCorrect && window.PC?.updateStreakOnSolve) {
           const streakRes = await PC.updateStreakOnSolve(user.id);
           console.log("updateStreakOnSolve:", streakRes);
+        }
 
-// Optional activity insert (do not block streak)
+// Optional: don't fail flow if recent_activity table is absent
+        if (isCorrect && window.PC?.pushRecent) {
           try {
-            await PC.pushRecent(user.id, {
-              ...problem,
-              subject: subjectNormalized
-            });
+            await PC.pushRecent(user.id, { ...problem, subject: subjectNormalized });
           } catch (e) {
-            console.error("pushRecent error (streak already updated):", e);
+            console.warn("pushRecent skipped/failed:", e?.message || e);
           }
         }
       } catch (e) {
@@ -431,8 +410,7 @@ if (isCorrect) {
       }
     });
 
-// -------- Reset --------
-    resetBtn.addEventListener("click", () => {
+resetBtn.addEventListener("click", () => {
       document.querySelectorAll('input[name="ans"]').forEach(i => i.checked = false);
       optionsWrap.querySelectorAll(".opt").forEach(x => x.classList.remove("active"));
       selected = "";
@@ -441,26 +419,19 @@ if (isCorrect) {
       errorMsg.style.display = "none";
     });
 
-// -------- Back --------
-    backBtn.addEventListener("click", () => {
-      if (problem.back) {
-        window.location.href = problem.back;
-        return;
-      }
-      if (document.referrer) {
-        history.back();
-        return;
-      }
-      window.location.href = "problems.html";
+backBtn.addEventListener("click", () => {
+      if (problem.back) return (window.location.href = problem.back);
+      if (document.referrer) return history.back();
+      window.location.href = "index.html";
     });
 
-// -------- Mark solved in local subject list --------
-    function markSolvedInSubject(subject, id) {
+function markSolvedInSubject(subject, id) {
       const key = SUBJECT_SOLVED_KEY_MAP[String(subject).toLowerCase()];
       if (!key) return;
       const arr = JSON.parse(localStorage.getItem(key) || "[]");
-      if (!arr.includes(id)) {
-        arr.push(id);
+      const sid = String(id || "");
+      if (sid && !arr.includes(sid)) {
+        arr.push(sid);
         localStorage.setItem(key, JSON.stringify(arr));
       }
     }
