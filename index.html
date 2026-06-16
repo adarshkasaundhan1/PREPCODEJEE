@@ -285,16 +285,15 @@
         <div class="panel recent">
           <div>
             <div class="q-meta">
-              <span style="color:#60a5fa">Physics</span>
+              <span id="recentSubject" style="color:#60a5fa">Physics</span>
               <span>›</span>
-              <span>Kinematics</span>
-              <span class="badge">Easy</span>
+              <span id="recentTopic">Kinematics</span>
+              <span class="badge" id="recentDifficulty">Easy</span>
             </div>
-            <p class="question">
-              A particle moves along a straight line with position
-              <strong>x(t) = 3t² − 4t + 1</strong>. Find velocity at <strong>t = 2 s</strong>.
+            <p class="question" id="recentQuestion">
+              A particle moves along a straight line with position x(t)=3t²−4t+1. Find velocity at t=2 s.
             </p>
-            <p class="muted">Difficulty: Easy · Marks: +4 · From: JEE Main</p>
+            <p class="muted" id="recentMeta">Difficulty: Easy · Marks: +4 · From: JEE Main</p>
 
 <div class="actions" style="margin-top:12px;">
               <button class="btn btn-outline" id="bookmarkBtn">🔖 Bookmark</button>
@@ -303,18 +302,13 @@
 
 <div>
             <h4 style="margin-bottom:10px;">Select the correct option</h4>
-            <div class="options" id="options">
-              <label class="opt"><input type="radio" name="ans" value="A"> A. 8 m/s</label>
-              <label class="opt"><input type="radio" name="ans" value="B"> B. 10 m/s</label>
-              <label class="opt"><input type="radio" name="ans" value="C"> C. 12 m/s</label>
-              <label class="opt"><input type="radio" name="ans" value="D"> D. 14 m/s</label>
-            </div>
+            <div class="options" id="options"></div>
             <div class="actions">
-              <button class="btn" id="submitBtn">Submit</button>
+              <button class="btn" id="submitBtn" data-correct="A">Submit</button>
               <button class="btn btn-outline" id="resetBtn">Reset</button>
             </div>
             <div class="success" id="successMsg">✅ Correct! Well done.</div>
-            <div class="error" id="errorMsg">❌ Wrong answer. Correct option is B (10 m/s).</div>
+            <div class="error" id="errorMsg">❌ Wrong answer.</div>
           </div>
         </div>
 
@@ -327,13 +321,14 @@
   <script src="supabase-client.js"></script>
 
 <script>
-    // -------- Local Storage Keys (streak removed from local) --------
+    // -------- Local Storage Keys --------
     const KEYS = {
       topTab: "jee_top_tab",
       sideTab: "jee_side_tab",
       solved: "jee_solved",
       selectedOption: "jee_selected_option",
-      bookmarked: "jee_bookmarked"
+      bookmarked: "jee_bookmarked",
+      recentList: "pc_recent_list_v1"
     };
 
 // -------- Elements --------
@@ -349,6 +344,12 @@
     const errorMsg = document.getElementById("errorMsg");
     const bookmarkBtn = document.getElementById("bookmarkBtn");
 
+const recentSubject = document.getElementById("recentSubject");
+    const recentTopic = document.getElementById("recentTopic");
+    const recentDifficulty = document.getElementById("recentDifficulty");
+    const recentQuestion = document.getElementById("recentQuestion");
+    const recentMeta = document.getElementById("recentMeta");
+
 const explorePhysicsBtn = document.getElementById("explorePhysicsBtn");
     const exploreChemBtn = document.getElementById("exploreChemBtn");
     const exploreMathBtn = document.getElementById("exploreMathBtn");
@@ -360,11 +361,27 @@ const explorePhysicsBtn = document.getElementById("explorePhysicsBtn");
     const avatarLetter = document.getElementById("avatarLetter");
 
 // -------- Init State --------
-    let streak = 0; // now DB-backed
+    let streak = 0;
     let solved = Number(localStorage.getItem(KEYS.solved) || 3);
     let selected = localStorage.getItem(KEYS.selectedOption) || "";
     let bookmarked = localStorage.getItem(KEYS.bookmarked) === "true";
     let currentUser = null;
+
+const defaultRecent = {
+      id: "phy-1",
+      subject: "Physics",
+      topic: "Kinematics",
+      difficulty: "Easy",
+      marks: "4",
+      source: "JEE Main",
+      title: "Velocity from Position Function",
+      text: "A particle moves along a straight line with position x(t)=3t²−4t+1. Find velocity at t=2 s.",
+      a: "8 m/s",
+      b: "10 m/s",
+      c: "12 m/s",
+      d: "14 m/s",
+      correct: "A"
+    };
 
 setTopTab(localStorage.getItem(KEYS.topTab) || "home");
     setSideTab(localStorage.getItem(KEYS.sideTab) || "dashboard");
@@ -372,15 +389,7 @@ setTopTab(localStorage.getItem(KEYS.topTab) || "home");
     renderSolved();
     renderBookmark();
 
-if (selected) {
-      const input = document.querySelector(`input[name="ans"][value="${selected}"]`);
-      if (input) {
-        input.checked = true;
-        input.closest(".opt").classList.add("active");
-      }
-    }
-
-// -------- Auth Logic (Supabase) --------
+// -------- Auth Logic --------
     loginBtn?.addEventListener("click", async () => {
       const email = prompt("Enter your email:");
       if (!email) return;
@@ -406,18 +415,15 @@ async function renderAuthState() {
 
 if (user) {
           await PC.ensureProfile(user);
-
-const name = user.email ? user.email.split("@")[0] : "PrepCoder";
+          const name = user.email ? user.email.split("@")[0] : "PrepCoder";
           profileName.textContent = name + " ▾";
           avatarLetter.textContent = name.charAt(0).toUpperCase();
-
-loginBtn.style.display = "none";
+          loginBtn.style.display = "none";
           logoutBtn.style.display = "inline-block";
         } else {
           profileName.textContent = "PrepCoder ▾";
           avatarLetter.textContent = "P";
-
-loginBtn.style.display = "inline-block";
+          loginBtn.style.display = "inline-block";
           logoutBtn.style.display = "none";
         }
       } catch (e) {
@@ -446,6 +452,7 @@ const res = await PC.getStreak(currentUser.id);
 async function boot() {
       await renderAuthState();
       await loadDbStreak();
+      await loadRecentFromDbOrLocal();
     }
 
 boot();
@@ -468,15 +475,8 @@ exploreMathBtn.addEventListener("click", () => {
       btn.addEventListener("click", () => {
         const tab = btn.dataset.tab;
 
-if (tab === "problems") {
-          window.location.href = "problems.html";
-          return;
-        }
-
-if (tab === "contests") {
-          window.location.href = "contesthome.html";
-          return;
-        }
+if (tab === "problems") return (window.location.href = "problems.html");
+        if (tab === "contests") return (window.location.href = "contesthome.html");
 
 setTopTab(tab);
         localStorage.setItem(KEYS.topTab, tab);
@@ -487,15 +487,8 @@ sideBtns.forEach(btn => {
       btn.addEventListener("click", () => {
         const tab = btn.dataset.tab;
 
-if (tab === "problems") {
-          window.location.href = "problems.html";
-          return;
-        }
-
-if (tab === "contests") {
-          window.location.href = "contesthome.html";
-          return;
-        }
+if (tab === "problems") return (window.location.href = "problems.html");
+        if (tab === "contests") return (window.location.href = "contesthome.html");
 
 setSideTab(tab);
         localStorage.setItem(KEYS.sideTab, tab);
@@ -505,19 +498,113 @@ setSideTab(tab);
 function setTopTab(tab){
       topBtns.forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
     }
-    function setSideTab(tab){
+
+function setSideTab(tab){
       sideBtns.forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
     }
 
-// -------- Events: Options --------
-    optionsWrap.querySelectorAll(".opt").forEach(opt => {
-      opt.addEventListener("click", () => {
-        optionsWrap.querySelectorAll(".opt").forEach(o => o.classList.remove("active"));
-        opt.classList.add("active");
-        const val = opt.querySelector("input").value;
-        localStorage.setItem(KEYS.selectedOption, val);
+// -------- Recent Problem (DB first, local fallback) --------
+    function escapeHtml(str = "") {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+function bindOptionEvents() {
+      optionsWrap.querySelectorAll(".opt").forEach(opt => {
+        opt.addEventListener("click", () => {
+          optionsWrap.querySelectorAll(".opt").forEach(o => o.classList.remove("active"));
+          opt.classList.add("active");
+          const val = opt.querySelector("input").value;
+          selected = val;
+          localStorage.setItem(KEYS.selectedOption, val);
+        });
       });
-    });
+    }
+
+function renderRecentProblem(p) {
+      recentSubject.textContent = p.subject || "Physics";
+      recentTopic.textContent = p.topic || "Topic";
+      recentDifficulty.textContent = p.difficulty || "Easy";
+      recentQuestion.textContent = p.text || p.title || "Recent problem";
+      recentMeta.textContent =
+        `Difficulty: ${p.difficulty || "Easy"} · Marks: +${p.marks || 4} · From: ${p.source || "Recent Solve"}`;
+
+const opts = [
+        { key: "A", text: p.a || "" },
+        { key: "B", text: p.b || "" },
+        { key: "C", text: p.c || "" },
+        { key: "D", text: p.d || "" }
+      ];
+
+selected = localStorage.getItem(KEYS.selectedOption) || "";
+
+optionsWrap.innerHTML = opts.map(o => `
+        <label class="opt">
+          <input type="radio" name="ans" value="${o.key}" ${selected === o.key ? "checked" : ""}>
+          ${o.key}. ${escapeHtml(o.text)}
+        </label>
+      `).join("");
+
+if (selected) {
+        const input = optionsWrap.querySelector(`input[name="ans"][value="${selected}"]`);
+        if (input) input.closest(".opt").classList.add("active");
+      }
+
+submitBtn.dataset.correct = String(p.correct || "A").toUpperCase();
+      bindOptionEvents();
+    }
+
+function normalizeRecentRow(row) {
+      return {
+        id: row.id || row.problem_id || "recent-1",
+        subject: row.subject || "Physics",
+        topic: row.topic || "Topic",
+        difficulty: row.difficulty || "Easy",
+        marks: row.marks ?? 4,
+        source: row.source || "JEE Main",
+        title: row.title || "Recent Problem",
+        text: row.text || row.title || "Recent problem",
+        a: row.option_a || "",
+        b: row.option_b || "",
+        c: row.option_c || "",
+        d: row.option_d || "",
+        correct: String(row.correct || "A").toUpperCase()
+      };
+    }
+
+function syncRecentToLocal(recentObj) {
+      const list = JSON.parse(localStorage.getItem(KEYS.recentList) || "[]");
+      const filtered = list.filter(x => String(x.id) !== String(recentObj.id));
+      filtered.unshift({ ...recentObj, solvedAt: new Date().toISOString() });
+      localStorage.setItem(KEYS.recentList, JSON.stringify(filtered.slice(0, 20)));
+    }
+
+async function loadRecentFromDbOrLocal() {
+      try {
+        if (currentUser && window.PC && typeof PC.getRecentActivity === "function") {
+          const rr = await PC.getRecentActivity(currentUser.id, 1);
+          if (rr?.ok && rr.data?.length) {
+            const recent = normalizeRecentRow(rr.data[0]);
+            renderRecentProblem(recent);
+            syncRecentToLocal(recent);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("loadRecentFromDb error:", e);
+      }
+
+const localList = JSON.parse(localStorage.getItem(KEYS.recentList) || "[]");
+      if (localList.length) {
+        renderRecentProblem(localList[0]);
+      } else {
+        renderRecentProblem(defaultRecent);
+      }
+    }
 
 // -------- Submit Logic --------
     submitBtn.addEventListener("click", async () => {
@@ -530,29 +617,34 @@ const checked = document.querySelector('input[name="ans"]:checked');
         return;
       }
 
-const answer = checked.value;
+const answer = checked.value.toUpperCase();
       localStorage.setItem(KEYS.selectedOption, answer);
 
-if (answer === "B") {
+const correctAns = String(submitBtn.dataset.correct || "A").toUpperCase();
+
+if (answer === correctAns) {
+        successMsg.textContent = "✅ Correct! Well done.";
         successMsg.style.display = "block";
 
-// local solved demo counter (unchanged)
-        solved = Math.min(10, solved + 1);
+solved = Math.min(10, solved + 1);
         localStorage.setItem(KEYS.solved, solved);
         renderSolved();
 
-// DB streak update (only if logged in)
-        if (currentUser) {
+if (currentUser) {
           const sr = await PC.updateStreakOnSolve(currentUser.id);
           if (sr?.ok) {
             streak = Number(sr.data?.current_streak || 0);
             renderStreak();
           }
         } else {
-          // guest mode: streak not stored locally anymore
           successMsg.textContent = "✅ Correct! Login to save your daily streak.";
         }
       } else {
+        const correctInput = optionsWrap.querySelector(`input[value="${correctAns}"]`);
+        const correctText = correctInput
+          ? correctInput.parentElement.textContent.trim()
+          : `Option ${correctAns}`;
+        errorMsg.textContent = `❌ Wrong answer. Correct option is ${correctText}.`;
         errorMsg.style.display = "block";
       }
     });
@@ -562,6 +654,7 @@ resetBtn.addEventListener("click", () => {
       optionsWrap.querySelectorAll(".opt").forEach(o => o.classList.remove("active"));
       successMsg.style.display = "none";
       errorMsg.style.display = "none";
+      selected = "";
       localStorage.removeItem(KEYS.selectedOption);
     });
 
