@@ -84,9 +84,9 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=4"></script>
+  <script src="supabase-client.js?v=5"></script>
   <script>
-    const supabase = window.PC?.supabase || window.sb || null;
+    const sb = window.PC?.supabase || window.sb || null;
     const $ = id => document.getElementById(id);
     const statusEl = $("status");
     const qTable = $("qTable");
@@ -107,13 +107,13 @@ function escapeHtml(s = "") {
     }
 
 async function getUserSafe() {
-      if (!supabase) return null;
-      const { data } = await supabase.auth.getUser();
+      if (!sb) return null;
+      const { data } = await sb.auth.getUser();
       return data?.user || null;
     }
 
 async function ensureAdmin() {
-      if (!supabase) throw new Error("Supabase client missing.");
+      if (!sb) throw new Error("Supabase client missing.");
 
 let user = await (window.PC?.getUser?.() || getUserSafe());
       if (!user) {
@@ -132,8 +132,7 @@ if (window.PC?.isAdmin) {
         if (res?.ok && res.isAdmin) return user;
       }
 
-// fallback direct query
-      const { data: profile, error } = await supabase
+const { data: profile, error } = await sb
         .from("profiles")
         .select("role")
         .eq("id", user.id)
@@ -201,7 +200,7 @@ function resetForm() {
     }
 
 async function loadQuestions() {
-      let query = supabase
+      let query = sb
         .from("questions")
         .select("*")
         .order("created_at", { ascending: false })
@@ -243,7 +242,7 @@ qTable.querySelectorAll("[data-toggle]").forEach(btn => {
           const id = btn.dataset.toggle;
           const row = cachedRows.find(x => String(x.id) === String(id));
           if (!row) return;
-          const { error } = await supabase
+          const { error } = await sb
             .from("questions")
             .update({ is_active: !row.is_active })
             .eq("id", id);
@@ -256,7 +255,7 @@ qTable.querySelectorAll("[data-toggle]").forEach(btn => {
 qTable.querySelectorAll("[data-delete]").forEach(btn => {
         btn.onclick = async () => {
           if (!confirm("Delete this question permanently?")) return;
-          const { error } = await supabase
+          const { error } = await sb
             .from("questions")
             .delete()
             .eq("id", btn.dataset.delete);
@@ -279,14 +278,14 @@ const id = $("qid").value.trim();
 
 let result;
       if (id) {
-        result = await supabase
+        result = await sb
           .from("questions")
           .update(payload)
           .eq("id", id)
           .select()
           .single();
       } else {
-        result = await supabase
+        result = await sb
           .from("questions")
           .insert(payload)
           .select()
