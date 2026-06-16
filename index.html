@@ -194,9 +194,9 @@
 
 <div class="subjects">
         <h4>SUBJECTS</h4>
-        <div class="sub-item"><span>Physics</span><small id="phySolved">12 / 50</small></div>
-        <div class="sub-item"><span>Chemistry</span><small id="chemSolved">8 / 40</small></div>
-        <div class="sub-item"><span>Mathematics</span><small id="mathSolved">15 / 60</small></div>
+        <div class="sub-item"><span>Physics</span><small id="phySolved">0 / 50</small></div>
+        <div class="sub-item"><span>Chemistry</span><small id="chemSolved">0 / 40</small></div>
+        <div class="sub-item"><span>Mathematics</span><small id="mathSolved">0 / 60</small></div>
       </div>
 
 <div class="premium">
@@ -250,8 +250,8 @@
           <h3 style="margin-bottom:10px;">Continue Practice</h3>
           <div class="continue-row">
             <div>
-              <strong id="continueTitle">Kinematics - Basics</strong>
-              <p class="muted" id="continueMeta">Physics · Easy</p>
+              <strong id="continueTitle">Loading...</strong>
+              <p class="muted" id="continueMeta">Please wait</p>
             </div>
             <div class="progress-wrap">
               <strong id="solvedCounter">0 / 10 solved</strong>
@@ -270,9 +270,7 @@
               <span id="recentTopic">Kinematics</span>
               <span class="badge" id="recentDifficulty">Easy</span>
             </div>
-            <p class="question" id="recentQuestion">
-              A particle moves along a straight line with position x(t)=3t²−4t+1. Find velocity at t=2 s.
-            </p>
+            <p class="question" id="recentQuestion">Loading question...</p>
             <p class="muted" id="recentMeta">Difficulty: Easy · Marks: +4 · From: JEE Main</p>
             <div class="actions" style="margin-top:12px;">
               <button class="btn btn-outline" id="bookmarkBtn">🔖 Bookmark</button>
@@ -305,7 +303,7 @@
       sideTab: "jee_side_tab",
       selectedOption: "jee_selected_option",
       bookmarked: "jee_bookmarked",
-      recentList: "pc_recent_list_v1",
+      recentList: "pc_recent_list_v2",
       phySolvedIds: "phy_solved_ids",
       chemSolvedIds: "chem_solved_ids",
       mathSolvedIds: "math_solved_ids"
@@ -349,9 +347,10 @@ let streak = 0;
     let currentRecent = null;
     let currentContinueProblem = null;
     let recentPool = [];
+    let solvedQuestionIds = new Set();
 
 const defaultRecent = {
-      id: "phy-1",
+      id: "fallback-1",
       subject: "Physics",
       topic: "Kinematics",
       difficulty: "Easy",
@@ -367,6 +366,10 @@ const defaultRecent = {
       explain: "x(t)=3t²−4t+1 ⇒ v(t)=6t−4. At t=2, v=8 m/s."
     };
 
+function getSupabaseClient() {
+      return window.supabase || window.PC?.supabase || window.PC?.client || null;
+    }
+
 setTopTab(localStorage.getItem(KEYS.topTab) || "home");
     setSideTab(localStorage.getItem(KEYS.sideTab) || "dashboard");
     renderStreak();
@@ -376,23 +379,71 @@ setTopTab(localStorage.getItem(KEYS.topTab) || "home");
 loginBtn?.addEventListener("click", async () => {
       const email = prompt("Enter your email:");
       if (!email) return;
-      const { error } = await PC.signInWithEmail(email);
-      if (error) alert(error.message || "Login failed");
-      else alert("Magic link sent. Check email, open link, then come back to this page.");
+
+try {
+        if (window.PC?.signInWithEmail) {
+          const { error } = await window.PC.signInWithEmail(email);
+          if (error) return alert(error.message || "Login failed");
+          alert("Magic link sent. Check email, open link, then come back.");
+          return;
+        }
+
+const sb = getSupabaseClient();
+        if (!sb) return alert("Supabase client not found in supabase-client.js");
+
+const { error } = await sb.auth.signInWithOtp({ email });
+        if (error) return alert(error.message || "Login failed");
+        alert("Magic link sent. Check email, open link, then come back.");
+      } catch (e) {
+        alert(e.message || "Login failed");
+      }
     });
 
 logoutBtn?.addEventListener("click", async () => {
-      await PC.signOut();
+      try {
+        if (window.PC?.signOut) await window.PC.signOut();
+        else {
+          const sb = getSupabaseClient();
+          if (sb) await sb.auth.signOut();
+        }
+      } catch {}
       alert("Logged out");
       location.reload();
     });
 
+async function getAuthUser() {
+      if (window.PC?.getUser) return await window.PC.getUser();
+      const sb = getSupabaseClient();
+      if (!sb) return null;
+      const { data } = await sb.auth.getUser();
+      return data?.user || null;
+    }
+
+async function ensureProfileIfMissing(user) {
+      if (!user) return;
+      const sb = getSupabaseClient();
+      if (!sb) return;
+
+// if your old helper exists, use it
+      if (window.PC?.ensureProfile) {
+        await window.PC.ensureProfile(user);
+        return;
+      }
+
+const email = user.email || null;
+      await sb.from("profiles").upsert(
+        [{ id: user.id, email }],
+        { onConflict: "id" }
+      );
+    }
+
 async function renderAuthState() {
       try {
-        const user = await PC.getUser();
+        const user = await getAuthUser();
         currentUser = user;
-        if (user) {
-          await PC.ensureProfile(user);
+
+if (user) {
+          await ensureProfileIfMissing(user);
           const name = user.email ? user.email.split("@")[0] : "PrepCoder";
           profileName.textContent = name + " ▾";
           avatarLetter.textContent = name.charAt(0).toUpperCase();
@@ -416,9 +467,16 @@ async function loadDbStreak() {
           renderStreak();
           return;
         }
-        const res = await PC.getStreak(currentUser.id);
-        if (res?.ok) {
-          streak = Number(res.data?.current_streak || 0);
+
+if (window.PC?.getStreak) {
+          const res = await window.PC.getStreak(currentUser.id);
+          if (res?.ok) {
+            streak = Number(res.data?.current_streak || 0);
+            renderStreak();
+          }
+        } else {
+          // fallback: if you don't have streak table yet
+          streak = 0;
           renderStreak();
         }
       } catch (e) {
@@ -426,9 +484,33 @@ async function loadDbStreak() {
       }
     }
 
+async function loadSolvedIdsFromDb() {
+      solvedQuestionIds = new Set();
+      if (!currentUser) return;
+
+try {
+        const sb = getSupabaseClient();
+        if (!sb) return;
+        const { data, error } = await sb
+          .from("user_solved")
+          .select("question_id")
+          .eq("user_id", currentUser.id);
+
+if (error) {
+          console.error("loadSolvedIds error:", error.message);
+          return;
+        }
+
+(data || []).forEach(r => solvedQuestionIds.add(String(r.question_id)));
+      } catch (e) {
+        console.error("loadSolvedIds exception:", e);
+      }
+    }
+
 async function boot() {
       await renderAuthState();
       await loadDbStreak();
+      await loadSolvedIdsFromDb();
       await loadRecentFromDbOrLocal();
     }
     boot();
@@ -506,9 +588,12 @@ function markSolvedInSubjectLocal(subject, id) {
 
 function isProblemSolved(problem) {
       if (!problem) return false;
-      const key = subjectSolvedKey(problem.subject || "Mathematics");
-      const arr = JSON.parse(localStorage.getItem(key) || "[]");
-      return arr.includes(String(problem.id));
+      const localKey = subjectSolvedKey(problem.subject || "Mathematics");
+      const arr = JSON.parse(localStorage.getItem(localKey) || "[]");
+      const id = String(problem.id);
+
+// solved if found in DB-set OR local-set
+      return solvedQuestionIds.has(id) || arr.includes(id);
     }
 
 function uniqueById(arr = []) {
@@ -611,7 +696,7 @@ function renderRecentProblem(p) {
       recentTopic.textContent = p.topic || "Topic";
       recentDifficulty.textContent = p.difficulty || "Easy";
       recentQuestion.textContent = p.text || p.title || "Recent problem";
-      recentMeta.textContent = `Difficulty: ${p.difficulty || "Easy"} · Marks: +${p.marks || 4} · From: ${p.source || "Recent Solve"}`;
+      recentMeta.textContent = `Difficulty: ${p.difficulty || "Easy"} · Marks: +${p.marks || 4} · From: ${p.source || "DB"}`;
 
 const opts = [
         { key: "A", text: p.a || "" },
@@ -638,15 +723,15 @@ submitBtn.dataset.correct = String(p.correct || "A").toUpperCase();
       setContinueProblem(p);
     }
 
-function normalizeRecentRow(row) {
+function normalizeQuestionRow(row) {
       return {
-        id: row.problem_id || row.id || "recent-1",
+        id: row.id,
         subject: row.subject || "Physics",
         topic: row.topic || "Topic",
         difficulty: row.difficulty || "Easy",
         marks: row.marks ?? 4,
-        source: row.source || "JEE Main",
-        title: row.title || "Recent Problem",
+        source: row.source || "Question Bank",
+        title: row.title || "Practice Problem",
         text: row.text || row.title || "Recent problem",
         a: row.option_a || "",
         b: row.option_b || "",
@@ -664,17 +749,39 @@ function syncRecentToLocal(recentObj) {
       localStorage.setItem(KEYS.recentList, JSON.stringify(filtered.slice(0, 20)));
     }
 
+async function fetchActiveQuestionsFromDb(limit = 100) {
+      const sb = getSupabaseClient();
+      if (!sb) return [];
+
+const { data, error } = await sb
+        .from("questions")
+        .select("*")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+if (error) {
+        console.error("fetchActiveQuestionsFromDb error:", error.message);
+        return [];
+      }
+
+return (data || []).map(normalizeQuestionRow);
+    }
+
 async function loadRecentFromDbOrLocal() {
       try {
-        if (currentUser && window.PC && typeof PC.getRecentActivity === "function") {
-          const rr = await PC.getRecentActivity(currentUser.id, 20);
-          if (rr?.ok && rr.data?.length) {
-            recentPool = rr.data.map(normalizeRecentRow);
-            const latest = recentPool[0];
-            renderRecentProblem(latest);
-            syncRecentToLocal(latest);
-            return;
-          }
+        const dbQuestions = await fetchActiveQuestionsFromDb(100);
+
+if (dbQuestions.length) {
+          recentPool = uniqueById(dbQuestions);
+
+// Show first unsolved if possible
+          const firstUnsolved = recentPool.find(p => !isProblemSolved(p));
+          const latest = firstUnsolved || recentPool[0] || defaultRecent;
+
+renderRecentProblem(latest);
+          syncRecentToLocal(latest);
+          return;
         }
       } catch (e) {
         console.error("loadRecentFromDb error:", e);
@@ -688,6 +795,25 @@ const localList = JSON.parse(localStorage.getItem(KEYS.recentList) || "[]");
         recentPool = [defaultRecent];
         renderRecentProblem(defaultRecent);
       }
+    }
+
+async function saveSolvedToDb(questionId, isCorrect) {
+      if (!currentUser) return;
+      const sb = getSupabaseClient();
+      if (!sb) return;
+
+const payload = {
+        user_id: currentUser.id,
+        question_id: questionId,
+        is_correct: !!isCorrect
+      };
+
+const { error } = await sb
+        .from("user_solved")
+        .upsert(payload, { onConflict: "user_id,question_id" });
+
+if (error) console.error("saveSolvedToDb error:", error.message);
+      else solvedQuestionIds.add(String(questionId));
     }
 
 submitBtn.addEventListener("click", async () => {
@@ -708,20 +834,23 @@ const correctAns = String(submitBtn.dataset.correct || "A").toUpperCase();
 if (currentRecent?.id) {
           markSolvedInSubjectLocal(currentRecent.subject || "Physics", currentRecent.id);
           renderSidebarSubjectCounts();
+          await saveSolvedToDb(currentRecent.id, true);
           setContinueProblem(currentRecent || defaultRecent);
         }
 
-if (currentUser) {
-          const sr = await PC.updateStreakOnSolve(currentUser.id);
+if (currentUser && window.PC?.updateStreakOnSolve) {
+          const sr = await window.PC.updateStreakOnSolve(currentUser.id);
           if (sr?.ok) {
             streak = Number(sr.data?.current_streak || 0);
             renderStreak();
           }
-        } else {
-          successMsg.textContent = "✅ Correct! Login to save your daily streak.";
+        } else if (!currentUser) {
+          successMsg.textContent = "✅ Correct! Login to save streak + solved history.";
         }
       } else {
-        const correctInput = optionsWrap.querySelector(`input[value="${correctAns}"]`);
+        if (currentRecent?.id) await saveSolvedToDb(currentRecent.id, false);
+
+const correctInput = optionsWrap.querySelector(`input[value="${correctAns}"]`);
         const correctText = correctInput ? correctInput.parentElement.textContent.trim() : `Option ${correctAns}`;
         errorMsg.textContent = `❌ Wrong answer. Correct option is ${correctText}.`;
         errorMsg.style.display = "block";
@@ -749,7 +878,9 @@ function renderBookmark() {
       bookmarkBtn.style.color = bookmarked ? "#b7ffcf" : "";
     }
 
-function renderStreak() { streakNum.textContent = streak; }
+function renderStreak() {
+      streakNum.textContent = streak;
+    }
   </script>
 </body>
 </html>
