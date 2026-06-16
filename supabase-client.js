@@ -19,7 +19,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   }
 });
 
-// expose globally (for older pages)
+// expose globally
 window.sb = sb;
 
 function getEmailRedirectTo() {
@@ -40,8 +40,12 @@ function isMissingRelationError(error) {
   return msg.includes("relation") && msg.includes("does not exist");
 }
 
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ""));
+}
+
 window.PC = {
-  // expose client for pages that expect it
+  // expose client for pages
   supabase: sb,
 
 // -------------------------
@@ -82,7 +86,7 @@ async signOut() {
   },
 
 // -------------------------
-  // Profile (new schema-safe)
+  // Profile
   // profiles: id, email, role, created_at
   // -------------------------
   async ensureProfile(user) {
@@ -91,7 +95,7 @@ async signOut() {
 const payload = {
       id: user.id,
       email: user.email || null
-      // role default = student from DB
+      // role default can come from DB
     };
 
 const { data, error } = await sb
@@ -122,7 +126,7 @@ if (error) {
   },
 
 // -------------------------
-  // Questions (new)
+  // Questions
   // -------------------------
   async getActiveQuestions(limit = 100) {
     const safeLimit = Math.max(1, Math.min(500, Number(limit) || 100));
@@ -161,8 +165,8 @@ if (error) {
   },
 
 // -------------------------
-  // Solved tracking (new)
-  // user_solved: user_id, question_id, is_correct
+  // Solved tracking
+  // user_solved: user_id, question_id (uuid), is_correct
   // -------------------------
   async getUserSolvedIds(userId) {
     const { data, error } = await sb
@@ -180,7 +184,15 @@ const ids = (data || []).map(r => String(r.question_id));
   },
 
 async saveUserSolved(userId, questionId, isCorrect = true) {
-    const payload = {
+    if (!userId) return { ok: false, error: { message: "userId is required." } };
+    if (!isUuid(questionId)) {
+      return {
+        ok: false,
+        error: { message: `questionId must be UUID. Received: ${questionId}` }
+      };
+    }
+
+const payload = {
       user_id: userId,
       question_id: questionId,
       is_correct: !!isCorrect
@@ -199,16 +211,13 @@ if (error) {
     return { ok: true, data };
   },
 
-// Backward-compatible alias for old pages
+// Backward-compatible alias
   async markSolved(userId, subject, problemId, selectedOption, isCorrect) {
-    // In new schema, problemId should be question UUID
     return this.saveUserSolved(userId, problemId, !!isCorrect);
   },
 
 // -------------------------
-  // Recent activity compatibility
-  // (if old table recent_activity exists, use it;
-  // otherwise fallback to latest active questions)
+  // Recent activity compatibility (optional)
   // -------------------------
   async getRecentActivity(userId, limit = 20) {
     const safeLimit = Math.max(1, Math.min(50, Number(limit) || 20));
@@ -229,7 +238,7 @@ if (!isMissingRelationError(oldRes.error)) {
       return { ok: false, error: oldRes.error, data: [] };
     }
 
-// fallback: latest active questions
+// fallback to questions
     const { data, error } = await sb
       .from("questions")
       .select("*")
@@ -264,7 +273,7 @@ return { ok: true, data: mapped };
   },
 
 async pushRecent(userId, p) {
-    // optional, only works if recent_activity table exists
+    // optional only; safe if table missing
     const payload = {
       user_id: userId,
       subject: normalizeSubject(p?.subject),
@@ -286,7 +295,6 @@ async pushRecent(userId, p) {
 const { data, error } = await sb.from("recent_activity").insert(payload).select();
 
 if (error) {
-      // do not fail hard if table not present
       if (!isMissingRelationError(error)) console.error("pushRecent error:", error);
       return { ok: false, error };
     }
@@ -294,9 +302,7 @@ if (error) {
   },
 
 // -------------------------
-  // Streak methods (safe)
-  // Uses user_streaks if table exists.
-  // If not exists, returns graceful fallback.
+  // Streak methods
   // -------------------------
   async getStreak(userId) {
     const { data, error } = await sb
@@ -323,7 +329,8 @@ if (!data) {
         best_streak: 0,
         last_solved_date: null
       };
-      const { data: ins, error: insErr } = await sb
+
+const { data: ins, error: insErr } = await sb
         .from("user_streaks")
         .insert(seed)
         .select()
@@ -339,7 +346,8 @@ if (insErr) {
         console.error("getStreak seed error:", insErr);
         return { ok: false, error: insErr };
       }
-      return { ok: true, data: ins };
+
+return { ok: true, data: ins };
     }
 
 return { ok: true, data };
@@ -356,8 +364,9 @@ const row = base.data || {};
 let current = Number(row.current_streak || 0);
     let best = Number(row.best_streak || 0);
 
-if (!last) current = 1;
-    else {
+if (!last) {
+      current = 1;
+    } else {
       const d1 = new Date(last + "T00:00:00Z");
       const d2 = new Date(today + "T00:00:00Z");
       const diff = Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
@@ -401,9 +410,7 @@ if (error) {
 return { ok: true, data };
   },
 
-// -------------------------
-  // Optional old API compatibility
-  // -------------------------
+// Optional old API compatibility
   async toggleBookmark() {
     return { ok: false, error: { message: "Bookmarks table not configured in current schema." }, bookmarked: null };
   }
