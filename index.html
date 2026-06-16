@@ -350,7 +350,7 @@ let streak = 0;
     let solvedQuestionIds = new Set();
 
 const defaultRecent = {
-      id: "fallback-1",
+      id: "",
       subject: "Physics",
       topic: "Kinematics",
       difficulty: "Easy",
@@ -368,6 +368,10 @@ const defaultRecent = {
 
 function getSupabaseClient() {
       return window.PC?.supabase || window.sb || null;
+    }
+
+function isUuid(v) {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
     }
 
 setTopTab(localStorage.getItem(KEYS.topTab) || "home");
@@ -616,7 +620,7 @@ const total = 10;
 
 function buildSolveUrlFromProblem(p) {
       const query = new URLSearchParams({
-        id: String(p.id || "1"),
+        id: String(p.id || ""),   // IMPORTANT: no numeric fallback like "1"
         subject: p.subject || "Physics",
         topic: p.topic || "Topic",
         difficulty: p.difficulty || "Easy",
@@ -755,6 +759,10 @@ const localList = JSON.parse(localStorage.getItem(KEYS.recentList) || "[]");
 
 async function saveSolvedToDb(questionId, isCorrect) {
       if (!currentUser) return;
+      if (!isUuid(questionId)) {
+        console.warn("Skipping saveSolvedToDb: invalid UUID:", questionId);
+        return;
+      }
       const sb = getSupabaseClient();
       if (!sb) return;
 
