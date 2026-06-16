@@ -84,240 +84,222 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=5"></script>
+  <script src="supabase-client.js?v=7"></script>
   <script>
-    const sb = window.PC?.supabase || window.sb || null;
-    const $ = id => document.getElementById(id);
-    const statusEl = $("status");
-    const qTable = $("qTable");
-    let cachedRows = [];
+    (function () {
+      const db = window.PC?.supabase || window.sb || null;
+      const $ = (id) => document.getElementById(id);
+      const statusEl = $("status");
+      const qTable = $("qTable");
+      let cachedRows = [];
 
 function setStatus(msg, ok = true) {
-      statusEl.textContent = msg;
-      statusEl.style.color = ok ? "#86efac" : "#fca5a5";
-    }
+        statusEl.textContent = msg;
+        statusEl.style.color = ok ? "#86efac" : "#fca5a5";
+      }
 
 function escapeHtml(s = "") {
-      return String(s)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
+        return String(s)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
 
 async function getUserSafe() {
-      if (!sb) return null;
-      const { data } = await sb.auth.getUser();
-      return data?.user || null;
-    }
+        if (!db) return null;
+        const { data } = await db.auth.getUser();
+        return data?.user || null;
+      }
 
 async function ensureAdmin() {
-      if (!sb) throw new Error("Supabase client missing.");
+        if (!db) throw new Error("Supabase client missing.");
 
-let user = await (window.PC?.getUser?.() || getUserSafe());
-      if (!user) {
-        alert("Please login first.");
-        window.location.href = "index.html";
-        throw new Error("not_logged_in");
-      }
+const user = await (window.PC?.getUser?.() || getUserSafe());
+        if (!user) throw new Error("not_logged_in");
 
 if (window.PC?.canCurrentUserAccessAdmin) {
-        const res = await window.PC.canCurrentUserAccessAdmin();
-        if (res?.ok && res.canAccess) return user;
-      }
+          const res = await window.PC.canCurrentUserAccessAdmin();
+          if (res?.ok && res.canAccess) return user;
+        }
 
 if (window.PC?.isAdmin) {
-        const res = await window.PC.isAdmin(user.id);
-        if (res?.ok && res.isAdmin) return user;
-      }
+          const res = await window.PC.isAdmin(user.id);
+          if (res?.ok && res.isAdmin) return user;
+        }
 
-const { data: profile, error } = await sb
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle();
+const { data: profile, error } = await db
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
 
 if (error || !profile || String(profile.role).toLowerCase() !== "admin") {
-        alert("Access denied. Admin only.");
-        window.location.href = "index.html";
-        throw new Error("not_admin");
-      }
+          throw new Error("not_admin");
+        }
 
 return user;
-    }
+      }
 
 function getFormData() {
-      return {
-        subject: $("subject").value,
-        topic: $("topic").value.trim(),
-        difficulty: $("difficulty").value,
-        marks: Math.max(1, Number($("marks").value || 4)),
-        source: $("source").value.trim() || "",
-        title: $("title").value.trim(),
-        text: $("text").value.trim(),
-        option_a: $("option_a").value.trim(),
-        option_b: $("option_b").value.trim(),
-        option_c: $("option_c").value.trim(),
-        option_d: $("option_d").value.trim(),
-        correct: $("correct").value.trim().toUpperCase(),
-        explain: $("explain").value.trim() || "",
-        is_active: $("is_active").checked
-      };
-    }
+        return {
+          subject: $("subject").value,
+          topic: $("topic").value.trim(),
+          difficulty: $("difficulty").value,
+          marks: Math.max(1, Number($("marks").value || 4)),
+          source: $("source").value.trim() || "",
+          title: $("title").value.trim(),
+          text: $("text").value.trim(),
+          option_a: $("option_a").value.trim(),
+          option_b: $("option_b").value.trim(),
+          option_c: $("option_c").value.trim(),
+          option_d: $("option_d").value.trim(),
+          correct: $("correct").value.trim().toUpperCase(),
+          explain: $("explain").value.trim() || "",
+          is_active: $("is_active").checked
+        };
+      }
 
 function validatePayload(p) {
-      if (!p.subject || !p.topic || !p.difficulty || !p.title || !p.text) return "Please fill all required fields.";
-      if (!p.option_a || !p.option_b || !p.option_c || !p.option_d) return "All 4 options are required.";
-      if (!["A","B","C","D"].includes(p.correct)) return "Correct option must be A/B/C/D.";
-      return null;
-    }
+        if (!p.subject || !p.topic || !p.difficulty || !p.title || !p.text) return "Please fill all required fields.";
+        if (!p.option_a || !p.option_b || !p.option_c || !p.option_d) return "All 4 options are required.";
+        if (!["A","B","C","D"].includes(p.correct)) return "Correct option must be A/B/C/D.";
+        return null;
+      }
 
 function fillForm(q) {
-      $("qid").value = q.id || "";
-      $("subject").value = q.subject || "";
-      $("topic").value = q.topic || "";
-      $("difficulty").value = q.difficulty || "";
-      $("marks").value = q.marks ?? 4;
-      $("source").value = q.source || "";
-      $("title").value = q.title || "";
-      $("text").value = q.text || "";
-      $("option_a").value = q.option_a || "";
-      $("option_b").value = q.option_b || "";
-      $("option_c").value = q.option_c || "";
-      $("option_d").value = q.option_d || "";
-      $("correct").value = (q.correct || "").toUpperCase();
-      $("explain").value = q.explain || "";
-      $("is_active").checked = !!q.is_active;
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+        $("qid").value = q.id || "";
+        $("subject").value = q.subject || "";
+        $("topic").value = q.topic || "";
+        $("difficulty").value = q.difficulty || "";
+        $("marks").value = q.marks ?? 4;
+        $("source").value = q.source || "";
+        $("title").value = q.title || "";
+        $("text").value = q.text || "";
+        $("option_a").value = q.option_a || "";
+        $("option_b").value = q.option_b || "";
+        $("option_c").value = q.option_c || "";
+        $("option_d").value = q.option_d || "";
+        $("correct").value = (q.correct || "").toUpperCase();
+        $("explain").value = q.explain || "";
+        $("is_active").checked = !!q.is_active;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
 
 function resetForm() {
-      $("qForm").reset();
-      $("qid").value = "";
-      $("marks").value = 4;
-      $("is_active").checked = true;
-    }
+        $("qForm").reset();
+        $("qid").value = "";
+        $("marks").value = 4;
+        $("is_active").checked = true;
+      }
 
 async function loadQuestions() {
-      let query = sb
-        .from("questions")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(300);
+        let query = db.from("questions").select("*").order("created_at", { ascending: false }).limit(300);
 
 const fs = $("fSubject").value;
-      const fd = $("fDifficulty").value;
-      if (fs) query = query.eq("subject", fs);
-      if (fd) query = query.eq("difficulty", fd);
+        const fd = $("fDifficulty").value;
+        if (fs) query = query.eq("subject", fs);
+        if (fd) query = query.eq("difficulty", fd);
 
 const { data, error } = await query;
-      if (error) return setStatus("Load failed: " + error.message, false);
+        if (error) return setStatus("Load failed: " + error.message, false);
 
 cachedRows = data || [];
-      qTable.innerHTML = cachedRows.map(q => `
-        <tr>
-          <td>${escapeHtml(q.subject)}</td>
-          <td>${escapeHtml(q.topic)}</td>
-          <td>${escapeHtml(q.difficulty)}</td>
-          <td>${escapeHtml(q.title)}</td>
-          <td>${q.is_active ? "Yes" : "No"}</td>
-          <td class="row-actions">
-            <button class="secondary" data-edit="${q.id}" type="button">Edit</button>
-            <button class="danger" data-toggle="${q.id}" type="button">${q.is_active ? "Disable" : "Enable"}</button>
-            <button class="danger" data-delete="${q.id}" type="button">Delete</button>
-          </td>
-        </tr>
-      `).join("");
+        qTable.innerHTML = cachedRows.map(q => `
+          <tr>
+            <td>${escapeHtml(q.subject)}</td>
+            <td>${escapeHtml(q.topic)}</td>
+            <td>${escapeHtml(q.difficulty)}</td>
+            <td>${escapeHtml(q.title)}</td>
+            <td>${q.is_active ? "Yes" : "No"}</td>
+            <td class="row-actions">
+              <button class="secondary" data-edit="${q.id}" type="button">Edit</button>
+              <button class="danger" data-toggle="${q.id}" type="button">${q.is_active ? "Disable" : "Enable"}</button>
+              <button class="danger" data-delete="${q.id}" type="button">Delete</button>
+            </td>
+          </tr>
+        `).join("");
 
 qTable.querySelectorAll("[data-edit]").forEach(btn => {
-        btn.onclick = () => {
-          const q = cachedRows.find(x => String(x.id) === String(btn.dataset.edit));
-          if (q) fillForm(q);
-        };
-      });
+          btn.onclick = () => {
+            const q = cachedRows.find(x => String(x.id) === String(btn.dataset.edit));
+            if (q) fillForm(q);
+          };
+        });
 
 qTable.querySelectorAll("[data-toggle]").forEach(btn => {
-        btn.onclick = async () => {
-          const id = btn.dataset.toggle;
-          const row = cachedRows.find(x => String(x.id) === String(id));
-          if (!row) return;
-          const { error } = await sb
-            .from("questions")
-            .update({ is_active: !row.is_active })
-            .eq("id", id);
-          if (error) return setStatus("Toggle failed: " + error.message, false);
-          setStatus("Question status updated.");
-          await loadQuestions();
-        };
-      });
+          btn.onclick = async () => {
+            const id = btn.dataset.toggle;
+            const row = cachedRows.find(x => String(x.id) === String(id));
+            if (!row) return;
+            const { error } = await db.from("questions").update({ is_active: !row.is_active }).eq("id", id);
+            if (error) return setStatus("Toggle failed: " + error.message, false);
+            setStatus("Question status updated.");
+            await loadQuestions();
+          };
+        });
 
 qTable.querySelectorAll("[data-delete]").forEach(btn => {
-        btn.onclick = async () => {
-          if (!confirm("Delete this question permanently?")) return;
-          const { error } = await sb
-            .from("questions")
-            .delete()
-            .eq("id", btn.dataset.delete);
-          if (error) return setStatus("Delete failed: " + error.message, false);
-          setStatus("Question deleted.");
-          await loadQuestions();
-        };
-      });
+          btn.onclick = async () => {
+            if (!confirm("Delete this question permanently?")) return;
+            const { error } = await db.from("questions").delete().eq("id", btn.dataset.delete);
+            if (error) return setStatus("Delete failed: " + error.message, false);
+            setStatus("Question deleted.");
+            await loadQuestions();
+          };
+        });
 
 setStatus(`Loaded ${cachedRows.length} questions.`);
-    }
+      }
 
 $("qForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-const id = $("qid").value.trim();
-      const payload = getFormData();
-      const err = validatePayload(payload);
-      if (err) return setStatus(err, false);
+        e.preventDefault();
+        const id = $("qid").value.trim();
+        const payload = getFormData();
+        const err = validatePayload(payload);
+        if (err) return setStatus(err, false);
 
 let result;
-      if (id) {
-        result = await sb
-          .from("questions")
-          .update(payload)
-          .eq("id", id)
-          .select()
-          .single();
-      } else {
-        result = await sb
-          .from("questions")
-          .insert(payload)
-          .select()
-          .single();
-      }
+        if (id) {
+          result = await db.from("questions").update(payload).eq("id", id).select().single();
+        } else {
+          result = await db.from("questions").insert(payload).select().single();
+        }
 
 if (result.error) {
-        console.error("Save error:", result.error);
-        return setStatus("Save failed: " + result.error.message, false);
-      }
+          console.error(result.error);
+          return setStatus("Save failed: " + result.error.message, false);
+        }
 
 setStatus(id ? "Question updated successfully." : "Question added successfully.");
-      resetForm();
-      await loadQuestions();
-    });
+        resetForm();
+        await loadQuestions();
+      });
 
 $("resetBtn").onclick = resetForm;
-    $("refreshBtn").onclick = loadQuestions;
-    $("fSubject").onchange = loadQuestions;
-    $("fDifficulty").onchange = loadQuestions;
+      $("refreshBtn").onclick = loadQuestions;
+      $("fSubject").onchange = loadQuestions;
+      $("fDifficulty").onchange = loadQuestions;
 
 (async function init() {
-      try {
-        await ensureAdmin();
-        setStatus("Admin verified.");
-        await loadQuestions();
-      } catch (e) {
-        console.error(e);
-        if (e?.message !== "not_logged_in" && e?.message !== "not_admin") {
-          setStatus("Init failed: " + (e.message || "Unknown error"), false);
+        try {
+          await ensureAdmin();
+          setStatus("Admin verified.");
+          await loadQuestions();
+        } catch (e) {
+          console.error(e);
+          if (e.message === "not_logged_in") {
+            setStatus("Please login first.", false);
+            setTimeout(() => window.location.href = "index.html", 800);
+          } else if (e.message === "not_admin") {
+            setStatus("Access denied. Admin only.", false);
+            setTimeout(() => window.location.href = "index.html", 800);
+          } else {
+            setStatus("Init failed: " + (e.message || "Unknown error"), false);
+          }
         }
-      }
+      })();
     })();
   </script>
 </body>
