@@ -125,6 +125,35 @@ if (error) {
     return { ok: true, data };
   },
 
+// NEW: admin role check
+  async isAdmin(userId) {
+    if (!userId) return { ok: true, isAdmin: false };
+
+const { data, error } = await sb
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
+
+if (error) {
+      console.error("isAdmin error:", error);
+      return { ok: false, error, isAdmin: false };
+    }
+
+return { ok: true, isAdmin: String(data?.role || "").toLowerCase() === "admin" };
+  },
+
+// NEW: convenience helper for current session
+  async canCurrentUserAccessAdmin() {
+    const user = await this.getUser();
+    if (!user) return { ok: true, canAccess: false, user: null };
+
+const roleRes = await this.isAdmin(user.id);
+    if (!roleRes.ok) return { ok: false, canAccess: false, user, error: roleRes.error };
+
+return { ok: true, canAccess: roleRes.isAdmin, user };
+  },
+
 // -------------------------
   // Questions
   // -------------------------
@@ -412,6 +441,10 @@ return { ok: true, data };
 
 // Optional old API compatibility
   async toggleBookmark() {
-    return { ok: false, error: { message: "Bookmarks table not configured in current schema." }, bookmarked: null };
+    return {
+      ok: false,
+      error: { message: "Bookmarks table not configured in current schema." },
+      bookmarked: null
+    };
   }
 };
