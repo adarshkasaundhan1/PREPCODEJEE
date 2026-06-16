@@ -194,9 +194,9 @@
 
 <div class="subjects">
         <h4>SUBJECTS</h4>
-        <div class="sub-item"><span>Physics</span><small id="phySolved">0 / 50</small></div>
-        <div class="sub-item"><span>Chemistry</span><small id="chemSolved">0 / 40</small></div>
-        <div class="sub-item"><span>Mathematics</span><small id="mathSolved">0 / 60</small></div>
+        <div class="sub-item"><span>Physics</span><small id="phySolved">0 / 0</small></div>
+        <div class="sub-item"><span>Chemistry</span><small id="chemSolved">0 / 0</small></div>
+        <div class="sub-item"><span>Mathematics</span><small id="mathSolved">0 / 0</small></div>
       </div>
 
 <div class="premium">
@@ -218,8 +218,7 @@
         <div class="right-actions">
           <div class="streak">🔥 <span id="streakNum">0</span> Day Streak</div>
 
-<!-- NEW: Admin button (hidden by default) -->
-          <button id="adminBtn" class="btn btn-outline" style="display:none;">Admin</button>
+<button id="adminBtn" class="btn btn-outline" style="display:none;">Admin</button>
 
 <button id="loginBtn" class="btn btn-outline">Login</button>
           <button id="logoutBtn" class="btn btn-outline">Logout</button>
@@ -235,17 +234,17 @@
         <div class="cards">
           <article class="subject-card physics">
             <h3>⚛ Physics</h3>
-            <p>50 Topics · 512 Problems</p>
+            <p id="physicsCardStats">0 Topics · 0 Problems</p>
             <button id="explorePhysicsBtn">Explore</button>
           </article>
           <article class="subject-card chem">
             <h3>🧪 Chemistry</h3>
-            <p>40 Topics · 420 Problems</p>
+            <p id="chemistryCardStats">0 Topics · 0 Problems</p>
             <button id="exploreChemBtn">Explore</button>
           </article>
           <article class="subject-card math">
             <h3>π Mathematics</h3>
-            <p>60 Topics · 620 Problems</p>
+            <p id="mathCardStats">0 Topics · 0 Problems</p>
             <button id="exploreMathBtn">Explore</button>
           </article>
         </div>
@@ -342,9 +341,13 @@ const explorePhysicsBtn = document.getElementById("explorePhysicsBtn");
 
 const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
-    const adminBtn = document.getElementById("adminBtn"); // NEW
+    const adminBtn = document.getElementById("adminBtn");
     const profileName = document.getElementById("profileName");
     const avatarLetter = document.getElementById("avatarLetter");
+
+const physicsCardStats = document.getElementById("physicsCardStats");
+    const chemistryCardStats = document.getElementById("chemistryCardStats");
+    const mathCardStats = document.getElementById("mathCardStats");
 
 let streak = 0;
     let bookmarked = localStorage.getItem(KEYS.bookmarked) === "true";
@@ -353,6 +356,13 @@ let streak = 0;
     let currentContinueProblem = null;
     let recentPool = [];
     let solvedQuestionIds = new Set();
+    let questionStatsChannel = null;
+
+let subjectStats = {
+      Physics: { problems: 0, topics: 0 },
+      Chemistry: { problems: 0, topics: 0 },
+      Mathematics: { problems: 0, topics: 0 }
+    };
 
 const defaultRecent = {
       id: "",
@@ -384,6 +394,7 @@ setTopTab(localStorage.getItem(KEYS.topTab) || "home");
     renderStreak();
     renderBookmark();
     renderSidebarSubjectCounts();
+    renderSubjectCardCounts();
     if (adminBtn) adminBtn.style.display = "none";
 
 loginBtn?.addEventListener("click", async () => {
@@ -437,8 +448,7 @@ if (user) {
           loginBtn.style.display = "none";
           logoutBtn.style.display = "inline-block";
 
-// NEW: admin visibility
-          let isAdminUser = false;
+let isAdminUser = false;
           if (window.PC?.canCurrentUserAccessAdmin) {
             const ar = await window.PC.canCurrentUserAccessAdmin();
             isAdminUser = !!ar?.canAccess;
@@ -492,13 +502,87 @@ if (error) return console.error("loadSolvedIds error:", error.message);
       }
     }
 
+async function loadSubjectStatsFromDb() {
+      const sb = getSupabaseClient();
+      if (!sb) return;
+
+try {
+        const { data, error } = await sb
+          .from("questions")
+          .select("subject, topic")
+          .eq("is_active", true);
+
+if (error) {
+          console.error("loadSubjectStatsFromDb error:", error.message);
+          return;
+        }
+
+const tmp = {
+          Physics: { problems: 0, topicSet: new Set() },
+          Chemistry: { problems: 0, topicSet: new Set() },
+          Mathematics: { problems: 0, topicSet: new Set() }
+        };
+
+(data || []).forEach(row => {
+          const s = normalizeSubject(row.subject || "");
+          if (!tmp[s]) return;
+          tmp[s].problems += 1;
+          const t = String(row.topic || "").trim();
+          if (t) tmp[s].topicSet.add(t.toLowerCase());
+        });
+
+subjectStats = {
+          Physics: { problems: tmp.Physics.problems, topics: tmp.Physics.topicSet.size },
+          Chemistry: { problems: tmp.Chemistry.problems, topics: tmp.Chemistry.topicSet.size },
+          Mathematics: { problems: tmp.Mathematics.problems, topics: tmp.Mathematics.topicSet.size }
+        };
+
+renderSubjectCardCounts();
+        renderSidebarSubjectCounts();
+        if (currentContinueProblem) renderContinuePractice(currentContinueProblem);
+      } catch (e) {
+        console.error("loadSubjectStatsFromDb exception:", e);
+      }
+    }
+
+function subscribeQuestionStatsRealtime() {
+      const sb = getSupabaseClient();
+      if (!sb) return;
+
+if (questionStatsChannel) {
+        try { sb.removeChannel(questionStatsChannel); } catch {}
+      }
+
+questionStatsChannel = sb
+        .channel("questions-stats-live")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "questions" },
+          async () => {
+            await loadSubjectStatsFromDb();
+          }
+        )
+        .subscribe((status) => {
+          console.log("Realtime questions channel:", status);
+        });
+    }
+
 async function boot() {
       await renderAuthState();
       await loadDbStreak();
       await loadSolvedIdsFromDb();
+      await loadSubjectStatsFromDb();
+      subscribeQuestionStatsRealtime();
       await loadRecentFromDbOrLocal();
     }
     boot();
+
+window.addEventListener("beforeunload", () => {
+      const sb = getSupabaseClient();
+      if (sb && questionStatsChannel) {
+        try { sb.removeChannel(questionStatsChannel); } catch {}
+      }
+    });
 
 explorePhysicsBtn.addEventListener("click", () => window.location.href = "physics-problems.html");
     exploreChemBtn.addEventListener("click", () => window.location.href = "chemistry-problems.html");
@@ -542,16 +626,17 @@ function escapeHtml(str = "") {
     }
 
 function normalizeSubject(subject = "") {
-      const s = String(subject).toLowerCase();
+      const s = String(subject).toLowerCase().trim();
       if (s.includes("phys")) return "Physics";
       if (s.includes("chem")) return "Chemistry";
+      if (s === "math" || s === "maths" || s.includes("mathemat")) return "Mathematics";
       return "Mathematics";
     }
 
 function subjectSolvedKey(subject = "") {
-      const s = String(subject).toLowerCase();
-      if (s.includes("phys")) return KEYS.phySolvedIds;
-      if (s.includes("chem")) return KEYS.chemSolvedIds;
+      const s = normalizeSubject(subject);
+      if (s === "Physics") return KEYS.phySolvedIds;
+      if (s === "Chemistry") return KEYS.chemSolvedIds;
       return KEYS.mathSolvedIds;
     }
 
@@ -559,6 +644,11 @@ function getSolvedCountForSubject(subject) {
       const key = subjectSolvedKey(subject);
       const arr = JSON.parse(localStorage.getItem(key) || "[]");
       return arr.length;
+    }
+
+function getTotalCountForSubject(subject) {
+      const s = normalizeSubject(subject);
+      return Number(subjectStats[s]?.problems || 0);
     }
 
 function markSolvedInSubjectLocal(subject, id) {
@@ -619,13 +709,24 @@ function setContinueProblem(baseProblem) {
       renderContinuePractice(currentContinueProblem);
     }
 
+function renderSubjectCardCounts() {
+      physicsCardStats.textContent = `${subjectStats.Physics.topics} Topics · ${subjectStats.Physics.problems} Problems`;
+      chemistryCardStats.textContent = `${subjectStats.Chemistry.topics} Topics · ${subjectStats.Chemistry.problems} Problems`;
+      mathCardStats.textContent = `${subjectStats.Mathematics.topics} Topics · ${subjectStats.Mathematics.problems} Problems`;
+    }
+
 function renderSidebarSubjectCounts() {
-      const phy = JSON.parse(localStorage.getItem(KEYS.phySolvedIds) || "[]").length;
-      const chem = JSON.parse(localStorage.getItem(KEYS.chemSolvedIds) || "[]").length;
-      const math = JSON.parse(localStorage.getItem(KEYS.mathSolvedIds) || "[]").length;
-      document.getElementById("phySolved").textContent = `${Math.min(50, phy)} / 50`;
-      document.getElementById("chemSolved").textContent = `${Math.min(40, chem)} / 40`;
-      document.getElementById("mathSolved").textContent = `${Math.min(60, math)} / 60`;
+      const phySolved = JSON.parse(localStorage.getItem(KEYS.phySolvedIds) || "[]").length;
+      const chemSolved = JSON.parse(localStorage.getItem(KEYS.chemSolvedIds) || "[]").length;
+      const mathSolved = JSON.parse(localStorage.getItem(KEYS.mathSolvedIds) || "[]").length;
+
+const phyTotal = subjectStats.Physics.problems;
+      const chemTotal = subjectStats.Chemistry.problems;
+      const mathTotal = subjectStats.Mathematics.problems;
+
+document.getElementById("phySolved").textContent = `${Math.min(phySolved, phyTotal)} / ${phyTotal}`;
+      document.getElementById("chemSolved").textContent = `${Math.min(chemSolved, chemTotal)} / ${chemTotal}`;
+      document.getElementById("mathSolved").textContent = `${Math.min(mathSolved, mathTotal)} / ${mathTotal}`;
     }
 
 function renderContinuePractice(p) {
@@ -635,7 +736,7 @@ function renderContinuePractice(p) {
       continueTitle.textContent = `${topic} - Practice`;
       continueMeta.textContent = `${subject} · ${difficulty}`;
 
-const total = 10;
+const total = Math.max(1, getTotalCountForSubject(subject));
       const done = Math.min(total, getSolvedCountForSubject(subject));
       solvedCounter.textContent = `${done} / ${total} solved`;
       solveBar.style.width = `${(done / total) * 100}%`;
@@ -831,6 +932,8 @@ if (currentUser && window.PC?.updateStreakOnSolve) {
 const next = findNextUnsolvedProblem(currentRecent, recentPool);
         if (next && String(next.id) !== String(currentRecent.id)) {
           setTimeout(() => renderRecentProblem(next), 500);
+        } else {
+          renderContinuePractice(currentRecent);
         }
       } else {
         if (currentRecent?.id) await saveSolvedToDb(currentRecent.id, false);
