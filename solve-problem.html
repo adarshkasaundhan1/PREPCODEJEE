@@ -156,6 +156,8 @@
         <button class="btn btn-primary" id="submitBtn">Submit</button>
         <button class="btn btn-outline" id="resetBtn">Reset</button>
         <button class="btn btn-outline" id="bookmarkBtn">🔖 Bookmark</button>
+        <button class="btn btn-outline" id="prevBtn">◀ Previous</button>
+        <button class="btn btn-outline" id="nextBtn">Next ▶</button>
       </div>
 
 <div class="success" id="successMsg">✅ Correct! Great work.</div>
@@ -186,6 +188,10 @@ function normalizeSubject(subject) {
 
 function isUuid(v) {
       return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
+    }
+
+function getSupabaseClient() {
+      return window.PC?.supabase || window.sb || null;
     }
 
 async function getCurrentUserOrNull() {
@@ -255,12 +261,15 @@ const backBtn = byId("backBtn");
     const submitBtn = byId("submitBtn");
     const resetBtn = byId("resetBtn");
     const bookmarkBtn = byId("bookmarkBtn");
+    const prevBtn = byId("prevBtn");
+    const nextBtn = byId("nextBtn");
     const successMsg = byId("successMsg");
     const errorMsg = byId("errorMsg");
     const explainText = byId("explainText");
 
 let selected = localStorage.getItem(ATTEMPT_KEY) || "";
     let bookmarked = localStorage.getItem(BOOKMARK_KEY) === "true";
+    let topicQuestionsCache = [];
 
 subjectPill.textContent = `Subject: ${subjectNormalized}`;
     topicPill.textContent = `Topic: ${problem.topic}`;
@@ -297,6 +306,98 @@ optionsWrap.querySelectorAll(".opt").forEach(opt => {
         localStorage.setItem(ATTEMPT_KEY, selected);
       });
     });
+
+function normalizeDbRowToProblem(row) {
+      return {
+        id: row.id,
+        subject: row.subject || subjectNormalized,
+        topic: row.topic || problem.topic,
+        difficulty: row.difficulty || "Easy",
+        marks: row.marks ?? 4,
+        title: row.title || "Practice Problem",
+        text: row.text || "",
+        a: row.option_a || "",
+        b: row.option_b || "",
+        c: row.option_c || "",
+        d: row.option_d || "",
+        correct: String(row.correct || "A").toUpperCase(),
+        explain: row.explain || "",
+        back: problem.back || "index.html"
+      };
+    }
+
+function buildSolveUrlFromProblem(p) {
+      const q = new URLSearchParams({
+        id: String(p.id || ""),
+        subject: p.subject || subjectNormalized,
+        topic: p.topic || problem.topic,
+        difficulty: p.difficulty || "Easy",
+        marks: String(p.marks ?? 4),
+        title: p.title || "",
+        text: p.text || "",
+        a: p.a || "",
+        b: p.b || "",
+        c: p.c || "",
+        d: p.d || "",
+        correct: p.correct || "A",
+        explain: p.explain || "",
+        back: problem.back || "index.html"
+      });
+      return `solve-problem.html?${q.toString()}`;
+    }
+
+async function loadTopicQuestions() {
+      const sb = getSupabaseClient();
+      if (!sb) {
+        topicQuestionsCache = [];
+        return;
+      }
+
+try {
+        const { data, error } = await sb
+          .from("questions")
+          .select("*")
+          .eq("is_active", true)
+          .eq("subject", subjectNormalized)
+          .eq("topic", problem.topic)
+          .order("created_at", { ascending: true });
+
+if (error) {
+          console.error("loadTopicQuestions error:", error.message);
+          topicQuestionsCache = [];
+          return;
+        }
+
+topicQuestionsCache = (data || []).map(normalizeDbRowToProblem);
+      } catch (e) {
+        console.error("loadTopicQuestions exception:", e);
+        topicQuestionsCache = [];
+      }
+    }
+
+function goToNextQuestion() {
+      if (!topicQuestionsCache.length) return alert("No questions found in this topic.");
+      if (topicQuestionsCache.length === 1) return alert("Only 1 question exists in this topic right now.");
+
+const currentId = String(problem.id || "");
+      let idx = topicQuestionsCache.findIndex(q => String(q.id) === currentId);
+      if (idx < 0) idx = 0;
+
+const nextIdx = (idx + 1) % topicQuestionsCache.length;
+      window.location.href = buildSolveUrlFromProblem(topicQuestionsCache[nextIdx]);
+    }
+
+function goToPreviousQuestion() {
+      if (!topicQuestionsCache.length) return alert("No questions found in this topic.");
+      if (topicQuestionsCache.length === 1) return alert("Only 1 question exists in this topic right now.");
+
+const currentId = String(problem.id || "");
+      let idx = topicQuestionsCache.findIndex(q => String(q.id) === currentId);
+      if (idx < 0) idx = 0;
+
+const prevIdx = (idx - 1 + topicQuestionsCache.length) % topicQuestionsCache.length;
+      window.location.href = buildSolveUrlFromProblem(topicQuestionsCache[prevIdx]);
+    }
 
 function saveRecentProblemLocal(problemObj, selectedAns, isCorrect) {
       if (!isCorrect) return;
@@ -338,8 +439,6 @@ bookmarkBtn.addEventListener("click", async () => {
 
 const user = await getCurrentUserOrNull();
       if (!user) return;
-
-// only if your backend still supports bookmarks
       if (!window.PC?.toggleBookmark) return;
       if (!isUuid(problem.id)) return;
 
@@ -381,7 +480,6 @@ const user = await getCurrentUserOrNull();
       if (!user) return;
 
 try {
-        // IMPORTANT: only write DB solved row if question id is a UUID
         if (isUuid(problem.id)) {
           if (window.PC?.saveUserSolved) {
             await PC.saveUserSolved(user.id, problem.id, isCorrect);
@@ -397,8 +495,7 @@ if (isCorrect && window.PC?.updateStreakOnSolve) {
           console.log("updateStreakOnSolve:", streakRes);
         }
 
-// Optional: don't fail flow if recent_activity table is absent
-        if (isCorrect && window.PC?.pushRecent) {
+if (isCorrect && window.PC?.pushRecent) {
           try {
             await PC.pushRecent(user.id, { ...problem, subject: subjectNormalized });
           } catch (e) {
@@ -419,6 +516,9 @@ resetBtn.addEventListener("click", () => {
       errorMsg.style.display = "none";
     });
 
+prevBtn.addEventListener("click", () => goToPreviousQuestion());
+    nextBtn.addEventListener("click", () => goToNextQuestion());
+
 backBtn.addEventListener("click", () => {
       if (problem.back) return (window.location.href = problem.back);
       if (document.referrer) return history.back();
@@ -435,6 +535,10 @@ function markSolvedInSubject(subject, id) {
         localStorage.setItem(key, JSON.stringify(arr));
       }
     }
+
+(async function init() {
+      await loadTopicQuestions();
+    })();
   </script>
 </body>
 </html>
