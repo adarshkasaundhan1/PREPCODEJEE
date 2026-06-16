@@ -85,10 +85,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script>
-    const supabase = window.supabase || window.PC?.supabase;
+    const supabase = window.PC?.supabase || window.sb || null;
     const $ = id => document.getElementById(id);
     const statusEl = $("status");
     const qTable = $("qTable");
+    let cachedRows = [];
 
 function setStatus(msg, ok=true){
       statusEl.textContent = msg;
@@ -96,21 +97,34 @@ function setStatus(msg, ok=true){
     }
 
 async function ensureAdmin() {
-      const { data: userRes } = await supabase.auth.getUser();
-      const user = userRes?.user;
+      if (!supabase) throw new Error("Supabase client missing in supabase-client.js");
+
+const user = await window.PC?.getUser?.();
       if (!user) {
-        setStatus("Please login first.", false);
+        alert("Please login first.");
+        window.location.href = "index.html";
         throw new Error("not_logged_in");
       }
+
+if (window.PC?.isAdmin) {
+        const res = await window.PC.isAdmin(user.id);
+        if (res?.ok && res.isAdmin) return user;
+      }
+
+// fallback if PC.isAdmin helper not added yet
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", user.id)
-        .single();
-      if (error || !profile || profile.role !== "admin") {
-        setStatus("Access denied: admin only.", false);
+        .maybeSingle();
+
+if (error || !profile || profile.role !== "admin") {
+        alert("Access denied. Admin only.");
+        window.location.href = "index.html";
         throw new Error("not_admin");
       }
+
+return user;
     }
 
 function getFormData() {
@@ -147,7 +161,8 @@ function fillForm(q) {
       $("option_d").value = q.option_d;
       $("correct").value = q.correct;
       $("explain").value = q.explain || "";
-      $("is_active").checked = q.is_active;
+      $("is_active").checked = !!q.is_active;
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
 function resetForm() {
@@ -157,12 +172,21 @@ function resetForm() {
       $("is_active").checked = true;
     }
 
+function escapeHtml(s = "") {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
 async function loadQuestions() {
       let query = supabase
         .from("questions")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(200);
+        .limit(300);
 
 const fs = $("fSubject").value;
       const fd = $("fDifficulty").value;
@@ -172,16 +196,18 @@ const fs = $("fSubject").value;
 const { data, error } = await query;
       if (error) return setStatus(error.message, false);
 
-qTable.innerHTML = (data || []).map(q => `
+cachedRows = data || [];
+
+qTable.innerHTML = cachedRows.map(q => `
         <tr>
-          <td>${q.subject}</td>
-          <td>${q.topic}</td>
-          <td>${q.difficulty}</td>
-          <td>${q.title}</td>
+          <td>${escapeHtml(q.subject)}</td>
+          <td>${escapeHtml(q.topic)}</td>
+          <td>${escapeHtml(q.difficulty)}</td>
+          <td>${escapeHtml(q.title)}</td>
           <td>${q.is_active ? "Yes" : "No"}</td>
           <td class="row-actions">
             <button class="secondary" data-edit="${q.id}">Edit</button>
-            <button class="danger" data-disable="${q.id}">${q.is_active ? "Disable" : "Enable"}</button>
+            <button class="danger" data-toggle="${q.id}">${q.is_active ? "Disable" : "Enable"}</button>
             <button class="danger" data-delete="${q.id}">Delete</button>
           </td>
         </tr>
@@ -189,40 +215,51 @@ qTable.innerHTML = (data || []).map(q => `
 
 qTable.querySelectorAll("[data-edit]").forEach(btn => {
         btn.onclick = () => {
-          const q = data.find(x => x.id === btn.dataset.edit);
+          const q = cachedRows.find(x => String(x.id) === String(btn.dataset.edit));
           if (q) fillForm(q);
         };
       });
 
-qTable.querySelectorAll("[data-disable]").forEach(btn => {
+qTable.querySelectorAll("[data-toggle]").forEach(btn => {
         btn.onclick = async () => {
-          const id = btn.dataset.disable;
-          const q = data.find(x => x.id === id);
+          const id = btn.dataset.toggle;
+          const row = cachedRows.find(x => String(x.id) === String(id));
+          if (!row) return;
           const { error } = await supabase
             .from("questions")
-            .update({ is_active: !q.is_active })
+            .update({ is_active: !row.is_active })
             .eq("id", id);
-          if (error) return setStatus(error.message, false);
+
+if (error) return setStatus(error.message, false);
           setStatus("Question status updated.");
-          loadQuestions();
+          await loadQuestions();
         };
       });
 
 qTable.querySelectorAll("[data-delete]").forEach(btn => {
         btn.onclick = async () => {
           if (!confirm("Delete this question permanently?")) return;
-          const { error } = await supabase.from("questions").delete().eq("id", btn.dataset.delete);
-          if (error) return setStatus(error.message, false);
+          const { error } = await supabase
+            .from("questions")
+            .delete()
+            .eq("id", btn.dataset.delete);
+
+if (error) return setStatus(error.message, false);
           setStatus("Question deleted.");
-          loadQuestions();
+          await loadQuestions();
         };
       });
     }
 
 $("qForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const id = $("qid").value;
+
+const id = $("qid").value;
       const payload = getFormData();
+
+if (!payload.subject || !payload.topic || !payload.difficulty || !payload.title || !payload.text || !payload.correct) {
+        return setStatus("Please fill all required fields.", false);
+      }
 
 let res;
       if (id) {
@@ -235,7 +272,7 @@ if (res.error) return setStatus(res.error.message, false);
 
 setStatus(id ? "Question updated." : "Question added.");
       resetForm();
-      loadQuestions();
+      await loadQuestions();
     });
 
 $("resetBtn").onclick = resetForm;
@@ -245,7 +282,6 @@ $("resetBtn").onclick = resetForm;
 
 (async function init(){
       try {
-        if (!supabase) throw new Error("Supabase client missing in supabase-client.js");
         await ensureAdmin();
         setStatus("Admin verified.");
         await loadQuestions();
