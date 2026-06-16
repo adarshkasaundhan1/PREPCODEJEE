@@ -114,6 +114,7 @@
       padding:10px;
       color:#d7e4ff;
       background:rgba(255,255,255,.02);
+      display:none;
     }
 
 .footer{text-align:center;color:var(--muted);font-size:12px;margin-top:6px}
@@ -265,6 +266,7 @@ const backBtn = byId("backBtn");
     const nextBtn = byId("nextBtn");
     const successMsg = byId("successMsg");
     const errorMsg = byId("errorMsg");
+    const explainBox = byId("explainBox");
     const explainText = byId("explainText");
 
 let selected = localStorage.getItem(ATTEMPT_KEY) || "";
@@ -278,6 +280,7 @@ subjectPill.textContent = `Subject: ${subjectNormalized}`;
     problemTitle.textContent = problem.title;
     problemText.textContent = problem.text;
     explainText.textContent = problem.explain;
+    explainBox.style.display = "none";
 
 const labels = [
       { key: "A", text: problem.a },
@@ -476,6 +479,8 @@ if (isCorrect) {
         errorMsg.style.display = "block";
       }
 
+explainBox.style.display = "block";
+
 const user = await getCurrentUserOrNull();
       if (!user) return;
 
@@ -514,6 +519,7 @@ resetBtn.addEventListener("click", () => {
       localStorage.removeItem(ATTEMPT_KEY);
       successMsg.style.display = "none";
       errorMsg.style.display = "none";
+      explainBox.style.display = "none";
     });
 
 prevBtn.addEventListener("click", () => goToPreviousQuestion());
