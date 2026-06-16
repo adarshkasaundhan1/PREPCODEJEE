@@ -38,8 +38,7 @@
       min-height:100vh;
     }
 
-/* Sidebar */
-    .sidebar{
+.sidebar{
       border-right:1px solid var(--line);
       background:rgba(8,14,27,.85);
       padding:18px 14px;
@@ -47,26 +46,21 @@
       top:0;
       height:100vh;
     }
-    .brand{
-      display:flex;align-items:center;gap:10px;margin-bottom:20px;
-    }
+    .brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
     .brand .icon{color:var(--green);font-weight:900;font-size:22px}
     .brand h1{font-size:30px;line-height:1}
     .brand p{font-size:12px;color:var(--muted)}
     .menu{display:flex;flex-direction:column;gap:8px;margin-top:14px}
     .menu button{
       background:transparent;border:1px solid transparent;color:var(--text);
-      text-align:left;padding:10px 12px;border-radius:10px;cursor:pointer;
-      font-weight:600;
+      text-align:left;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:600;
     }
     .menu button:hover{background:rgba(255,255,255,.04)}
     .menu button.active{
       background:rgba(34,197,94,.13);border-color:rgba(34,197,94,.25);color:#b9ffcf;
     }
 
-.subjects{
-      margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
-    }
+.subjects{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
     .subjects h4{font-size:12px;color:var(--muted);margin-bottom:10px;letter-spacing:.5px}
     .sub-item{
       display:flex;justify-content:space-between;align-items:center;
@@ -86,8 +80,7 @@
       width:100%;padding:9px;border:none;border-radius:8px;background:#16a34a;color:#fff;font-weight:700;cursor:pointer;
     }
 
-/* Main */
-    .main{display:flex;flex-direction:column}
+.main{display:flex;flex-direction:column}
     .topbar{
       height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
       padding:0 20px;background:rgba(9,15,30,.78);backdrop-filter:blur(6px);position:sticky;top:0;z-index:20;
@@ -118,9 +111,7 @@
 .content{padding:22px;max-width:1200px}
     .section-title{font-size:32px;margin-bottom:14px}
     .muted{color:var(--muted)}
-    .cards{
-      display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:14px;margin-bottom:20px;
-    }
+    .cards{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:14px;margin-bottom:20px}
     .subject-card{
       border:1px solid var(--line);border-radius:14px;padding:16px;background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
     }
@@ -141,20 +132,15 @@
       padding:16px;margin-bottom:16px;
     }
 
-.continue-row{
-      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
-    }
+.continue-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
     .progress-wrap{display:flex;align-items:center;gap:10px;min-width:260px}
     .bar{width:180px;height:8px;background:#263550;border-radius:999px;overflow:hidden}
-    .bar>span{display:block;height:100%;background:var(--green);width:30%}
+    .bar>span{display:block;height:100%;background:var(--green);width:0%}
     .btn{
-      border:none;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;
-      background:#16a34a;color:#fff;
+      border:none;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;background:#16a34a;color:#fff;
     }
 
-.recent{
-      display:grid;grid-template-columns:1.1fr .9fr;gap:14px;
-    }
+.recent{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
     .q-meta{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:13px;margin-bottom:10px}
     .badge{padding:4px 8px;border-radius:999px;font-size:12px;border:1px solid rgba(34,197,94,.35);color:#b6ffcf;background:rgba(34,197,94,.08)}
     .question{font-size:28px;line-height:1.4;margin:10px 0 14px}
@@ -165,9 +151,7 @@
     .options .opt input{accent-color:var(--green)}
     .options .opt.active{border-color:rgba(34,197,94,.55);background:rgba(34,197,94,.09)}
     .actions{display:flex;gap:8px;flex-wrap:wrap}
-    .btn-outline{
-      background:transparent;color:var(--text);border:1px solid var(--line);
-    }
+    .btn-outline{background:transparent;color:var(--text);border:1px solid var(--line)}
     .success{
       margin-top:10px;padding:10px;border-radius:10px;border:1px solid rgba(34,197,94,.35);
       background:rgba(34,197,94,.08);color:#b7ffce;display:none;
@@ -190,7 +174,6 @@
 </head>
 <body>
   <div class="app">
-    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="brand">
         <div class="icon">&lt;/&gt;</div>
@@ -223,8 +206,7 @@
       </div>
     </aside>
 
-<!-- Main -->
-    <main class="main">
+<main class="main">
       <header class="topbar">
         <nav class="top-links" id="topNav">
           <button class="active" data-tab="home">Home</button>
@@ -235,11 +217,9 @@
         </nav>
         <div class="right-actions">
           <div class="streak">🔥 <span id="streakNum">0</span> Day Streak</div>
-
-<button id="loginBtn" class="btn btn-outline">Login</button>
+          <button id="loginBtn" class="btn btn-outline">Login</button>
           <button id="logoutBtn" class="btn btn-outline">Logout</button>
-
-<div class="profile">
+          <div class="profile">
             <div class="avatar" id="avatarLetter">P</div>
             <div id="profileName">PrepCoder ▾</div>
           </div>
@@ -270,14 +250,14 @@
           <h3 style="margin-bottom:10px;">Continue Practice</h3>
           <div class="continue-row">
             <div>
-              <strong>Kinematics - Basics</strong>
-              <p class="muted">Physics · Easy</p>
+              <strong id="continueTitle">Kinematics - Basics</strong>
+              <p class="muted" id="continueMeta">Physics · Easy</p>
             </div>
             <div class="progress-wrap">
-              <strong id="solvedCounter">3 / 10 solved</strong>
+              <strong id="solvedCounter">0 / 10 solved</strong>
               <div class="bar"><span id="solveBar"></span></div>
             </div>
-            <button class="btn">Continue</button>
+            <button class="btn" id="continueBtn">Continue</button>
           </div>
         </div>
 
@@ -294,8 +274,7 @@
               A particle moves along a straight line with position x(t)=3t²−4t+1. Find velocity at t=2 s.
             </p>
             <p class="muted" id="recentMeta">Difficulty: Easy · Marks: +4 · From: JEE Main</p>
-
-<div class="actions" style="margin-top:12px;">
+            <div class="actions" style="margin-top:12px;">
               <button class="btn btn-outline" id="bookmarkBtn">🔖 Bookmark</button>
             </div>
           </div>
@@ -321,18 +300,18 @@
   <script src="supabase-client.js"></script>
 
 <script>
-    // -------- Local Storage Keys --------
     const KEYS = {
       topTab: "jee_top_tab",
       sideTab: "jee_side_tab",
-      solved: "jee_solved",
       selectedOption: "jee_selected_option",
       bookmarked: "jee_bookmarked",
-      recentList: "pc_recent_list_v1"
+      recentList: "pc_recent_list_v1",
+      phySolvedIds: "phy_solved_ids",
+      chemSolvedIds: "chem_solved_ids",
+      mathSolvedIds: "math_solved_ids"
     };
 
-// -------- Elements --------
-    const topBtns = document.querySelectorAll("#topNav button");
+const topBtns = document.querySelectorAll("#topNav button");
     const sideBtns = document.querySelectorAll("#sideMenu button");
     const streakNum = document.getElementById("streakNum");
     const solvedCounter = document.getElementById("solvedCounter");
@@ -344,6 +323,10 @@
     const errorMsg = document.getElementById("errorMsg");
     const bookmarkBtn = document.getElementById("bookmarkBtn");
 
+const continueBtn = document.getElementById("continueBtn");
+    const continueTitle = document.getElementById("continueTitle");
+    const continueMeta = document.getElementById("continueMeta");
+
 const recentSubject = document.getElementById("recentSubject");
     const recentTopic = document.getElementById("recentTopic");
     const recentDifficulty = document.getElementById("recentDifficulty");
@@ -354,18 +337,18 @@ const explorePhysicsBtn = document.getElementById("explorePhysicsBtn");
     const exploreChemBtn = document.getElementById("exploreChemBtn");
     const exploreMathBtn = document.getElementById("exploreMathBtn");
 
-// Auth elements
-    const loginBtn = document.getElementById("loginBtn");
+const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const profileName = document.getElementById("profileName");
     const avatarLetter = document.getElementById("avatarLetter");
 
-// -------- Init State --------
-    let streak = 0;
-    let solved = Number(localStorage.getItem(KEYS.solved) || 3);
+let streak = 0;
     let selected = localStorage.getItem(KEYS.selectedOption) || "";
     let bookmarked = localStorage.getItem(KEYS.bookmarked) === "true";
     let currentUser = null;
+    let currentRecent = null;
+    let currentContinueProblem = null;
+    let recentPool = [];
 
 const defaultRecent = {
       id: "phy-1",
@@ -380,26 +363,22 @@ const defaultRecent = {
       b: "10 m/s",
       c: "12 m/s",
       d: "14 m/s",
-      correct: "A"
+      correct: "A",
+      explain: "x(t)=3t²−4t+1 ⇒ v(t)=6t−4. At t=2, v=8 m/s."
     };
 
 setTopTab(localStorage.getItem(KEYS.topTab) || "home");
     setSideTab(localStorage.getItem(KEYS.sideTab) || "dashboard");
     renderStreak();
-    renderSolved();
     renderBookmark();
+    renderSidebarSubjectCounts();
 
-// -------- Auth Logic --------
-    loginBtn?.addEventListener("click", async () => {
+loginBtn?.addEventListener("click", async () => {
       const email = prompt("Enter your email:");
       if (!email) return;
-
-const { error } = await PC.signInWithEmail(email);
-      if (error) {
-        alert(error.message || "Login failed");
-      } else {
-        alert("Magic link sent. Check email, open link, then come back to this page.");
-      }
+      const { error } = await PC.signInWithEmail(email);
+      if (error) alert(error.message || "Login failed");
+      else alert("Magic link sent. Check email, open link, then come back to this page.");
     });
 
 logoutBtn?.addEventListener("click", async () => {
@@ -412,8 +391,7 @@ async function renderAuthState() {
       try {
         const user = await PC.getUser();
         currentUser = user;
-
-if (user) {
+        if (user) {
           await PC.ensureProfile(user);
           const name = user.email ? user.email.split("@")[0] : "PrepCoder";
           profileName.textContent = name + " ▾";
@@ -438,8 +416,7 @@ async function loadDbStreak() {
           renderStreak();
           return;
         }
-
-const res = await PC.getStreak(currentUser.id);
+        const res = await PC.getStreak(currentUser.id);
         if (res?.ok) {
           streak = Number(res.data?.current_streak || 0);
           renderStreak();
@@ -454,31 +431,18 @@ async function boot() {
       await loadDbStreak();
       await loadRecentFromDbOrLocal();
     }
+    boot();
 
-boot();
+explorePhysicsBtn.addEventListener("click", () => window.location.href = "physics-problems.html");
+    exploreChemBtn.addEventListener("click", () => window.location.href = "chemistry-problems.html");
+    exploreMathBtn.addEventListener("click", () => window.location.href = "math-problems.html");
 
-// -------- Events: Subject Explore --------
-    explorePhysicsBtn.addEventListener("click", () => {
-      window.location.href = "physics-problems.html";
-    });
-
-exploreChemBtn.addEventListener("click", () => {
-      window.location.href = "chemistry-problems.html";
-    });
-
-exploreMathBtn.addEventListener("click", () => {
-      window.location.href = "math-problems.html";
-    });
-
-// -------- Events: Tabs --------
-    topBtns.forEach(btn => {
+topBtns.forEach(btn => {
       btn.addEventListener("click", () => {
         const tab = btn.dataset.tab;
-
-if (tab === "problems") return (window.location.href = "problems.html");
+        if (tab === "problems") return (window.location.href = "problems.html");
         if (tab === "contests") return (window.location.href = "contesthome.html");
-
-setTopTab(tab);
+        setTopTab(tab);
         localStorage.setItem(KEYS.topTab, tab);
       });
     });
@@ -486,31 +450,147 @@ setTopTab(tab);
 sideBtns.forEach(btn => {
       btn.addEventListener("click", () => {
         const tab = btn.dataset.tab;
-
-if (tab === "problems") return (window.location.href = "problems.html");
+        if (tab === "problems") return (window.location.href = "problems.html");
         if (tab === "contests") return (window.location.href = "contesthome.html");
-
-setSideTab(tab);
+        setSideTab(tab);
         localStorage.setItem(KEYS.sideTab, tab);
       });
     });
 
-function setTopTab(tab){
-      topBtns.forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
-    }
+continueBtn.addEventListener("click", () => {
+      const p = currentContinueProblem || currentRecent || defaultRecent;
+      window.location.href = buildSolveUrlFromProblem(p);
+    });
 
-function setSideTab(tab){
-      sideBtns.forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
-    }
+function setTopTab(tab){ topBtns.forEach(b => b.classList.toggle("active", b.dataset.tab === tab)); }
+    function setSideTab(tab){ sideBtns.forEach(b => b.classList.toggle("active", b.dataset.tab === tab)); }
 
-// -------- Recent Problem (DB first, local fallback) --------
-    function escapeHtml(str = "") {
+function escapeHtml(str = "") {
       return String(str)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    }
+
+function normalizeSubject(subject = "") {
+      const s = String(subject).toLowerCase();
+      if (s.includes("phys")) return "Physics";
+      if (s.includes("chem")) return "Chemistry";
+      return "Mathematics";
+    }
+
+function subjectSolvedKey(subject = "") {
+      const s = String(subject).toLowerCase();
+      if (s.includes("phys")) return KEYS.phySolvedIds;
+      if (s.includes("chem")) return KEYS.chemSolvedIds;
+      return KEYS.mathSolvedIds;
+    }
+
+function getSolvedCountForSubject(subject) {
+      const key = subjectSolvedKey(subject);
+      const arr = JSON.parse(localStorage.getItem(key) || "[]");
+      return arr.length;
+    }
+
+function markSolvedInSubjectLocal(subject, id) {
+      const key = subjectSolvedKey(subject);
+      const arr = JSON.parse(localStorage.getItem(key) || "[]");
+      const sid = String(id || "");
+      if (!arr.includes(sid)) {
+        arr.push(sid);
+        localStorage.setItem(key, JSON.stringify(arr));
+      }
+    }
+
+function isProblemSolved(problem) {
+      if (!problem) return false;
+      const key = subjectSolvedKey(problem.subject || "Mathematics");
+      const arr = JSON.parse(localStorage.getItem(key) || "[]");
+      return arr.includes(String(problem.id));
+    }
+
+function uniqueById(arr = []) {
+      const map = new Map();
+      arr.forEach(item => {
+        const id = String(item?.id ?? "");
+        if (!id) return;
+        if (!map.has(id)) map.set(id, item);
+      });
+      return Array.from(map.values());
+    }
+
+function findNextUnsolvedProblem(baseProblem, pool = []) {
+      const base = baseProblem || defaultRecent;
+      const subject = normalizeSubject(base.subject || "Mathematics");
+      const topic = String(base.topic || "").toLowerCase();
+      const normalizedPool = uniqueById([base, ...pool]);
+
+let candidate = normalizedPool.find(p =>
+        normalizeSubject(p.subject || "") === subject &&
+        String(p.topic || "").toLowerCase() === topic &&
+        !isProblemSolved(p)
+      );
+      if (candidate) return candidate;
+
+candidate = normalizedPool.find(p =>
+        normalizeSubject(p.subject || "") === subject &&
+        !isProblemSolved(p)
+      );
+      if (candidate) return candidate;
+
+candidate = normalizedPool.find(p => !isProblemSolved(p));
+      if (candidate) return candidate;
+
+return base;
+    }
+
+function setContinueProblem(baseProblem) {
+      currentContinueProblem = findNextUnsolvedProblem(baseProblem, recentPool);
+      renderContinuePractice(currentContinueProblem);
+    }
+
+function renderSidebarSubjectCounts() {
+      const phy = JSON.parse(localStorage.getItem(KEYS.phySolvedIds) || "[]").length;
+      const chem = JSON.parse(localStorage.getItem(KEYS.chemSolvedIds) || "[]").length;
+      const math = JSON.parse(localStorage.getItem(KEYS.mathSolvedIds) || "[]").length;
+      document.getElementById("phySolved").textContent = `${Math.min(50, phy)} / 50`;
+      document.getElementById("chemSolved").textContent = `${Math.min(40, chem)} / 40`;
+      document.getElementById("mathSolved").textContent = `${Math.min(60, math)} / 60`;
+    }
+
+function renderContinuePractice(p) {
+      const subject = normalizeSubject(p?.subject || "Physics");
+      const topic = p?.topic || "General Practice";
+      const difficulty = p?.difficulty || "Easy";
+      continueTitle.textContent = `${topic} - Practice`;
+      continueMeta.textContent = `${subject} · ${difficulty}`;
+
+const total = 10;
+      const done = Math.min(total, getSolvedCountForSubject(subject));
+      solvedCounter.textContent = `${done} / ${total} solved`;
+      solveBar.style.width = `${(done / total) * 100}%`;
+    }
+
+function buildSolveUrlFromProblem(p) {
+      const query = new URLSearchParams({
+        id: String(p.id || "1"),
+        subject: p.subject || "Physics",
+        topic: p.topic || "Topic",
+        difficulty: p.difficulty || "Easy",
+        marks: String(p.marks || 4),
+        title: p.title || "Practice Problem",
+        text: p.text || "",
+        a: p.a || "",
+        b: p.b || "",
+        c: p.c || "",
+        d: p.d || "",
+        correct: p.correct || "A",
+        explain: p.explain || "",
+        back: "index.html"
+      });
+      return `solve-problem.html?${query.toString()}`;
     }
 
 function bindOptionEvents() {
@@ -526,12 +606,12 @@ function bindOptionEvents() {
     }
 
 function renderRecentProblem(p) {
-      recentSubject.textContent = p.subject || "Physics";
+      currentRecent = p;
+      recentSubject.textContent = normalizeSubject(p.subject || "Physics");
       recentTopic.textContent = p.topic || "Topic";
       recentDifficulty.textContent = p.difficulty || "Easy";
       recentQuestion.textContent = p.text || p.title || "Recent problem";
-      recentMeta.textContent =
-        `Difficulty: ${p.difficulty || "Easy"} · Marks: +${p.marks || 4} · From: ${p.source || "Recent Solve"}`;
+      recentMeta.textContent = `Difficulty: ${p.difficulty || "Easy"} · Marks: +${p.marks || 4} · From: ${p.source || "Recent Solve"}`;
 
 const opts = [
         { key: "A", text: p.a || "" },
@@ -541,8 +621,7 @@ const opts = [
       ];
 
 selected = localStorage.getItem(KEYS.selectedOption) || "";
-
-optionsWrap.innerHTML = opts.map(o => `
+      optionsWrap.innerHTML = opts.map(o => `
         <label class="opt">
           <input type="radio" name="ans" value="${o.key}" ${selected === o.key ? "checked" : ""}>
           ${o.key}. ${escapeHtml(o.text)}
@@ -556,11 +635,12 @@ if (selected) {
 
 submitBtn.dataset.correct = String(p.correct || "A").toUpperCase();
       bindOptionEvents();
+      setContinueProblem(p);
     }
 
 function normalizeRecentRow(row) {
       return {
-        id: row.id || row.problem_id || "recent-1",
+        id: row.problem_id || row.id || "recent-1",
         subject: row.subject || "Physics",
         topic: row.topic || "Topic",
         difficulty: row.difficulty || "Easy",
@@ -572,7 +652,8 @@ function normalizeRecentRow(row) {
         b: row.option_b || "",
         c: row.option_c || "",
         d: row.option_d || "",
-        correct: String(row.correct || "A").toUpperCase()
+        correct: String(row.correct || "A").toUpperCase(),
+        explain: row.explain || ""
       };
     }
 
@@ -586,11 +667,12 @@ function syncRecentToLocal(recentObj) {
 async function loadRecentFromDbOrLocal() {
       try {
         if (currentUser && window.PC && typeof PC.getRecentActivity === "function") {
-          const rr = await PC.getRecentActivity(currentUser.id, 1);
+          const rr = await PC.getRecentActivity(currentUser.id, 20);
           if (rr?.ok && rr.data?.length) {
-            const recent = normalizeRecentRow(rr.data[0]);
-            renderRecentProblem(recent);
-            syncRecentToLocal(recent);
+            recentPool = rr.data.map(normalizeRecentRow);
+            const latest = recentPool[0];
+            renderRecentProblem(latest);
+            syncRecentToLocal(latest);
             return;
           }
         }
@@ -600,35 +682,34 @@ async function loadRecentFromDbOrLocal() {
 
 const localList = JSON.parse(localStorage.getItem(KEYS.recentList) || "[]");
       if (localList.length) {
-        renderRecentProblem(localList[0]);
+        recentPool = uniqueById(localList);
+        renderRecentProblem(recentPool[0]);
       } else {
+        recentPool = [defaultRecent];
         renderRecentProblem(defaultRecent);
       }
     }
 
-// -------- Submit Logic --------
-    submitBtn.addEventListener("click", async () => {
+submitBtn.addEventListener("click", async () => {
       successMsg.style.display = "none";
       errorMsg.style.display = "none";
 
 const checked = document.querySelector('input[name="ans"]:checked');
-      if (!checked) {
-        alert("Please select an option first.");
-        return;
-      }
+      if (!checked) return alert("Please select an option first.");
 
 const answer = checked.value.toUpperCase();
       localStorage.setItem(KEYS.selectedOption, answer);
 
 const correctAns = String(submitBtn.dataset.correct || "A").toUpperCase();
-
-if (answer === correctAns) {
+      if (answer === correctAns) {
         successMsg.textContent = "✅ Correct! Well done.";
         successMsg.style.display = "block";
 
-solved = Math.min(10, solved + 1);
-        localStorage.setItem(KEYS.solved, solved);
-        renderSolved();
+if (currentRecent?.id) {
+          markSolvedInSubjectLocal(currentRecent.subject || "Physics", currentRecent.id);
+          renderSidebarSubjectCounts();
+          setContinueProblem(currentRecent || defaultRecent);
+        }
 
 if (currentUser) {
           const sr = await PC.updateStreakOnSolve(currentUser.id);
@@ -641,9 +722,7 @@ if (currentUser) {
         }
       } else {
         const correctInput = optionsWrap.querySelector(`input[value="${correctAns}"]`);
-        const correctText = correctInput
-          ? correctInput.parentElement.textContent.trim()
-          : `Option ${correctAns}`;
+        const correctText = correctInput ? correctInput.parentElement.textContent.trim() : `Option ${correctAns}`;
         errorMsg.textContent = `❌ Wrong answer. Correct option is ${correctText}.`;
         errorMsg.style.display = "block";
       }
@@ -658,32 +737,19 @@ resetBtn.addEventListener("click", () => {
       localStorage.removeItem(KEYS.selectedOption);
     });
 
-// -------- Bookmark --------
-    bookmarkBtn.addEventListener("click", () => {
+bookmarkBtn.addEventListener("click", () => {
       bookmarked = !bookmarked;
       localStorage.setItem(KEYS.bookmarked, bookmarked);
       renderBookmark();
     });
 
-function renderBookmark(){
+function renderBookmark() {
       bookmarkBtn.textContent = bookmarked ? "✅ Bookmarked" : "🔖 Bookmark";
       bookmarkBtn.style.borderColor = bookmarked ? "rgba(34,197,94,.4)" : "";
       bookmarkBtn.style.color = bookmarked ? "#b7ffcf" : "";
     }
 
-// -------- UI Helpers --------
-    function renderStreak(){
-      streakNum.textContent = streak;
-    }
-
-function renderSolved(){
-      solvedCounter.textContent = `${solved} / 10 solved`;
-      const pct = Math.max(0, Math.min(100, (solved / 10) * 100));
-      solveBar.style.width = pct + "%";
-      document.getElementById("phySolved").textContent = `${Math.min(50, 12 + solved)} / 50`;
-      document.getElementById("chemSolved").textContent = "8 / 40";
-      document.getElementById("mathSolved").textContent = "15 / 60";
-    }
+function renderStreak() { streakNum.textContent = streak; }
   </script>
 </body>
 </html>
