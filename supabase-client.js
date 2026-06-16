@@ -199,6 +199,24 @@ const { data, error } = await sb.from("recent_activity").insert(payload);
     return { ok: true, data };
   },
 
+// NEW: DB recent fetch (Version 2 - DB first, local fallback in index.html)
+  async getRecentActivity(userId, limit = 1) {
+    const safeLimit = Math.max(1, Math.min(50, Number(limit) || 1));
+
+const { data, error } = await sb
+      .from("recent_activity")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(safeLimit);
+
+if (error) {
+      console.error("getRecentActivity error:", error);
+      return { ok: false, error };
+    }
+    return { ok: true, data: data || [] };
+  },
+
 // -------------------------
   // STREAK METHODS (DB-based)
   // Rule:
