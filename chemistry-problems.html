@@ -223,348 +223,323 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js"></script>
+  <script src="supabase-client.js?v=8"></script>
 
 <script>
-    const LS = {
-      solved: "chem_solved_ids",
-      bookmarked: "chem_bookmark_ids",
-      topic: "chem_selected_topic",
-      search: "chem_search_text",
-      difficulty: "chem_difficulty",
-      sort: "chem_sort"
-    };
+    (async function () {
+      const db = window.PC?.supabase || window.sb || null;
 
-const problems = [
-      {
-        id: 1, title: "Moles from Mass (CO₂)", topic: "Mole Concept", difficulty: "Easy", marks: 4, source: "JEE Main",
-        text: "How many moles are present in 44 g of CO₂? (Molar mass of CO₂ = 44 g/mol)",
-        a: "0.5 mol", b: "1 mol", c: "2 mol", d: "44 mol", correct: "B",
-        explain: "Moles = mass/molar mass = 44/44 = 1 mol."
-      },
-      {
-        id: 2, title: "Empirical Formula from % Composition", topic: "Mole Concept", difficulty: "Medium", marks: 4, source: "JEE Main",
-        text: "A compound has 40% C, 6.67% H, and 53.33% O by mass. Empirical formula is?",
-        a: "CH₂O", b: "C₂H₄O₂", c: "CH₄O", d: "C₃H₆O₃", correct: "A",
-        explain: "For 100 g: C=40/12=3.33, H=6.67/1=6.67, O=53.33/16=3.33. Ratio ≈ 1:2:1 → CH₂O."
-      },
-      {
-        id: 3, title: "Rate Law from Initial Data", topic: "Chemical Kinetics", difficulty: "Medium", marks: 4, source: "JEE Main",
-        text: "If doubling concentration of A doubles rate, and doubling B quadruples rate, rate law is?",
-        a: "k[A][B]", b: "k[A]²[B]", c: "k[A][B]²", d: "k[A]²[B]²", correct: "C",
-        explain: "Order in A = 1, order in B = 2 ⇒ rate = k[A][B]²."
-      },
-      {
-        id: 4, title: "Half-life and Order of Reaction", topic: "Chemical Kinetics", difficulty: "Hard", marks: 4, source: "JEE Advanced",
-        text: "For a first-order reaction, if t1/2 is 20 min, rate constant k is?",
-        a: "0.0693 min⁻¹", b: "0.03465 min⁻¹", c: "0.3465 min⁻¹", d: "0.003465 min⁻¹", correct: "B",
-        explain: "k = 0.693/t1/2 = 0.693/20 = 0.03465 min⁻¹."
-      },
-      {
-        id: 5, title: "pH of Strong Acid Mixture", topic: "Ionic Equilibrium", difficulty: "Easy", marks: 4, source: "JEE Main",
-        text: "pH of 10⁻³ M HCl solution is?",
-        a: "1", b: "2", c: "3", d: "11", correct: "C",
-        explain: "[H⁺]=10⁻³ ⇒ pH = 3."
-      },
-      {
-        id: 6, title: "Buffer Solution pH", topic: "Ionic Equilibrium", difficulty: "Medium", marks: 4, source: "JEE Main",
-        text: "For buffer with [salt]=[acid], pH equals?",
-        a: "7", b: "pKa", c: "pKb", d: "14-pKa", correct: "B",
-        explain: "Henderson equation: pH = pKa + log([salt]/[acid]) = pKa."
-      },
-      {
-        id: 7, title: "Nernst Equation Application", topic: "Electrochemistry", difficulty: "Hard", marks: 4, source: "JEE Advanced",
-        text: "At 25°C, for n=1, the Nernst term is (0.0591/n)logQ. Coefficient before logQ is?",
-        a: "0.0591", b: "0.02955", c: "0.1182", d: "1.0", correct: "A",
-        explain: "For n=1, coefficient remains 0.0591."
-      },
-      {
-        id: 8, title: "Equivalent Conductance at Infinite Dilution", topic: "Electrochemistry", difficulty: "Medium", marks: 4, source: "JEE Main",
-        text: "Λ°(CH₃COOH) can be found by which relation?",
-        a: "Λ°(HCl)+Λ°(NaOH)-Λ°(NaCl)",
-        b: "Λ°(HCl)+Λ°(CH₃COONa)-Λ°(NaCl)",
-        c: "Λ°(NaCl)+Λ°(NaOH)-Λ°(HCl)",
-        d: "Λ°(KCl)-Λ°(HCl)",
-        correct: "B",
-        explain: "By Kohlrausch law: Λ°(CH₃COOH)=Λ°(HCl)+Λ°(CH₃COONa)-Λ°(NaCl)."
-      },
-      {
-        id: 9, title: "SN1 vs SN2 Product Prediction", topic: "Organic Reaction Mechanism", difficulty: "Medium", marks: 4, source: "JEE Main",
-        text: "Tertiary alkyl halides usually prefer which mechanism in polar protic solvents?",
-        a: "SN2", b: "SN1", c: "E2 only", d: "No reaction", correct: "B",
-        explain: "Tertiary carbocation stability favors SN1 in polar protic medium."
-      },
-      {
-        id: 10, title: "Aldol Condensation Product", topic: "Carbonyl Compounds", difficulty: "Hard", marks: 4, source: "JEE Advanced",
-        text: "Aldol reaction requires which key feature in the reacting aldehyde/ketone?",
-        a: "No alpha-hydrogen", b: "At least one alpha-hydrogen", c: "Only aromatic ring", d: "Only tertiary carbonyl", correct: "B",
-        explain: "Alpha-hydrogen is needed to form enolate/enol for aldol reaction."
-      },
-      {
-        id: 11, title: "Hybridization and Geometry", topic: "Chemical Bonding", difficulty: "Easy", marks: 4, source: "JEE Main",
-        text: "Hybridization of carbon in methane (CH₄) is?",
-        a: "sp", b: "sp²", c: "sp³", d: "dsp²", correct: "C",
-        explain: "CH₄ has tetrahedral geometry with sp³ hybridization."
-      },
-      {
-        id: 12, title: "Periodic Trend Comparison", topic: "Periodic Table", difficulty: "Easy", marks: 4, source: "JEE Main",
-        text: "Across a period (left to right), atomic radius generally:",
-        a: "Increases", b: "Decreases", c: "Remains same", d: "First increases then decreases", correct: "B",
-        explain: "Effective nuclear charge increases, pulling electrons closer."
-      }
-    ];
+const LS = {
+        solved: "chem_solved_ids",
+        bookmarked: "chem_bookmark_ids",
+        topic: "chem_selected_topic",
+        search: "chem_search_text",
+        difficulty: "chem_difficulty",
+        sort: "chem_sort"
+      };
 
 const topicTabs = document.getElementById("topicTabs");
-    const problemGrid = document.getElementById("problemGrid");
-    const searchInput = document.getElementById("searchInput");
-    const difficultySelect = document.getElementById("difficultySelect");
-    const sortSelect = document.getElementById("sortSelect");
-    const backBtn = document.getElementById("backBtn");
+      const problemGrid = document.getElementById("problemGrid");
+      const searchInput = document.getElementById("searchInput");
+      const difficultySelect = document.getElementById("difficultySelect");
+      const sortSelect = document.getElementById("sortSelect");
+      const backBtn = document.getElementById("backBtn");
 
 const totalProblemsEl = document.getElementById("totalProblems");
-    const solvedCountEl = document.getElementById("solvedCount");
-    const bookmarkCountEl = document.getElementById("bookmarkCount");
-    const progressCountEl = document.getElementById("progressCount");
+      const solvedCountEl = document.getElementById("solvedCount");
+      const bookmarkCountEl = document.getElementById("bookmarkCount");
+      const progressCountEl = document.getElementById("progressCount");
 
-let solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(Number);
-    let bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(Number);
-    let selectedTopic = localStorage.getItem(LS.topic) || "All";
-    let searchText = localStorage.getItem(LS.search) || "";
-    let difficulty = localStorage.getItem(LS.difficulty) || "all";
-    let sortBy = localStorage.getItem(LS.sort) || "default";
+let problems = [];
+      let topics = ["All"];
+
+let solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(String);
+      let bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(String);
+      let selectedTopic = localStorage.getItem(LS.topic) || "All";
+      let searchText = localStorage.getItem(LS.search) || "";
+      let difficulty = localStorage.getItem(LS.difficulty) || "all";
+      let sortBy = localStorage.getItem(LS.sort) || "default";
 
 searchInput.value = searchText;
-    difficultySelect.value = difficulty;
-    sortSelect.value = sortBy;
-
-const topics = ["All", ...new Set(problems.map(p => p.topic))];
-
-async function loadCloudState() {
-      try {
-        if (!window.PC || !window.sb) return;
-        const user = await PC.getUser();
-        if (!user) return;
-
-const { data: attempts, error: attemptsErr } = await sb
-          .from("problem_attempts")
-          .select("problem_id")
-          .eq("user_id", user.id)
-          .eq("subject", "Chemistry")
-          .eq("is_correct", true);
-
-if (!attemptsErr && Array.isArray(attempts)) {
-          solvedIds = [...new Set(attempts.map(x => Number(x.problem_id)).filter(Number.isFinite))];
-          localStorage.setItem(LS.solved, JSON.stringify(solvedIds));
-        }
-
-const { data: bms, error: bmsErr } = await sb
-          .from("bookmarks")
-          .select("problem_id")
-          .eq("user_id", user.id)
-          .eq("subject", "Chemistry");
-
-if (!bmsErr && Array.isArray(bms)) {
-          bookmarkIds = [...new Set(bms.map(x => Number(x.problem_id)).filter(Number.isFinite))];
-          localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
-        }
-      } catch (e) {
-        console.error("Cloud sync read error:", e);
-      }
-    }
-
-function renderTopics(){
-      topicTabs.innerHTML = topics.map(t => `
-        <button class="topic ${selectedTopic === t ? "active" : ""}" data-topic="${t}">${t}</button>
-      `).join("");
-
-topicTabs.querySelectorAll(".topic").forEach(btn => {
-        btn.addEventListener("click", () => {
-          selectedTopic = btn.dataset.topic;
-          localStorage.setItem(LS.topic, selectedTopic);
-          render();
-        });
-      });
-    }
-
-function getFiltered(){
-      let data = [...problems];
-
-if(selectedTopic !== "All") data = data.filter(p => p.topic === selectedTopic);
-
-if(searchText.trim()){
-        const q = searchText.toLowerCase();
-        data = data.filter(p =>
-          p.title.toLowerCase().includes(q) ||
-          p.topic.toLowerCase().includes(q)
-        );
-      }
-
-if(difficulty !== "all") data = data.filter(p => p.difficulty === difficulty);
-
-if(sortBy === "marks"){
-        data.sort((a,b) => b.marks - a.marks);
-      } else if(sortBy === "topic"){
-        data.sort((a,b) => a.topic.localeCompare(b.topic));
-      }
-
-return data;
-    }
+      difficultySelect.value = difficulty;
+      sortSelect.value = sortBy;
 
 function difficultyClass(level){
-      if(level === "Easy") return "easy";
-      if(level === "Medium") return "medium";
-      return "hard";
-    }
+        if(level === "Easy") return "easy";
+        if(level === "Medium") return "medium";
+        return "hard";
+      }
+
+function toCardModel(q){
+        return {
+          id: String(q.id),
+          title: q.title || "Untitled",
+          topic: q.topic || "General",
+          difficulty: q.difficulty || "Medium",
+          marks: Number(q.marks || 4),
+          source: q.source || "PrepCode",
+          text: q.text || "",
+          a: q.option_a || "",
+          b: q.option_b || "",
+          c: q.option_c || "",
+          d: q.option_d || "",
+          correct: (q.correct || "").toUpperCase(),
+          explain: q.explain || ""
+        };
+      }
+
+async function fetchChemistryQuestions() {
+        if (!db) {
+          problemGrid.innerHTML = `<div class="empty">Supabase client missing.</div>`;
+          return;
+        }
+
+const { data, error } = await db
+          .from("questions")
+          .select("*")
+          .eq("subject", "Chemistry")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false });
+
+if (error) {
+          console.error(error);
+          problemGrid.innerHTML = `<div class="empty">Failed to load questions: ${error.message}</div>`;
+          return;
+        }
+
+problems = (data || []).map(toCardModel);
+        topics = ["All", ...new Set(problems.map(p => p.topic).filter(Boolean))];
+
+if (!topics.includes(selectedTopic)) {
+          selectedTopic = "All";
+          localStorage.setItem(LS.topic, selectedTopic);
+        }
+      }
+
+async function loadCloudState() {
+        try {
+          if (!window.PC || !db) return;
+          const user = await window.PC.getUser?.();
+          if (!user) return;
+
+const { data: attempts, error: attemptsErr } = await db
+            .from("problem_attempts")
+            .select("problem_id")
+            .eq("user_id", user.id)
+            .eq("subject", "Chemistry")
+            .eq("is_correct", true);
+
+if (!attemptsErr && Array.isArray(attempts)) {
+            solvedIds = [...new Set(attempts.map(x => String(x.problem_id)).filter(Boolean))];
+            localStorage.setItem(LS.solved, JSON.stringify(solvedIds));
+          }
+
+const { data: bms, error: bmsErr } = await db
+            .from("bookmarks")
+            .select("problem_id")
+            .eq("user_id", user.id)
+            .eq("subject", "Chemistry");
+
+if (!bmsErr && Array.isArray(bms)) {
+            bookmarkIds = [...new Set(bms.map(x => String(x.problem_id)).filter(Boolean))];
+            localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+          }
+        } catch (e) {
+          console.error("Cloud sync read error:", e);
+        }
+      }
+
+function renderTopics(){
+        topicTabs.innerHTML = topics.map(t => `
+          <button class="topic ${selectedTopic === t ? "active" : ""}" data-topic="${t}">${t}</button>
+        `).join("");
+
+topicTabs.querySelectorAll(".topic").forEach(btn => {
+          btn.addEventListener("click", () => {
+            selectedTopic = btn.dataset.topic;
+            localStorage.setItem(LS.topic, selectedTopic);
+            render();
+          });
+        });
+      }
+
+function getFiltered(){
+        let data = [...problems];
+
+if(selectedTopic !== "All"){
+          data = data.filter(p => p.topic === selectedTopic);
+        }
+
+if(searchText.trim()){
+          const q = searchText.toLowerCase();
+          data = data.filter(p =>
+            (p.title || "").toLowerCase().includes(q) ||
+            (p.topic || "").toLowerCase().includes(q)
+          );
+        }
+
+if(difficulty !== "all"){
+          data = data.filter(p => p.difficulty === difficulty);
+        }
+
+if(sortBy === "marks"){
+          data.sort((a,b) => b.marks - a.marks);
+        } else if(sortBy === "topic"){
+          data.sort((a,b) => (a.topic || "").localeCompare(b.topic || ""));
+        }
+
+return data;
+      }
 
 function renderStats(){
-      solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(Number);
-      bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(Number);
+        solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(String);
+        bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(String);
 
 const solved = solvedIds.length;
-      const bookmarked = bookmarkIds.length;
-      const total = problems.length;
-      const progress = Math.round((solved / total) * 100);
+        const bookmarked = bookmarkIds.length;
+        const total = problems.length;
+        const progress = total ? Math.round((solved / total) * 100) : 0;
 
 totalProblemsEl.textContent = total;
-      solvedCountEl.textContent = solved;
-      bookmarkCountEl.textContent = bookmarked;
-      progressCountEl.textContent = `${progress}%`;
-    }
+        solvedCountEl.textContent = solved;
+        bookmarkCountEl.textContent = bookmarked;
+        progressCountEl.textContent = `${progress}%`;
+      }
 
 function buildSolveUrl(p){
-      const params = new URLSearchParams({
-        id: String(p.id),
-        subject: "Chemistry",
-        topic: p.topic,
-        difficulty: p.difficulty,
-        marks: String(p.marks),
-        title: p.title,
-        text: p.text,
-        a: p.a,
-        b: p.b,
-        c: p.c,
-        d: p.d,
-        correct: p.correct,
-        explain: p.explain,
-        back: "chemistry-problems.html"
-      });
-      return `solve-problem.html?${params.toString()}`;
-    }
+        const params = new URLSearchParams({
+          id: String(p.id),
+          subject: "Chemistry",
+          topic: p.topic || "",
+          difficulty: p.difficulty || "",
+          marks: String(p.marks || 4),
+          title: p.title || "",
+          text: p.text || "",
+          a: p.a || "",
+          b: p.b || "",
+          c: p.c || "",
+          d: p.d || "",
+          correct: p.correct || "",
+          explain: p.explain || "",
+          back: "chemistry-problems.html"
+        });
+        return `solve-problem.html?${params.toString()}`;
+      }
 
 function problemCard(p){
-      const solved = solvedIds.includes(Number(p.id));
-      const bookmarked = bookmarkIds.includes(Number(p.id));
+        const solved = solvedIds.includes(String(p.id));
+        const bookmarked = bookmarkIds.includes(String(p.id));
 
 return `
-        <article class="card">
-          <div class="head">
-            <h3 class="title">${p.title}</h3>
-            <span class="badge ${difficultyClass(p.difficulty)}">${p.difficulty}</span>
-          </div>
+          <article class="card">
+            <div class="head">
+              <h3 class="title">${p.title}</h3>
+              <span class="badge ${difficultyClass(p.difficulty)}">${p.difficulty}</span>
+            </div>
 
 <div class="meta">
-            <div>Topic<strong>${p.topic}</strong></div>
-            <div>Marks<strong>+${p.marks}</strong></div>
-            <div>Source<strong>${p.source}</strong></div>
-            <div>Status<strong>${solved ? "Solved" : "Unsolved"}</strong></div>
-          </div>
+              <div>Topic<strong>${p.topic}</strong></div>
+              <div>Marks<strong>+${p.marks}</strong></div>
+              <div>Source<strong>${p.source}</strong></div>
+              <div>Status<strong>${solved ? "Solved" : "Unsolved"}</strong></div>
+            </div>
 
 <div class="actions">
-            <button class="btn btn-primary" data-action="solve" data-id="${p.id}">
-              ${solved ? "✅ Solved" : "Solve"}
-            </button>
-            <button class="btn btn-outline" data-action="bookmark" data-id="${p.id}">
-              ${bookmarked ? "⭐ Bookmarked" : "🔖 Bookmark"}
-            </button>
-          </div>
-        </article>
-      `;
-    }
+              <button class="btn btn-primary" data-action="solve" data-id="${p.id}">
+                ${solved ? "✅ Solved" : "Solve"}
+              </button>
+              <button class="btn btn-outline" data-action="bookmark" data-id="${p.id}">
+                ${bookmarked ? "⭐ Bookmarked" : "🔖 Bookmark"}
+              </button>
+            </div>
+          </article>
+        `;
+      }
 
 function renderGrid(){
-      const data = getFiltered();
+        const data = getFiltered();
 
 if(!data.length){
-        problemGrid.innerHTML = `<div class="empty">No problems found for current filters.</div>`;
-        return;
-      }
+          problemGrid.innerHTML = `<div class="empty">No chemistry problems found for current filters.</div>`;
+          return;
+        }
 
 problemGrid.innerHTML = data.map(problemCard).join("");
 
 problemGrid.querySelectorAll("button[data-action]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const id = Number(btn.dataset.id);
-          const action = btn.dataset.action;
-          const p = problems.find(x => x.id === id);
-          if(!p) return;
+          btn.addEventListener("click", async () => {
+            const id = String(btn.dataset.id);
+            const action = btn.dataset.action;
+            const p = problems.find(x => String(x.id) === id);
+            if(!p) return;
 
 if(action === "solve"){
-            window.location.href = buildSolveUrl(p);
-            return;
-          }
+              window.location.href = buildSolveUrl(p);
+              return;
+            }
 
 if(action === "bookmark"){
-            if(bookmarkIds.includes(id)){
-              bookmarkIds = bookmarkIds.filter(x => x !== id);
-            } else {
-              bookmarkIds.push(id);
-            }
-            localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
-            render();
+              if(bookmarkIds.includes(id)){
+                bookmarkIds = bookmarkIds.filter(x => x !== id);
+              } else {
+                bookmarkIds.push(id);
+              }
+              localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+              render();
 
 try {
-              const user = await PC.getUser();
-              if (user) {
-               const res = await PC.toggleBookmark(user.id, "Chemistry", id);
-if (res.ok) {
-  const state = res.bookmarked;
-  if (state) {
-    if (!bookmarkIds.includes(id)) bookmarkIds.push(id);
-  } else {
-    bookmarkIds = bookmarkIds.filter(x => x !== id);
-  }
-}
-
-                localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
-                render();
+                if (!window.PC?.getUser || !window.PC?.toggleBookmark) return;
+                const user = await window.PC.getUser();
+                if (user) {
+                  const res = await window.PC.toggleBookmark(user.id, "Chemistry", id);
+                  if (res?.ok) {
+                    const state = !!res.bookmarked;
+                    if (state) {
+                      if (!bookmarkIds.includes(id)) bookmarkIds.push(id);
+                    } else {
+                      bookmarkIds = bookmarkIds.filter(x => x !== id);
+                    }
+                    localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+                    render();
+                  }
+                }
+              } catch (e) {
+                console.error("Bookmark sync error:", e);
               }
-            } catch (e) {
-              console.error("Bookmark sync error:", e);
             }
-          }
+          });
         });
-      });
-    }
+      }
 
 function render(){
-      renderStats();
-      renderTopics();
-      renderGrid();
-    }
+        renderStats();
+        renderTopics();
+        renderGrid();
+      }
 
 searchInput.addEventListener("input", e => {
-      searchText = e.target.value;
-      localStorage.setItem(LS.search, searchText);
-      renderGrid();
-    });
+        searchText = e.target.value;
+        localStorage.setItem(LS.search, searchText);
+        renderGrid();
+      });
 
 difficultySelect.addEventListener("change", e => {
-      difficulty = e.target.value;
-      localStorage.setItem(LS.difficulty, difficulty);
-      renderGrid();
-    });
+        difficulty = e.target.value;
+        localStorage.setItem(LS.difficulty, difficulty);
+        renderGrid();
+      });
 
 sortSelect.addEventListener("change", e => {
-      sortBy = e.target.value;
-      localStorage.setItem(LS.sort, sortBy);
-      renderGrid();
-    });
+        sortBy = e.target.value;
+        localStorage.setItem(LS.sort, sortBy);
+        renderGrid();
+      });
 
 backBtn.addEventListener("click", () => {
-      window.location.href = "index.html";
-    });
+        window.location.href = "index.html";
+      });
 
-(async function init(){
+await fetchChemistryQuestions();
       await loadCloudState();
       render();
     })();
