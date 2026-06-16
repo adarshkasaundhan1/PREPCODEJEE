@@ -217,7 +217,11 @@
         </nav>
         <div class="right-actions">
           <div class="streak">🔥 <span id="streakNum">0</span> Day Streak</div>
-          <button id="loginBtn" class="btn btn-outline">Login</button>
+
+<!-- NEW: Admin button (hidden by default) -->
+          <button id="adminBtn" class="btn btn-outline" style="display:none;">Admin</button>
+
+<button id="loginBtn" class="btn btn-outline">Login</button>
           <button id="logoutBtn" class="btn btn-outline">Logout</button>
           <div class="profile">
             <div class="avatar" id="avatarLetter">P</div>
@@ -338,6 +342,7 @@ const explorePhysicsBtn = document.getElementById("explorePhysicsBtn");
 
 const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
+    const adminBtn = document.getElementById("adminBtn"); // NEW
     const profileName = document.getElementById("profileName");
     const avatarLetter = document.getElementById("avatarLetter");
 
@@ -379,6 +384,7 @@ setTopTab(localStorage.getItem(KEYS.topTab) || "home");
     renderStreak();
     renderBookmark();
     renderSidebarSubjectCounts();
+    if (adminBtn) adminBtn.style.display = "none";
 
 loginBtn?.addEventListener("click", async () => {
       const email = prompt("Enter your email:");
@@ -396,6 +402,10 @@ logoutBtn?.addEventListener("click", async () => {
       try { await window.PC.signOut(); } catch {}
       alert("Logged out");
       location.reload();
+    });
+
+adminBtn?.addEventListener("click", () => {
+      window.location.href = "admin.html";
     });
 
 async function getAuthUser() {
@@ -426,14 +436,27 @@ if (user) {
           avatarLetter.textContent = name.charAt(0).toUpperCase();
           loginBtn.style.display = "none";
           logoutBtn.style.display = "inline-block";
+
+// NEW: admin visibility
+          let isAdminUser = false;
+          if (window.PC?.canCurrentUserAccessAdmin) {
+            const ar = await window.PC.canCurrentUserAccessAdmin();
+            isAdminUser = !!ar?.canAccess;
+          } else if (window.PC?.isAdmin) {
+            const ar = await window.PC.isAdmin(user.id);
+            isAdminUser = !!ar?.isAdmin;
+          }
+          adminBtn.style.display = isAdminUser ? "inline-block" : "none";
         } else {
           profileName.textContent = "PrepCoder ▾";
           avatarLetter.textContent = "P";
           loginBtn.style.display = "inline-block";
           logoutBtn.style.display = "none";
+          adminBtn.style.display = "none";
         }
       } catch (e) {
         console.error("Auth state error:", e);
+        if (adminBtn) adminBtn.style.display = "none";
       }
     }
 
@@ -620,7 +643,7 @@ const total = 10;
 
 function buildSolveUrlFromProblem(p) {
       const query = new URLSearchParams({
-        id: String(p.id || ""),   // IMPORTANT: no numeric fallback like "1"
+        id: String(p.id || ""),
         subject: p.subject || "Physics",
         topic: p.topic || "Topic",
         difficulty: p.difficulty || "Easy",
