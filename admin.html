@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PrepCode Admin</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#0b1426;color:#eaf1ff;margin:0;padding:20px}
+    .card{border:1px solid #233354;border-radius:12px;padding:16px;margin-bottom:16px;background:#121f39}
+    input,select,textarea,button{padding:10px;border-radius:8px;border:1px solid #2a3b63;background:#0f1a2f;color:#eaf1ff}
+    textarea{min-height:80px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:10px}
+    .full{grid-column:1/-1}
+    button{cursor:pointer;background:#16a34a;border:none}
+    button.secondary{background:#334155}
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid #233354;padding:8px;text-align:left;font-size:14px}
+    .row-actions button{margin-right:6px}
+    .danger{background:#dc2626}
+  </style>
+</head>
+<body>
+  <h1>PrepCode Admin Panel</h1>
+  <div id="status"></div>
+
+<div class="card">
+    <h3>Add / Edit Question</h3>
+    <form id="qForm" class="grid">
+      <input type="hidden" id="qid" />
+      <select id="subject" required>
+        <option value="">Subject</option>
+        <option>Physics</option>
+        <option>Chemistry</option>
+        <option>Mathematics</option>
+      </select>
+      <input id="topic" placeholder="Topic" required />
+      <select id="difficulty" required>
+        <option value="">Difficulty</option>
+        <option>Easy</option><option>Medium</option><option>Hard</option>
+      </select>
+      <input id="marks" type="number" value="4" min="1" required />
+      <input id="source" placeholder="Source (optional)" />
+      <input id="title" class="full" placeholder="Title" required />
+      <textarea id="text" class="full" placeholder="Question text" required></textarea>
+      <input id="option_a" placeholder="Option A" required />
+      <input id="option_b" placeholder="Option B" required />
+      <input id="option_c" placeholder="Option C" required />
+      <input id="option_d" placeholder="Option D" required />
+      <select id="correct" required>
+        <option value="">Correct Option</option>
+        <option>A</option><option>B</option><option>C</option><option>D</option>
+      </select>
+      <input id="explain" class="full" placeholder="Explanation (optional)" />
+      <label class="full"><input id="is_active" type="checkbox" checked /> Active</label>
+      <div class="full">
+        <button type="submit">Save Question</button>
+        <button type="button" id="resetBtn" class="secondary">Reset</button>
+      </div>
+    </form>
+  </div>
+
+<div class="card">
+    <h3>Questions</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <select id="fSubject">
+        <option value="">All Subjects</option>
+        <option>Physics</option><option>Chemistry</option><option>Mathematics</option>
+      </select>
+      <select id="fDifficulty">
+        <option value="">All Difficulty</option>
+        <option>Easy</option><option>Medium</option><option>Hard</option>
+      </select>
+      <button id="refreshBtn" class="secondary">Refresh</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th><th>Topic</th><th>Difficulty</th><th>Title</th><th>Active</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="qTable"></tbody>
+    </table>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    const supabase = window.supabase || window.PC?.supabase;
+    const $ = id => document.getElementById(id);
+    const statusEl = $("status");
+    const qTable = $("qTable");
+
+function setStatus(msg, ok=true){
+      statusEl.textContent = msg;
+      statusEl.style.color = ok ? "#86efac" : "#fca5a5";
+    }
+
+async function ensureAdmin() {
+      const { data: userRes } = await supabase.auth.getUser();
+      const user = userRes?.user;
+      if (!user) {
+        setStatus("Please login first.", false);
+        throw new Error("not_logged_in");
+      }
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      if (error || !profile || profile.role !== "admin") {
+        setStatus("Access denied: admin only.", false);
+        throw new Error("not_admin");
+      }
+    }
+
+function getFormData() {
+      return {
+        subject: $("subject").value,
+        topic: $("topic").value.trim(),
+        difficulty: $("difficulty").value,
+        marks: Number($("marks").value || 4),
+        source: $("source").value.trim() || null,
+        title: $("title").value.trim(),
+        text: $("text").value.trim(),
+        option_a: $("option_a").value.trim(),
+        option_b: $("option_b").value.trim(),
+        option_c: $("option_c").value.trim(),
+        option_d: $("option_d").value.trim(),
+        correct: $("correct").value,
+        explain: $("explain").value.trim() || null,
+        is_active: $("is_active").checked
+      };
+    }
+
+function fillForm(q) {
+      $("qid").value = q.id;
+      $("subject").value = q.subject;
+      $("topic").value = q.topic;
+      $("difficulty").value = q.difficulty;
+      $("marks").value = q.marks;
+      $("source").value = q.source || "";
+      $("title").value = q.title;
+      $("text").value = q.text;
+      $("option_a").value = q.option_a;
+      $("option_b").value = q.option_b;
+      $("option_c").value = q.option_c;
+      $("option_d").value = q.option_d;
+      $("correct").value = q.correct;
+      $("explain").value = q.explain || "";
+      $("is_active").checked = q.is_active;
+    }
+
+function resetForm() {
+      $("qForm").reset();
+      $("qid").value = "";
+      $("marks").value = 4;
+      $("is_active").checked = true;
+    }
+
+async function loadQuestions() {
+      let query = supabase
+        .from("questions")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+const fs = $("fSubject").value;
+      const fd = $("fDifficulty").value;
+      if (fs) query = query.eq("subject", fs);
+      if (fd) query = query.eq("difficulty", fd);
+
+const { data, error } = await query;
+      if (error) return setStatus(error.message, false);
+
+qTable.innerHTML = (data || []).map(q => `
+        <tr>
+          <td>${q.subject}</td>
+          <td>${q.topic}</td>
+          <td>${q.difficulty}</td>
+          <td>${q.title}</td>
+          <td>${q.is_active ? "Yes" : "No"}</td>
+          <td class="row-actions">
+            <button class="secondary" data-edit="${q.id}">Edit</button>
+            <button class="danger" data-disable="${q.id}">${q.is_active ? "Disable" : "Enable"}</button>
+            <button class="danger" data-delete="${q.id}">Delete</button>
+          </td>
+        </tr>
+      `).join("");
+
+qTable.querySelectorAll("[data-edit]").forEach(btn => {
+        btn.onclick = () => {
+          const q = data.find(x => x.id === btn.dataset.edit);
+          if (q) fillForm(q);
+        };
+      });
+
+qTable.querySelectorAll("[data-disable]").forEach(btn => {
+        btn.onclick = async () => {
+          const id = btn.dataset.disable;
+          const q = data.find(x => x.id === id);
+          const { error } = await supabase
+            .from("questions")
+            .update({ is_active: !q.is_active })
+            .eq("id", id);
+          if (error) return setStatus(error.message, false);
+          setStatus("Question status updated.");
+          loadQuestions();
+        };
+      });
+
+qTable.querySelectorAll("[data-delete]").forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm("Delete this question permanently?")) return;
+          const { error } = await supabase.from("questions").delete().eq("id", btn.dataset.delete);
+          if (error) return setStatus(error.message, false);
+          setStatus("Question deleted.");
+          loadQuestions();
+        };
+      });
+    }
+
+$("qForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = $("qid").value;
+      const payload = getFormData();
+
+let res;
+      if (id) {
+        res = await supabase.from("questions").update(payload).eq("id", id);
+      } else {
+        res = await supabase.from("questions").insert([payload]);
+      }
+
+if (res.error) return setStatus(res.error.message, false);
+
+setStatus(id ? "Question updated." : "Question added.");
+      resetForm();
+      loadQuestions();
+    });
+
+$("resetBtn").onclick = resetForm;
+    $("refreshBtn").onclick = loadQuestions;
+    $("fSubject").onchange = loadQuestions;
+    $("fDifficulty").onchange = loadQuestions;
+
+(async function init(){
+      try {
+        if (!supabase) throw new Error("Supabase client missing in supabase-client.js");
+        await ensureAdmin();
+        setStatus("Admin verified.");
+        await loadQuestions();
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>
