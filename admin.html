@@ -17,11 +17,12 @@
     th,td{border-bottom:1px solid #233354;padding:8px;text-align:left;font-size:14px}
     .row-actions button{margin-right:6px}
     .danger{background:#dc2626}
+    #status{margin-bottom:12px;padding:10px;border-radius:8px;border:1px solid #233354;background:#0f1a2f}
   </style>
 </head>
 <body>
   <h1>PrepCode Admin Panel</h1>
-  <div id="status"></div>
+  <div id="status">Checking admin access...</div>
 
 <div class="card">
     <h3>Add / Edit Question</h3>
@@ -70,7 +71,7 @@
         <option value="">All Difficulty</option>
         <option>Easy</option><option>Medium</option><option>Hard</option>
       </select>
-      <button id="refreshBtn" class="secondary">Refresh</button>
+      <button id="refreshBtn" class="secondary" type="button">Refresh</button>
     </div>
     <table>
       <thead>
@@ -83,7 +84,7 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js"></script>
+  <script src="supabase-client.js?v=4"></script>
   <script>
     const supabase = window.PC?.supabase || window.sb || null;
     const $ = id => document.getElementById(id);
@@ -91,19 +92,39 @@
     const qTable = $("qTable");
     let cachedRows = [];
 
-function setStatus(msg, ok=true){
+function setStatus(msg, ok = true) {
       statusEl.textContent = msg;
       statusEl.style.color = ok ? "#86efac" : "#fca5a5";
     }
 
-async function ensureAdmin() {
-      if (!supabase) throw new Error("Supabase client missing in supabase-client.js");
+function escapeHtml(s = "") {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
 
-const user = await window.PC?.getUser?.();
+async function getUserSafe() {
+      if (!supabase) return null;
+      const { data } = await supabase.auth.getUser();
+      return data?.user || null;
+    }
+
+async function ensureAdmin() {
+      if (!supabase) throw new Error("Supabase client missing.");
+
+let user = await (window.PC?.getUser?.() || getUserSafe());
       if (!user) {
         alert("Please login first.");
         window.location.href = "index.html";
         throw new Error("not_logged_in");
+      }
+
+if (window.PC?.canCurrentUserAccessAdmin) {
+        const res = await window.PC.canCurrentUserAccessAdmin();
+        if (res?.ok && res.canAccess) return user;
       }
 
 if (window.PC?.isAdmin) {
@@ -111,14 +132,14 @@ if (window.PC?.isAdmin) {
         if (res?.ok && res.isAdmin) return user;
       }
 
-// fallback if PC.isAdmin helper not added yet
+// fallback direct query
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", user.id)
         .maybeSingle();
 
-if (error || !profile || profile.role !== "admin") {
+if (error || !profile || String(profile.role).toLowerCase() !== "admin") {
         alert("Access denied. Admin only.");
         window.location.href = "index.html";
         throw new Error("not_admin");
@@ -132,34 +153,41 @@ function getFormData() {
         subject: $("subject").value,
         topic: $("topic").value.trim(),
         difficulty: $("difficulty").value,
-        marks: Number($("marks").value || 4),
-        source: $("source").value.trim() || null,
+        marks: Math.max(1, Number($("marks").value || 4)),
+        source: $("source").value.trim() || "",
         title: $("title").value.trim(),
         text: $("text").value.trim(),
         option_a: $("option_a").value.trim(),
         option_b: $("option_b").value.trim(),
         option_c: $("option_c").value.trim(),
         option_d: $("option_d").value.trim(),
-        correct: $("correct").value,
-        explain: $("explain").value.trim() || null,
+        correct: $("correct").value.trim().toUpperCase(),
+        explain: $("explain").value.trim() || "",
         is_active: $("is_active").checked
       };
     }
 
+function validatePayload(p) {
+      if (!p.subject || !p.topic || !p.difficulty || !p.title || !p.text) return "Please fill all required fields.";
+      if (!p.option_a || !p.option_b || !p.option_c || !p.option_d) return "All 4 options are required.";
+      if (!["A","B","C","D"].includes(p.correct)) return "Correct option must be A/B/C/D.";
+      return null;
+    }
+
 function fillForm(q) {
-      $("qid").value = q.id;
-      $("subject").value = q.subject;
-      $("topic").value = q.topic;
-      $("difficulty").value = q.difficulty;
-      $("marks").value = q.marks;
+      $("qid").value = q.id || "";
+      $("subject").value = q.subject || "";
+      $("topic").value = q.topic || "";
+      $("difficulty").value = q.difficulty || "";
+      $("marks").value = q.marks ?? 4;
       $("source").value = q.source || "";
-      $("title").value = q.title;
-      $("text").value = q.text;
-      $("option_a").value = q.option_a;
-      $("option_b").value = q.option_b;
-      $("option_c").value = q.option_c;
-      $("option_d").value = q.option_d;
-      $("correct").value = q.correct;
+      $("title").value = q.title || "";
+      $("text").value = q.text || "";
+      $("option_a").value = q.option_a || "";
+      $("option_b").value = q.option_b || "";
+      $("option_c").value = q.option_c || "";
+      $("option_d").value = q.option_d || "";
+      $("correct").value = (q.correct || "").toUpperCase();
       $("explain").value = q.explain || "";
       $("is_active").checked = !!q.is_active;
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -170,15 +198,6 @@ function resetForm() {
       $("qid").value = "";
       $("marks").value = 4;
       $("is_active").checked = true;
-    }
-
-function escapeHtml(s = "") {
-      return String(s)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
     }
 
 async function loadQuestions() {
@@ -194,11 +213,10 @@ const fs = $("fSubject").value;
       if (fd) query = query.eq("difficulty", fd);
 
 const { data, error } = await query;
-      if (error) return setStatus(error.message, false);
+      if (error) return setStatus("Load failed: " + error.message, false);
 
 cachedRows = data || [];
-
-qTable.innerHTML = cachedRows.map(q => `
+      qTable.innerHTML = cachedRows.map(q => `
         <tr>
           <td>${escapeHtml(q.subject)}</td>
           <td>${escapeHtml(q.topic)}</td>
@@ -206,9 +224,9 @@ qTable.innerHTML = cachedRows.map(q => `
           <td>${escapeHtml(q.title)}</td>
           <td>${q.is_active ? "Yes" : "No"}</td>
           <td class="row-actions">
-            <button class="secondary" data-edit="${q.id}">Edit</button>
-            <button class="danger" data-toggle="${q.id}">${q.is_active ? "Disable" : "Enable"}</button>
-            <button class="danger" data-delete="${q.id}">Delete</button>
+            <button class="secondary" data-edit="${q.id}" type="button">Edit</button>
+            <button class="danger" data-toggle="${q.id}" type="button">${q.is_active ? "Disable" : "Enable"}</button>
+            <button class="danger" data-delete="${q.id}" type="button">Delete</button>
           </td>
         </tr>
       `).join("");
@@ -229,8 +247,7 @@ qTable.querySelectorAll("[data-toggle]").forEach(btn => {
             .from("questions")
             .update({ is_active: !row.is_active })
             .eq("id", id);
-
-if (error) return setStatus(error.message, false);
+          if (error) return setStatus("Toggle failed: " + error.message, false);
           setStatus("Question status updated.");
           await loadQuestions();
         };
@@ -243,34 +260,45 @@ qTable.querySelectorAll("[data-delete]").forEach(btn => {
             .from("questions")
             .delete()
             .eq("id", btn.dataset.delete);
-
-if (error) return setStatus(error.message, false);
+          if (error) return setStatus("Delete failed: " + error.message, false);
           setStatus("Question deleted.");
           await loadQuestions();
         };
       });
+
+setStatus(`Loaded ${cachedRows.length} questions.`);
     }
 
 $("qForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
-const id = $("qid").value;
+const id = $("qid").value.trim();
       const payload = getFormData();
+      const err = validatePayload(payload);
+      if (err) return setStatus(err, false);
 
-if (!payload.subject || !payload.topic || !payload.difficulty || !payload.title || !payload.text || !payload.correct) {
-        return setStatus("Please fill all required fields.", false);
-      }
-
-let res;
+let result;
       if (id) {
-        res = await supabase.from("questions").update(payload).eq("id", id);
+        result = await supabase
+          .from("questions")
+          .update(payload)
+          .eq("id", id)
+          .select()
+          .single();
       } else {
-        res = await supabase.from("questions").insert([payload]);
+        result = await supabase
+          .from("questions")
+          .insert(payload)
+          .select()
+          .single();
       }
 
-if (res.error) return setStatus(res.error.message, false);
+if (result.error) {
+        console.error("Save error:", result.error);
+        return setStatus("Save failed: " + result.error.message, false);
+      }
 
-setStatus(id ? "Question updated." : "Question added.");
+setStatus(id ? "Question updated successfully." : "Question added successfully.");
       resetForm();
       await loadQuestions();
     });
@@ -280,13 +308,16 @@ $("resetBtn").onclick = resetForm;
     $("fSubject").onchange = loadQuestions;
     $("fDifficulty").onchange = loadQuestions;
 
-(async function init(){
+(async function init() {
       try {
         await ensureAdmin();
         setStatus("Admin verified.");
         await loadQuestions();
       } catch (e) {
         console.error(e);
+        if (e?.message !== "not_logged_in" && e?.message !== "not_admin") {
+          setStatus("Init failed: " + (e.message || "Unknown error"), false);
+        }
       }
     })();
   </script>
