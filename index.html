@@ -304,6 +304,7 @@
       selectedOption: "jee_selected_option",
       bookmarked: "jee_bookmarked",
       recentList: "pc_recent_list_v2",
+      rotationIdx: "pc_recent_rotation_idx_v1",
       phySolvedIds: "phy_solved_ids",
       chemSolvedIds: "chem_solved_ids",
       mathSolvedIds: "math_solved_ids"
@@ -341,7 +342,6 @@ const loginBtn = document.getElementById("loginBtn");
     const avatarLetter = document.getElementById("avatarLetter");
 
 let streak = 0;
-    let selected = localStorage.getItem(KEYS.selectedOption) || "";
     let bookmarked = localStorage.getItem(KEYS.bookmarked) === "true";
     let currentUser = null;
     let currentRecent = null;
@@ -367,7 +367,7 @@ const defaultRecent = {
     };
 
 function getSupabaseClient() {
-      return window.supabase || window.PC?.supabase || window.PC?.client || null;
+      return window.PC?.supabase || window.sb || null;
     }
 
 setTopTab(localStorage.getItem(KEYS.topTab) || "home");
@@ -379,19 +379,8 @@ setTopTab(localStorage.getItem(KEYS.topTab) || "home");
 loginBtn?.addEventListener("click", async () => {
       const email = prompt("Enter your email:");
       if (!email) return;
-
-try {
-        if (window.PC?.signInWithEmail) {
-          const { error } = await window.PC.signInWithEmail(email);
-          if (error) return alert(error.message || "Login failed");
-          alert("Magic link sent. Check email, open link, then come back.");
-          return;
-        }
-
-const sb = getSupabaseClient();
-        if (!sb) return alert("Supabase client not found in supabase-client.js");
-
-const { error } = await sb.auth.signInWithOtp({ email });
+      try {
+        const { error } = await window.PC.signInWithEmail(email);
         if (error) return alert(error.message || "Login failed");
         alert("Magic link sent. Check email, open link, then come back.");
       } catch (e) {
@@ -400,13 +389,7 @@ const { error } = await sb.auth.signInWithOtp({ email });
     });
 
 logoutBtn?.addEventListener("click", async () => {
-      try {
-        if (window.PC?.signOut) await window.PC.signOut();
-        else {
-          const sb = getSupabaseClient();
-          if (sb) await sb.auth.signOut();
-        }
-      } catch {}
+      try { await window.PC.signOut(); } catch {}
       alert("Logged out");
       location.reload();
     });
@@ -421,20 +404,10 @@ async function getAuthUser() {
 
 async function ensureProfileIfMissing(user) {
       if (!user) return;
+      if (window.PC?.ensureProfile) return await window.PC.ensureProfile(user);
       const sb = getSupabaseClient();
       if (!sb) return;
-
-// if your old helper exists, use it
-      if (window.PC?.ensureProfile) {
-        await window.PC.ensureProfile(user);
-        return;
-      }
-
-const email = user.email || null;
-      await sb.from("profiles").upsert(
-        [{ id: user.id, email }],
-        { onConflict: "id" }
-      );
+      await sb.from("profiles").upsert([{ id: user.id, email: user.email || null }], { onConflict: "id" });
     }
 
 async function renderAuthState() {
@@ -462,23 +435,12 @@ if (user) {
 
 async function loadDbStreak() {
       try {
-        if (!currentUser) {
-          streak = 0;
-          renderStreak();
-          return;
-        }
-
-if (window.PC?.getStreak) {
+        if (!currentUser) return renderStreak();
+        if (window.PC?.getStreak) {
           const res = await window.PC.getStreak(currentUser.id);
-          if (res?.ok) {
-            streak = Number(res.data?.current_streak || 0);
-            renderStreak();
-          }
-        } else {
-          // fallback: if you don't have streak table yet
-          streak = 0;
-          renderStreak();
+          if (res?.ok) streak = Number(res.data?.current_streak || 0);
         }
+        renderStreak();
       } catch (e) {
         console.error("loadDbStreak error:", e);
       }
@@ -496,12 +458,8 @@ try {
           .select("question_id")
           .eq("user_id", currentUser.id);
 
-if (error) {
-          console.error("loadSolvedIds error:", error.message);
-          return;
-        }
-
-(data || []).forEach(r => solvedQuestionIds.add(String(r.question_id)));
+if (error) return console.error("loadSolvedIds error:", error.message);
+        (data || []).forEach(r => solvedQuestionIds.add(String(r.question_id)));
       } catch (e) {
         console.error("loadSolvedIds exception:", e);
       }
@@ -591,8 +549,6 @@ function isProblemSolved(problem) {
       const localKey = subjectSolvedKey(problem.subject || "Mathematics");
       const arr = JSON.parse(localStorage.getItem(localKey) || "[]");
       const id = String(problem.id);
-
-// solved if found in DB-set OR local-set
       return solvedQuestionIds.has(id) || arr.includes(id);
     }
 
@@ -684,7 +640,6 @@ function bindOptionEvents() {
           optionsWrap.querySelectorAll(".opt").forEach(o => o.classList.remove("active"));
           opt.classList.add("active");
           const val = opt.querySelector("input").value;
-          selected = val;
           localStorage.setItem(KEYS.selectedOption, val);
         });
       });
@@ -705,20 +660,17 @@ const opts = [
         { key: "D", text: p.d || "" }
       ];
 
-selected = localStorage.getItem(KEYS.selectedOption) || "";
+localStorage.removeItem(KEYS.selectedOption);
       optionsWrap.innerHTML = opts.map(o => `
         <label class="opt">
-          <input type="radio" name="ans" value="${o.key}" ${selected === o.key ? "checked" : ""}>
+          <input type="radio" name="ans" value="${o.key}">
           ${o.key}. ${escapeHtml(o.text)}
         </label>
       `).join("");
 
-if (selected) {
-        const input = optionsWrap.querySelector(`input[name="ans"][value="${selected}"]`);
-        if (input) input.closest(".opt").classList.add("active");
-      }
-
-submitBtn.dataset.correct = String(p.correct || "A").toUpperCase();
+successMsg.style.display = "none";
+      errorMsg.style.display = "none";
+      submitBtn.dataset.correct = String(p.correct || "A").toUpperCase();
       bindOptionEvents();
       setContinueProblem(p);
     }
@@ -745,15 +697,14 @@ function normalizeQuestionRow(row) {
 function syncRecentToLocal(recentObj) {
       const list = JSON.parse(localStorage.getItem(KEYS.recentList) || "[]");
       const filtered = list.filter(x => String(x.id) !== String(recentObj.id));
-      filtered.unshift({ ...recentObj, solvedAt: new Date().toISOString() });
+      filtered.unshift({ ...recentObj, viewedAt: new Date().toISOString() });
       localStorage.setItem(KEYS.recentList, JSON.stringify(filtered.slice(0, 20)));
     }
 
 async function fetchActiveQuestionsFromDb(limit = 100) {
       const sb = getSupabaseClient();
       if (!sb) return [];
-
-const { data, error } = await sb
+      const { data, error } = await sb
         .from("questions")
         .select("*")
         .eq("is_active", true)
@@ -771,16 +722,21 @@ return (data || []).map(normalizeQuestionRow);
 async function loadRecentFromDbOrLocal() {
       try {
         const dbQuestions = await fetchActiveQuestionsFromDb(100);
-
-if (dbQuestions.length) {
+        if (dbQuestions.length) {
           recentPool = uniqueById(dbQuestions);
 
-// Show first unsolved if possible
-          const firstUnsolved = recentPool.find(p => !isProblemSolved(p));
-          const latest = firstUnsolved || recentPool[0] || defaultRecent;
+const unsolved = recentPool.filter(p => !isProblemSolved(p));
+          const poolToUse = unsolved.length ? unsolved : recentPool;
 
-renderRecentProblem(latest);
-          syncRecentToLocal(latest);
+let idx = Number(localStorage.getItem(KEYS.rotationIdx) || 0);
+          if (!Number.isFinite(idx) || idx < 0) idx = 0;
+          idx = idx % poolToUse.length;
+
+const chosen = poolToUse[idx];
+          localStorage.setItem(KEYS.rotationIdx, String((idx + 1) % poolToUse.length));
+
+renderRecentProblem(chosen);
+          syncRecentToLocal(chosen);
           return;
         }
       } catch (e) {
@@ -808,11 +764,8 @@ const payload = {
         is_correct: !!isCorrect
       };
 
-const { error } = await sb
-        .from("user_solved")
-        .upsert(payload, { onConflict: "user_id,question_id" });
-
-if (error) console.error("saveSolvedToDb error:", error.message);
+const { error } = await sb.from("user_solved").upsert(payload, { onConflict: "user_id,question_id" });
+      if (error) console.error("saveSolvedToDb error:", error.message);
       else solvedQuestionIds.add(String(questionId));
     }
 
@@ -824,10 +777,9 @@ const checked = document.querySelector('input[name="ans"]:checked');
       if (!checked) return alert("Please select an option first.");
 
 const answer = checked.value.toUpperCase();
-      localStorage.setItem(KEYS.selectedOption, answer);
+      const correctAns = String(submitBtn.dataset.correct || "A").toUpperCase();
 
-const correctAns = String(submitBtn.dataset.correct || "A").toUpperCase();
-      if (answer === correctAns) {
+if (answer === correctAns) {
         successMsg.textContent = "✅ Correct! Well done.";
         successMsg.style.display = "block";
 
@@ -835,7 +787,6 @@ if (currentRecent?.id) {
           markSolvedInSubjectLocal(currentRecent.subject || "Physics", currentRecent.id);
           renderSidebarSubjectCounts();
           await saveSolvedToDb(currentRecent.id, true);
-          setContinueProblem(currentRecent || defaultRecent);
         }
 
 if (currentUser && window.PC?.updateStreakOnSolve) {
@@ -844,13 +795,15 @@ if (currentUser && window.PC?.updateStreakOnSolve) {
             streak = Number(sr.data?.current_streak || 0);
             renderStreak();
           }
-        } else if (!currentUser) {
-          successMsg.textContent = "✅ Correct! Login to save streak + solved history.";
+        }
+
+const next = findNextUnsolvedProblem(currentRecent, recentPool);
+        if (next && String(next.id) !== String(currentRecent.id)) {
+          setTimeout(() => renderRecentProblem(next), 500);
         }
       } else {
         if (currentRecent?.id) await saveSolvedToDb(currentRecent.id, false);
-
-const correctInput = optionsWrap.querySelector(`input[value="${correctAns}"]`);
+        const correctInput = optionsWrap.querySelector(`input[value="${correctAns}"]`);
         const correctText = correctInput ? correctInput.parentElement.textContent.trim() : `Option ${correctAns}`;
         errorMsg.textContent = `❌ Wrong answer. Correct option is ${correctText}.`;
         errorMsg.style.display = "block";
@@ -862,7 +815,6 @@ resetBtn.addEventListener("click", () => {
       optionsWrap.querySelectorAll(".opt").forEach(o => o.classList.remove("active"));
       successMsg.style.display = "none";
       errorMsg.style.display = "none";
-      selected = "";
       localStorage.removeItem(KEYS.selectedOption);
     });
 
