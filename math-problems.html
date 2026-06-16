@@ -224,284 +224,323 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js"></script>
+  <script src="supabase-client.js?v=8"></script>
 
 <script>
-    const LS = {
-      solved: "math_solved_ids",
-      bookmarked: "math_bookmark_ids",
-      topic: "math_selected_topic",
-      search: "math_search_text",
-      difficulty: "math_difficulty",
-      sort: "math_sort"
-    };
+    (async function () {
+      const db = window.PC?.supabase || window.sb || null;
 
-const problems = [
-      {id:1,title:"Quadratic Equation Roots Range",topic:"Algebra",difficulty:"Easy",marks:4,source:"JEE Main",text:"If x²−5x+6=0, find roots.",a:"2, 3",b:"1, 6",c:"-2, -3",d:"3, 6",correct:"A",explain:"x²−5x+6=(x−2)(x−3)."},
-      {id:2,title:"Complex Number Locus",topic:"Complex Numbers",difficulty:"Hard",marks:4,source:"JEE Advanced",text:"Locus of z such that |z−2|=3 is:",a:"Line",b:"Circle center 2 radius 3",c:"Parabola",d:"Circle center 0 radius 3",correct:"B",explain:"|z-a|=r => circle centered at a."},
-      {id:3,title:"Binomial Middle Term",topic:"Binomial Theorem",difficulty:"Medium",marks:4,source:"JEE Main",text:"Middle term in (x+1)^6 is:",a:"15x³",b:"20x³",c:"20x²",d:"6x³",correct:"B",explain:"T4 = C(6,3)x³ = 20x³."},
-      {id:4,title:"AP-GP Mixed Sequence",topic:"Sequences & Series",difficulty:"Medium",marks:4,source:"JEE Main",text:"Sum of first 10 natural numbers is:",a:"45",b:"50",c:"55",d:"60",correct:"C",explain:"n(n+1)/2 = 10×11/2 = 55."},
-      {id:5,title:"Limit Using Expansion",topic:"Limits",difficulty:"Easy",marks:4,source:"JEE Main",text:"lim(x→0) sinx/x =",a:"0",b:"1",c:"∞",d:"-1",correct:"B",explain:"Standard limit."},
-      {id:6,title:"Definite Integral Property",topic:"Integrals",difficulty:"Medium",marks:4,source:"JEE Main",text:"∫₀¹ x dx =",a:"1",b:"1/2",c:"2",d:"0",correct:"B",explain:"[x²/2]₀¹ = 1/2."},
-      {id:7,title:"Area Under Curve",topic:"Applications of Integrals",difficulty:"Hard",marks:4,source:"JEE Advanced",text:"Area under y=x² from 0 to 2 is:",a:"4/3",b:"8/3",c:"2",d:"4",correct:"B",explain:"∫₀²x²dx = 8/3."},
-      {id:8,title:"Tangent and Normal",topic:"Differentiation",difficulty:"Easy",marks:4,source:"JEE Main",text:"If y=x², slope at x=2:",a:"2",b:"4",c:"6",d:"8",correct:"B",explain:"dy/dx=2x => 4."},
-      {id:9,title:"Circle Common Chord",topic:"Coordinate Geometry",difficulty:"Medium",marks:4,source:"JEE Main",text:"x²+y²=25 represents:",a:"Parabola",b:"Ellipse",c:"Circle radius 5",d:"Line",correct:"C",explain:"r²=25 => r=5."},
-      {id:10,title:"3D Distance Between Skew Lines",topic:"3D Geometry",difficulty:"Hard",marks:4,source:"JEE Advanced",text:"Distance between (0,0,0) and (1,2,2):",a:"2",b:"3",c:"4",d:"5",correct:"B",explain:"√(1+4+4)=3."},
-      {id:11,title:"Probability with Conditional Event",topic:"Probability",difficulty:"Medium",marks:4,source:"JEE Main",text:"For fair coin toss, P(H)=",a:"0",b:"1/4",c:"1/2",d:"1",correct:"C",explain:"One favorable out of 2."},
-      {id:12,title:"Matrix Determinant Identity",topic:"Matrices & Determinants",difficulty:"Easy",marks:4,source:"JEE Main",text:"det(I₃) =",a:"0",b:"1",c:"3",d:"-1",correct:"B",explain:"det(Iₙ)=1."}
-    ];
+const LS = {
+        solved: "math_solved_ids",
+        bookmarked: "math_bookmark_ids",
+        topic: "math_selected_topic",
+        search: "math_search_text",
+        difficulty: "math_difficulty",
+        sort: "math_sort"
+      };
 
 const topicTabs = document.getElementById("topicTabs");
-    const problemGrid = document.getElementById("problemGrid");
-    const searchInput = document.getElementById("searchInput");
-    const difficultySelect = document.getElementById("difficultySelect");
-    const sortSelect = document.getElementById("sortSelect");
-    const backBtn = document.getElementById("backBtn");
+      const problemGrid = document.getElementById("problemGrid");
+      const searchInput = document.getElementById("searchInput");
+      const difficultySelect = document.getElementById("difficultySelect");
+      const sortSelect = document.getElementById("sortSelect");
+      const backBtn = document.getElementById("backBtn");
 
 const totalProblemsEl = document.getElementById("totalProblems");
-    const solvedCountEl = document.getElementById("solvedCount");
-    const bookmarkCountEl = document.getElementById("bookmarkCount");
-    const progressCountEl = document.getElementById("progressCount");
+      const solvedCountEl = document.getElementById("solvedCount");
+      const bookmarkCountEl = document.getElementById("bookmarkCount");
+      const progressCountEl = document.getElementById("progressCount");
 
-let solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(Number);
-    let bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(Number);
-    let selectedTopic = localStorage.getItem(LS.topic) || "All";
-    let searchText = localStorage.getItem(LS.search) || "";
-    let difficulty = localStorage.getItem(LS.difficulty) || "all";
-    let sortBy = localStorage.getItem(LS.sort) || "default";
+let problems = [];
+      let topics = ["All"];
+
+let solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(String);
+      let bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(String);
+      let selectedTopic = localStorage.getItem(LS.topic) || "All";
+      let searchText = localStorage.getItem(LS.search) || "";
+      let difficulty = localStorage.getItem(LS.difficulty) || "all";
+      let sortBy = localStorage.getItem(LS.sort) || "default";
 
 searchInput.value = searchText;
-    difficultySelect.value = difficulty;
-    sortSelect.value = sortBy;
-
-const topics = ["All", ...new Set(problems.map(p => p.topic))];
-
-async function loadCloudState() {
-      try {
-        if (!window.PC || !window.sb) return;
-        const user = await PC.getUser();
-        if (!user) return;
-
-const { data: attempts, error: attemptsErr } = await sb
-          .from("problem_attempts")
-          .select("problem_id")
-          .eq("user_id", user.id)
-          .eq("subject", "Mathematics")
-          .eq("is_correct", true);
-
-if (!attemptsErr && Array.isArray(attempts)) {
-          solvedIds = [...new Set(attempts.map(x => Number(x.problem_id)).filter(Number.isFinite))];
-          localStorage.setItem(LS.solved, JSON.stringify(solvedIds));
-        }
-
-const { data: bms, error: bmsErr } = await sb
-          .from("bookmarks")
-          .select("problem_id")
-          .eq("user_id", user.id)
-          .eq("subject", "Mathematics");
-
-if (!bmsErr && Array.isArray(bms)) {
-          bookmarkIds = [...new Set(bms.map(x => Number(x.problem_id)).filter(Number.isFinite))];
-          localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
-        }
-      } catch (e) {
-        console.error("Cloud sync read error:", e);
-      }
-    }
-
-function renderTopics(){
-      topicTabs.innerHTML = topics.map(t => `
-        <button class="topic ${selectedTopic === t ? "active" : ""}" data-topic="${t}">${t}</button>
-      `).join("");
-
-topicTabs.querySelectorAll(".topic").forEach(btn => {
-        btn.addEventListener("click", () => {
-          selectedTopic = btn.dataset.topic;
-          localStorage.setItem(LS.topic, selectedTopic);
-          render();
-        });
-      });
-    }
-
-function getFiltered(){
-      let data = [...problems];
-
-if(selectedTopic !== "All") data = data.filter(p => p.topic === selectedTopic);
-
-if(searchText.trim()){
-        const q = searchText.toLowerCase();
-        data = data.filter(p =>
-          p.title.toLowerCase().includes(q) ||
-          p.topic.toLowerCase().includes(q)
-        );
-      }
-
-if(difficulty !== "all") data = data.filter(p => p.difficulty === difficulty);
-
-if(sortBy === "marks"){
-        data.sort((a,b) => b.marks - a.marks);
-      } else if(sortBy === "topic"){
-        data.sort((a,b) => a.topic.localeCompare(b.topic));
-      }
-
-return data;
-    }
+      difficultySelect.value = difficulty;
+      sortSelect.value = sortBy;
 
 function difficultyClass(level){
-      if(level === "Easy") return "easy";
-      if(level === "Medium") return "medium";
-      return "hard";
-    }
+        if(level === "Easy") return "easy";
+        if(level === "Medium") return "medium";
+        return "hard";
+      }
+
+function toCardModel(q){
+        return {
+          id: String(q.id),
+          title: q.title || "Untitled",
+          topic: q.topic || "General",
+          difficulty: q.difficulty || "Medium",
+          marks: Number(q.marks || 4),
+          source: q.source || "PrepCode",
+          text: q.text || "",
+          a: q.option_a || "",
+          b: q.option_b || "",
+          c: q.option_c || "",
+          d: q.option_d || "",
+          correct: (q.correct || "").toUpperCase(),
+          explain: q.explain || ""
+        };
+      }
+
+async function fetchMathQuestions() {
+        if (!db) {
+          problemGrid.innerHTML = `<div class="empty">Supabase client missing.</div>`;
+          return;
+        }
+
+const { data, error } = await db
+          .from("questions")
+          .select("*")
+          .eq("subject", "Mathematics")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false });
+
+if (error) {
+          console.error(error);
+          problemGrid.innerHTML = `<div class="empty">Failed to load questions: ${error.message}</div>`;
+          return;
+        }
+
+problems = (data || []).map(toCardModel);
+        topics = ["All", ...new Set(problems.map(p => p.topic).filter(Boolean))];
+
+if (!topics.includes(selectedTopic)) {
+          selectedTopic = "All";
+          localStorage.setItem(LS.topic, selectedTopic);
+        }
+      }
+
+async function loadCloudState() {
+        try {
+          if (!window.PC || !db) return;
+          const user = await window.PC.getUser?.();
+          if (!user) return;
+
+const { data: attempts, error: attemptsErr } = await db
+            .from("problem_attempts")
+            .select("problem_id")
+            .eq("user_id", user.id)
+            .eq("subject", "Mathematics")
+            .eq("is_correct", true);
+
+if (!attemptsErr && Array.isArray(attempts)) {
+            solvedIds = [...new Set(attempts.map(x => String(x.problem_id)).filter(Boolean))];
+            localStorage.setItem(LS.solved, JSON.stringify(solvedIds));
+          }
+
+const { data: bms, error: bmsErr } = await db
+            .from("bookmarks")
+            .select("problem_id")
+            .eq("user_id", user.id)
+            .eq("subject", "Mathematics");
+
+if (!bmsErr && Array.isArray(bms)) {
+            bookmarkIds = [...new Set(bms.map(x => String(x.problem_id)).filter(Boolean))];
+            localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+          }
+        } catch (e) {
+          console.error("Cloud sync read error:", e);
+        }
+      }
+
+function renderTopics(){
+        topicTabs.innerHTML = topics.map(t => `
+          <button class="topic ${selectedTopic === t ? "active" : ""}" data-topic="${t}">${t}</button>
+        `).join("");
+
+topicTabs.querySelectorAll(".topic").forEach(btn => {
+          btn.addEventListener("click", () => {
+            selectedTopic = btn.dataset.topic;
+            localStorage.setItem(LS.topic, selectedTopic);
+            render();
+          });
+        });
+      }
+
+function getFiltered(){
+        let data = [...problems];
+
+if(selectedTopic !== "All"){
+          data = data.filter(p => p.topic === selectedTopic);
+        }
+
+if(searchText.trim()){
+          const q = searchText.toLowerCase();
+          data = data.filter(p =>
+            (p.title || "").toLowerCase().includes(q) ||
+            (p.topic || "").toLowerCase().includes(q)
+          );
+        }
+
+if(difficulty !== "all"){
+          data = data.filter(p => p.difficulty === difficulty);
+        }
+
+if(sortBy === "marks"){
+          data.sort((a,b) => b.marks - a.marks);
+        } else if(sortBy === "topic"){
+          data.sort((a,b) => (a.topic || "").localeCompare(b.topic || ""));
+        }
+
+return data;
+      }
 
 function renderStats(){
-      solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(Number);
-      bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(Number);
+        solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(String);
+        bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(String);
 
 const solved = solvedIds.length;
-      const bookmarked = bookmarkIds.length;
-      const total = problems.length;
-      const progress = Math.round((solved / total) * 100);
+        const bookmarked = bookmarkIds.length;
+        const total = problems.length;
+        const progress = total ? Math.round((solved / total) * 100) : 0;
 
 totalProblemsEl.textContent = total;
-      solvedCountEl.textContent = solved;
-      bookmarkCountEl.textContent = bookmarked;
-      progressCountEl.textContent = `${progress}%`;
-    }
+        solvedCountEl.textContent = solved;
+        bookmarkCountEl.textContent = bookmarked;
+        progressCountEl.textContent = `${progress}%`;
+      }
 
 function buildSolveUrl(p){
-      const params = new URLSearchParams({
-        id: String(p.id),
-        subject: "Mathematics",
-        topic: p.topic,
-        difficulty: p.difficulty,
-        marks: String(p.marks),
-        title: p.title,
-        text: p.text,
-        a: p.a,
-        b: p.b,
-        c: p.c,
-        d: p.d,
-        correct: p.correct,
-        explain: p.explain,
-        back: "math-problems.html"
-      });
-      return `solve-problem.html?${params.toString()}`;
-    }
+        const params = new URLSearchParams({
+          id: String(p.id),
+          subject: "Mathematics",
+          topic: p.topic || "",
+          difficulty: p.difficulty || "",
+          marks: String(p.marks || 4),
+          title: p.title || "",
+          text: p.text || "",
+          a: p.a || "",
+          b: p.b || "",
+          c: p.c || "",
+          d: p.d || "",
+          correct: p.correct || "",
+          explain: p.explain || "",
+          back: "math-problems.html"
+        });
+        return `solve-problem.html?${params.toString()}`;
+      }
 
 function problemCard(p){
-      const solved = solvedIds.includes(Number(p.id));
-      const bookmarked = bookmarkIds.includes(Number(p.id));
+        const solved = solvedIds.includes(String(p.id));
+        const bookmarked = bookmarkIds.includes(String(p.id));
 
 return `
-        <article class="card">
-          <div class="head">
-            <h3 class="title">${p.title}</h3>
-            <span class="badge ${difficultyClass(p.difficulty)}">${p.difficulty}</span>
-          </div>
+          <article class="card">
+            <div class="head">
+              <h3 class="title">${p.title}</h3>
+              <span class="badge ${difficultyClass(p.difficulty)}">${p.difficulty}</span>
+            </div>
 
 <div class="meta">
-            <div>Topic<strong>${p.topic}</strong></div>
-            <div>Marks<strong>+${p.marks}</strong></div>
-            <div>Source<strong>${p.source}</strong></div>
-            <div>Status<strong>${solved ? "Solved" : "Unsolved"}</strong></div>
-          </div>
+              <div>Topic<strong>${p.topic}</strong></div>
+              <div>Marks<strong>+${p.marks}</strong></div>
+              <div>Source<strong>${p.source}</strong></div>
+              <div>Status<strong>${solved ? "Solved" : "Unsolved"}</strong></div>
+            </div>
 
 <div class="actions">
-            <button class="btn btn-primary" data-action="solve" data-id="${p.id}">
-              ${solved ? "✅ Solved" : "Solve"}
-            </button>
-            <button class="btn btn-outline" data-action="bookmark" data-id="${p.id}">
-              ${bookmarked ? "⭐ Bookmarked" : "🔖 Bookmark"}
-            </button>
-          </div>
-        </article>
-      `;
-    }
+              <button class="btn btn-primary" data-action="solve" data-id="${p.id}">
+                ${solved ? "✅ Solved" : "Solve"}
+              </button>
+              <button class="btn btn-outline" data-action="bookmark" data-id="${p.id}">
+                ${bookmarked ? "⭐ Bookmarked" : "🔖 Bookmark"}
+              </button>
+            </div>
+          </article>
+        `;
+      }
 
 function renderGrid(){
-      const data = getFiltered();
+        const data = getFiltered();
 
 if(!data.length){
-        problemGrid.innerHTML = `<div class="empty">No problems found for current filters.</div>`;
-        return;
-      }
+          problemGrid.innerHTML = `<div class="empty">No mathematics problems found for current filters.</div>`;
+          return;
+        }
 
 problemGrid.innerHTML = data.map(problemCard).join("");
 
 problemGrid.querySelectorAll("button[data-action]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const id = Number(btn.dataset.id);
-          const action = btn.dataset.action;
-          const p = problems.find(x => x.id === id);
-          if(!p) return;
+          btn.addEventListener("click", async () => {
+            const id = String(btn.dataset.id);
+            const action = btn.dataset.action;
+            const p = problems.find(x => String(x.id) === id);
+            if(!p) return;
 
 if(action === "solve"){
-            window.location.href = buildSolveUrl(p);
-            return;
-          }
+              window.location.href = buildSolveUrl(p);
+              return;
+            }
 
 if(action === "bookmark"){
-            if(bookmarkIds.includes(id)){
-              bookmarkIds = bookmarkIds.filter(x => x !== id);
-            } else {
-              bookmarkIds.push(id);
-            }
-            localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
-            render();
+              if(bookmarkIds.includes(id)){
+                bookmarkIds = bookmarkIds.filter(x => x !== id);
+              } else {
+                bookmarkIds.push(id);
+              }
+              localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+              render();
 
 try {
-              const user = await PC.getUser();
-              if (user) {
-               const res = await PC.toggleBookmark(user.id, "Mathematics", id);
-if (res.ok) {
-  const state = res.bookmarked;
-  if (state) {
-    if (!bookmarkIds.includes(id)) bookmarkIds.push(id);
-  } else {
-    bookmarkIds = bookmarkIds.filter(x => x !== id);
-  }
-}
-
-                localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
-                render();
+                if (!window.PC?.getUser || !window.PC?.toggleBookmark) return;
+                const user = await window.PC.getUser();
+                if (user) {
+                  const res = await window.PC.toggleBookmark(user.id, "Mathematics", id);
+                  if (res?.ok) {
+                    const state = !!res.bookmarked;
+                    if (state) {
+                      if (!bookmarkIds.includes(id)) bookmarkIds.push(id);
+                    } else {
+                      bookmarkIds = bookmarkIds.filter(x => x !== id);
+                    }
+                    localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+                    render();
+                  }
+                }
+              } catch (e) {
+                console.error("Bookmark sync error:", e);
               }
-            } catch (e) {
-              console.error("Bookmark sync error:", e);
             }
-          }
+          });
         });
-      });
-    }
+      }
 
 function render(){
-      renderStats();
-      renderTopics();
-      renderGrid();
-    }
+        renderStats();
+        renderTopics();
+        renderGrid();
+      }
 
 searchInput.addEventListener("input", e => {
-      searchText = e.target.value;
-      localStorage.setItem(LS.search, searchText);
-      renderGrid();
-    });
+        searchText = e.target.value;
+        localStorage.setItem(LS.search, searchText);
+        renderGrid();
+      });
 
 difficultySelect.addEventListener("change", e => {
-      difficulty = e.target.value;
-      localStorage.setItem(LS.difficulty, difficulty);
-      renderGrid();
-    });
+        difficulty = e.target.value;
+        localStorage.setItem(LS.difficulty, difficulty);
+        renderGrid();
+      });
 
 sortSelect.addEventListener("change", e => {
-      sortBy = e.target.value;
-      localStorage.setItem(LS.sort, sortBy);
-      renderGrid();
-    });
+        sortBy = e.target.value;
+        localStorage.setItem(LS.sort, sortBy);
+        renderGrid();
+      });
 
 backBtn.addEventListener("click", () => {
-      window.location.href = "index.html";
-    });
+        window.location.href = "index.html";
+      });
 
-(async function init(){
+await fetchMathQuestions();
       await loadCloudState();
       render();
     })();
