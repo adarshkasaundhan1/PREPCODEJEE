@@ -253,6 +253,7 @@ const subjectNormalized = normalizeSubject(problem.subject);
 // -------- Keys --------
     const ATTEMPT_KEY = `pc_attempt_${problem.id}`;
     const BOOKMARK_KEY = `pc_bookmark_${problem.id}`;
+    const RECENT_LIST_KEY = "pc_recent_list_v1";
     const SUBJECT_SOLVED_KEY_MAP = {
       physics: "phy_solved_ids",
       chemistry: "chem_solved_ids",
@@ -318,6 +319,35 @@ optionsWrap.querySelectorAll(".opt").forEach(opt => {
       });
     });
 
+// -------- Recent local save (for index Recent Problem) --------
+    function saveRecentProblemLocal(problemObj, selectedAns, isCorrect) {
+      // Save only solved-correct questions as "recent solved"
+      if (!isCorrect) return;
+
+const item = {
+        id: problemObj.id,
+        subject: subjectNormalized,
+        topic: problemObj.topic,
+        difficulty: problemObj.difficulty,
+        marks: problemObj.marks,
+        title: problemObj.title,
+        text: problemObj.text,
+        a: problemObj.a,
+        b: problemObj.b,
+        c: problemObj.c,
+        d: problemObj.d,
+        correct: String(problemObj.correct || "").toUpperCase(),
+        selected: String(selectedAns || "").toUpperCase(),
+        isCorrect: true,
+        solvedAt: new Date().toISOString()
+      };
+
+const list = JSON.parse(localStorage.getItem(RECENT_LIST_KEY) || "[]");
+      const filtered = list.filter(x => String(x.id) !== String(item.id));
+      filtered.unshift(item);
+      localStorage.setItem(RECENT_LIST_KEY, JSON.stringify(filtered.slice(0, 20)));
+    }
+
 // -------- Bookmark --------
     function renderBookmark() {
       bookmarkBtn.textContent = bookmarked ? "✅ Bookmarked" : "🔖 Bookmark";
@@ -368,6 +398,7 @@ if (isCorrect) {
         successMsg.style.display = "block";
         errorMsg.style.display = "none";
         markSolvedInSubject(subjectNormalized, problem.id);
+        saveRecentProblemLocal(problem, ans, isCorrect); // ✅ recent solved updated
       } else {
         errorMsg.textContent = `❌ Wrong answer. Correct option is ${problem.correct}.`;
         errorMsg.style.display = "block";
@@ -381,13 +412,19 @@ try {
         await PC.markSolved(user.id, subjectNormalized, dbProblemId, ans, isCorrect);
 
 if (isCorrect) {
-          await PC.pushRecent(user.id, {
-            ...problem,
-            subject: subjectNormalized
-          });
+          // ✅ Update streak FIRST
+          const streakRes = await PC.updateStreakOnSolve(user.id);
+          console.log("updateStreakOnSolve:", streakRes);
 
-// ✅ DB streak update (once per day rule handled in supabase-client.js)
-          await PC.updateStreakOnSolve(user.id);
+// Optional activity insert (do not block streak)
+          try {
+            await PC.pushRecent(user.id, {
+              ...problem,
+              subject: subjectNormalized
+            });
+          } catch (e) {
+            console.error("pushRecent error (streak already updated):", e);
+          }
         }
       } catch (e) {
         console.error("Submit sync error:", e);
