@@ -223,348 +223,324 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js"></script>
+  <script src="supabase-client.js?v=8"></script>
 
 <script>
-    const LS = {
-      solved: "phy_solved_ids",
-      bookmarked: "phy_bookmark_ids",
-      topic: "phy_selected_topic",
-      search: "phy_search_text",
-      difficulty: "phy_difficulty",
-      sort: "phy_sort"
-    };
+    (async function () {
+      const db = window.PC?.supabase || window.sb || null;
 
-const problems = [
-      {
-        id: 1, title: "Velocity from Position Function", topic: "Kinematics", difficulty: "Easy", marks: 4, source: "JEE Main",
-        text: "A particle moves along a straight line with position x(t)=3t²−4t+1. Find velocity at t=2 s.",
-        a: "8 m/s", b: "10 m/s", c: "12 m/s", d: "14 m/s", correct: "A",
-        explain: "v(t)=dx/dt=6t−4. At t=2, v=8 m/s."
-      },
-      {
-        id: 2, title: "Relative Velocity of Two Cars", topic: "Kinematics", difficulty: "Medium", marks: 4, source: "JEE Main",
-        text: "Car A moves east at 20 m/s and Car B moves west at 15 m/s. Relative speed of A w.r.t B is?",
-        a: "5 m/s", b: "35 m/s", c: "20 m/s", d: "15 m/s", correct: "B",
-        explain: "Opposite directions → relative speed = 20 + 15 = 35 m/s."
-      },
-      {
-        id: 3, title: "Projectile Maximum Height", topic: "Kinematics", difficulty: "Medium", marks: 4, source: "JEE Main",
-        text: "A projectile is launched at speed 20 m/s at 30°. Take g=10 m/s². Maximum height is?",
-        a: "2.5 m", b: "5 m", c: "10 m", d: "15 m", correct: "B",
-        explain: "H = u²sin²θ/(2g) = 400*(1/4)/20 = 5 m."
-      },
-      {
-        id: 4, title: "Friction on Inclined Plane", topic: "Laws of Motion", difficulty: "Easy", marks: 4, source: "JEE Main",
-        text: "A 2 kg block rests on a rough horizontal surface with μ=0.2. Take g=10. Maximum static friction is?",
-        a: "2 N", b: "4 N", c: "8 N", d: "10 N", correct: "B",
-        explain: "f_max = μN = 0.2*(2*10)=4 N."
-      },
-      {
-        id: 5, title: "Pulley System Tension", topic: "Laws of Motion", difficulty: "Hard", marks: 4, source: "JEE Advanced",
-        text: "In an ideal Atwood machine with masses 3 kg and 2 kg, tension in string is?",
-        a: "20 N", b: "24 N", c: "30 N", d: "12 N", correct: "B",
-        explain: "a=(m1−m2)g/(m1+m2)=2 m/s², T=m1(g−a)=3*(8)=24 N."
-      },
-      {
-        id: 6, title: "Work Done by Variable Force", topic: "Work Power Energy", difficulty: "Medium", marks: 4, source: "JEE Main",
-        text: "Force varies as F=2x N. Work done from x=0 to x=3 m is?",
-        a: "3 J", b: "6 J", c: "9 J", d: "18 J", correct: "C",
-        explain: "W=∫0→3 2x dx = [x²]0→3 = 9 J."
-      },
-      {
-        id: 7, title: "Collision and Momentum", topic: "Momentum", difficulty: "Medium", marks: 4, source: "JEE Main",
-        text: "A 2 kg body moving at 6 m/s hits a 1 kg body at rest and sticks. Final speed is?",
-        a: "2 m/s", b: "3 m/s", c: "4 m/s", d: "6 m/s", correct: "C",
-        explain: "Conservation of momentum: v = (2*6)/(2+1)=4 m/s."
-      },
-      {
-        id: 8, title: "Moment of Inertia of Rod", topic: "Rotational Motion", difficulty: "Hard", marks: 4, source: "JEE Advanced",
-        text: "Moment of inertia of a uniform rod (mass M, length L) about center and perpendicular to length is?",
-        a: "ML²/12", b: "ML²/3", c: "ML²/2", d: "ML²", correct: "A",
-        explain: "Standard result: I_center = ML²/12."
-      },
-      {
-        id: 9, title: "SHM Time Period", topic: "Oscillations", difficulty: "Easy", marks: 4, source: "JEE Main",
-        text: "For mass-spring system, m=1 kg, k=100 N/m. Time period is?",
-        a: "0.2π s", b: "0.5π s", c: "2π s", d: "10π s", correct: "A",
-        explain: "T=2π√(m/k)=2π√(1/100)=0.2π s."
-      },
-      {
-        id: 10, title: "Wave Speed in String", topic: "Waves", difficulty: "Easy", marks: 4, source: "JEE Main",
-        text: "Tension in string is 100 N and linear density is 0.25 kg/m. Wave speed is?",
-        a: "10 m/s", b: "20 m/s", c: "30 m/s", d: "40 m/s", correct: "B",
-        explain: "v=√(T/μ)=√(100/0.25)=√400=20 m/s."
-      },
-      {
-        id: 11, title: "Electric Field on Axis of Ring", topic: "Electrostatics", difficulty: "Hard", marks: 4, source: "JEE Advanced",
-        text: "Electric field at center of uniformly charged ring is?",
-        a: "Maximum", b: "Non-zero constant", c: "Zero", d: "Depends on radius only", correct: "C",
-        explain: "Symmetry cancels all field components at center."
-      },
-      {
-        id: 12, title: "Current in RC Circuit", topic: "Current Electricity", difficulty: "Medium", marks: 4, source: "JEE Main",
-        text: "Initially uncharged capacitor in RC charging circuit has current at t=0 equal to?",
-        a: "0", b: "V/R", c: "R/V", d: "∞", correct: "B",
-        explain: "At t=0 capacitor behaves like short circuit, so i(0)=V/R."
-      }
-    ];
+const LS = {
+        solved: "phy_solved_ids",
+        bookmarked: "phy_bookmark_ids",
+        topic: "phy_selected_topic",
+        search: "phy_search_text",
+        difficulty: "phy_difficulty",
+        sort: "phy_sort"
+      };
 
 const topicTabs = document.getElementById("topicTabs");
-    const problemGrid = document.getElementById("problemGrid");
-    const searchInput = document.getElementById("searchInput");
-    const difficultySelect = document.getElementById("difficultySelect");
-    const sortSelect = document.getElementById("sortSelect");
-    const backBtn = document.getElementById("backBtn");
+      const problemGrid = document.getElementById("problemGrid");
+      const searchInput = document.getElementById("searchInput");
+      const difficultySelect = document.getElementById("difficultySelect");
+      const sortSelect = document.getElementById("sortSelect");
+      const backBtn = document.getElementById("backBtn");
 
 const totalProblemsEl = document.getElementById("totalProblems");
-    const solvedCountEl = document.getElementById("solvedCount");
-    const bookmarkCountEl = document.getElementById("bookmarkCount");
-    const progressCountEl = document.getElementById("progressCount");
+      const solvedCountEl = document.getElementById("solvedCount");
+      const bookmarkCountEl = document.getElementById("bookmarkCount");
+      const progressCountEl = document.getElementById("progressCount");
 
-let solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(Number);
-    let bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(Number);
-    let selectedTopic = localStorage.getItem(LS.topic) || "All";
-    let searchText = localStorage.getItem(LS.search) || "";
-    let difficulty = localStorage.getItem(LS.difficulty) || "all";
-    let sortBy = localStorage.getItem(LS.sort) || "default";
+let problems = [];
+      let topics = ["All"];
+
+let solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(String);
+      let bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(String);
+      let selectedTopic = localStorage.getItem(LS.topic) || "All";
+      let searchText = localStorage.getItem(LS.search) || "";
+      let difficulty = localStorage.getItem(LS.difficulty) || "all";
+      let sortBy = localStorage.getItem(LS.sort) || "default";
 
 searchInput.value = searchText;
-    difficultySelect.value = difficulty;
-    sortSelect.value = sortBy;
-
-const topics = ["All", ...new Set(problems.map(p => p.topic))];
-
-async function loadCloudState() {
-      try {
-        if (!window.PC || !window.sb) return;
-        const user = await PC.getUser();
-        if (!user) return;
-
-const { data: attempts, error: attemptsErr } = await sb
-          .from("problem_attempts")
-          .select("problem_id")
-          .eq("user_id", user.id)
-          .eq("subject", "Physics")
-          .eq("is_correct", true);
-
-if (!attemptsErr && Array.isArray(attempts)) {
-          solvedIds = [...new Set(attempts.map(x => Number(x.problem_id)).filter(Number.isFinite))];
-          localStorage.setItem(LS.solved, JSON.stringify(solvedIds));
-        }
-
-const { data: bms, error: bmsErr } = await sb
-          .from("bookmarks")
-          .select("problem_id")
-          .eq("user_id", user.id)
-          .eq("subject", "Physics");
-
-if (!bmsErr && Array.isArray(bms)) {
-          bookmarkIds = [...new Set(bms.map(x => Number(x.problem_id)).filter(Number.isFinite))];
-          localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
-        }
-      } catch (e) {
-        console.error("Cloud sync read error:", e);
-      }
-    }
-
-function renderTopics(){
-      topicTabs.innerHTML = topics.map(t => `
-        <button class="topic ${selectedTopic === t ? "active" : ""}" data-topic="${t}">${t}</button>
-      `).join("");
-
-topicTabs.querySelectorAll(".topic").forEach(btn => {
-        btn.addEventListener("click", () => {
-          selectedTopic = btn.dataset.topic;
-          localStorage.setItem(LS.topic, selectedTopic);
-          render();
-        });
-      });
-    }
-
-function getFiltered(){
-      let data = [...problems];
-
-if(selectedTopic !== "All"){
-        data = data.filter(p => p.topic === selectedTopic);
-      }
-
-if(searchText.trim()){
-        const q = searchText.toLowerCase();
-        data = data.filter(p =>
-          p.title.toLowerCase().includes(q) ||
-          p.topic.toLowerCase().includes(q)
-        );
-      }
-
-if(difficulty !== "all"){
-        data = data.filter(p => p.difficulty === difficulty);
-      }
-
-if(sortBy === "marks"){
-        data.sort((a,b) => b.marks - a.marks);
-      } else if(sortBy === "topic"){
-        data.sort((a,b) => a.topic.localeCompare(b.topic));
-      }
-
-return data;
-    }
+      difficultySelect.value = difficulty;
+      sortSelect.value = sortBy;
 
 function difficultyClass(level){
-      if(level === "Easy") return "easy";
-      if(level === "Medium") return "medium";
-      return "hard";
-    }
+        if(level === "Easy") return "easy";
+        if(level === "Medium") return "medium";
+        return "hard";
+      }
+
+function toCardModel(q){
+        return {
+          id: String(q.id),
+          title: q.title || "Untitled",
+          topic: q.topic || "General",
+          difficulty: q.difficulty || "Medium",
+          marks: Number(q.marks || 4),
+          source: q.source || "PrepCode",
+          text: q.text || "",
+          a: q.option_a || "",
+          b: q.option_b || "",
+          c: q.option_c || "",
+          d: q.option_d || "",
+          correct: (q.correct || "").toUpperCase(),
+          explain: q.explain || ""
+        };
+      }
+
+async function fetchPhysicsQuestions() {
+        if (!db) {
+          problemGrid.innerHTML = `<div class="empty">Supabase client missing.</div>`;
+          return;
+        }
+
+const { data, error } = await db
+          .from("questions")
+          .select("*")
+          .eq("subject", "Physics")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false });
+
+if (error) {
+          console.error(error);
+          problemGrid.innerHTML = `<div class="empty">Failed to load questions: ${error.message}</div>`;
+          return;
+        }
+
+problems = (data || []).map(toCardModel);
+        topics = ["All", ...new Set(problems.map(p => p.topic).filter(Boolean))];
+
+// If stored topic no longer exists, fallback All
+        if (!topics.includes(selectedTopic)) {
+          selectedTopic = "All";
+          localStorage.setItem(LS.topic, selectedTopic);
+        }
+      }
+
+async function loadCloudState() {
+        try {
+          if (!window.PC || !db) return;
+          const user = await window.PC.getUser?.();
+          if (!user) return;
+
+const { data: attempts, error: attemptsErr } = await db
+            .from("problem_attempts")
+            .select("problem_id")
+            .eq("user_id", user.id)
+            .eq("subject", "Physics")
+            .eq("is_correct", true);
+
+if (!attemptsErr && Array.isArray(attempts)) {
+            solvedIds = [...new Set(attempts.map(x => String(x.problem_id)).filter(Boolean))];
+            localStorage.setItem(LS.solved, JSON.stringify(solvedIds));
+          }
+
+const { data: bms, error: bmsErr } = await db
+            .from("bookmarks")
+            .select("problem_id")
+            .eq("user_id", user.id)
+            .eq("subject", "Physics");
+
+if (!bmsErr && Array.isArray(bms)) {
+            bookmarkIds = [...new Set(bms.map(x => String(x.problem_id)).filter(Boolean))];
+            localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+          }
+        } catch (e) {
+          console.error("Cloud sync read error:", e);
+        }
+      }
+
+function renderTopics(){
+        topicTabs.innerHTML = topics.map(t => `
+          <button class="topic ${selectedTopic === t ? "active" : ""}" data-topic="${t}">${t}</button>
+        `).join("");
+
+topicTabs.querySelectorAll(".topic").forEach(btn => {
+          btn.addEventListener("click", () => {
+            selectedTopic = btn.dataset.topic;
+            localStorage.setItem(LS.topic, selectedTopic);
+            render();
+          });
+        });
+      }
+
+function getFiltered(){
+        let data = [...problems];
+
+if(selectedTopic !== "All"){
+          data = data.filter(p => p.topic === selectedTopic);
+        }
+
+if(searchText.trim()){
+          const q = searchText.toLowerCase();
+          data = data.filter(p =>
+            (p.title || "").toLowerCase().includes(q) ||
+            (p.topic || "").toLowerCase().includes(q)
+          );
+        }
+
+if(difficulty !== "all"){
+          data = data.filter(p => p.difficulty === difficulty);
+        }
+
+if(sortBy === "marks"){
+          data.sort((a,b) => b.marks - a.marks);
+        } else if(sortBy === "topic"){
+          data.sort((a,b) => (a.topic || "").localeCompare(b.topic || ""));
+        }
+
+return data;
+      }
 
 function renderStats(){
-      solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(Number);
-      bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(Number);
+        solvedIds = JSON.parse(localStorage.getItem(LS.solved) || "[]").map(String);
+        bookmarkIds = JSON.parse(localStorage.getItem(LS.bookmarked) || "[]").map(String);
 
 const solved = solvedIds.length;
-      const bookmarked = bookmarkIds.length;
-      const total = problems.length;
-      const progress = Math.round((solved / total) * 100);
+        const bookmarked = bookmarkIds.length;
+        const total = problems.length;
+        const progress = total ? Math.round((solved / total) * 100) : 0;
 
 totalProblemsEl.textContent = total;
-      solvedCountEl.textContent = solved;
-      bookmarkCountEl.textContent = bookmarked;
-      progressCountEl.textContent = `${progress}%`;
-    }
+        solvedCountEl.textContent = solved;
+        bookmarkCountEl.textContent = bookmarked;
+        progressCountEl.textContent = `${progress}%`;
+      }
 
 function buildSolveUrl(p){
-      const params = new URLSearchParams({
-        id: String(p.id),
-        subject: "Physics",
-        topic: p.topic,
-        difficulty: p.difficulty,
-        marks: String(p.marks),
-        title: p.title,
-        text: p.text,
-        a: p.a,
-        b: p.b,
-        c: p.c,
-        d: p.d,
-        correct: p.correct,
-        explain: p.explain,
-        back: "physics-problems.html"
-      });
-      return `solve-problem.html?${params.toString()}`;
-    }
+        const params = new URLSearchParams({
+          id: String(p.id),
+          subject: "Physics",
+          topic: p.topic || "",
+          difficulty: p.difficulty || "",
+          marks: String(p.marks || 4),
+          title: p.title || "",
+          text: p.text || "",
+          a: p.a || "",
+          b: p.b || "",
+          c: p.c || "",
+          d: p.d || "",
+          correct: p.correct || "",
+          explain: p.explain || "",
+          back: "physics-problems.html"
+        });
+        return `solve-problem.html?${params.toString()}`;
+      }
 
 function problemCard(p){
-      const solved = solvedIds.includes(Number(p.id));
-      const bookmarked = bookmarkIds.includes(Number(p.id));
+        const solved = solvedIds.includes(String(p.id));
+        const bookmarked = bookmarkIds.includes(String(p.id));
 
 return `
-        <article class="card">
-          <div class="head">
-            <h3 class="title">${p.title}</h3>
-            <span class="badge ${difficultyClass(p.difficulty)}">${p.difficulty}</span>
-          </div>
+          <article class="card">
+            <div class="head">
+              <h3 class="title">${p.title}</h3>
+              <span class="badge ${difficultyClass(p.difficulty)}">${p.difficulty}</span>
+            </div>
 
 <div class="meta">
-            <div>Topic<strong>${p.topic}</strong></div>
-            <div>Marks<strong>+${p.marks}</strong></div>
-            <div>Source<strong>${p.source}</strong></div>
-            <div>Status<strong>${solved ? "Solved" : "Unsolved"}</strong></div>
-          </div>
+              <div>Topic<strong>${p.topic}</strong></div>
+              <div>Marks<strong>+${p.marks}</strong></div>
+              <div>Source<strong>${p.source}</strong></div>
+              <div>Status<strong>${solved ? "Solved" : "Unsolved"}</strong></div>
+            </div>
 
 <div class="actions">
-            <button class="btn btn-primary" data-action="solve" data-id="${p.id}">
-              ${solved ? "✅ Solved" : "Solve"}
-            </button>
-            <button class="btn btn-outline" data-action="bookmark" data-id="${p.id}">
-              ${bookmarked ? "⭐ Bookmarked" : "🔖 Bookmark"}
-            </button>
-          </div>
-        </article>
-      `;
-    }
+              <button class="btn btn-primary" data-action="solve" data-id="${p.id}">
+                ${solved ? "✅ Solved" : "Solve"}
+              </button>
+              <button class="btn btn-outline" data-action="bookmark" data-id="${p.id}">
+                ${bookmarked ? "⭐ Bookmarked" : "🔖 Bookmark"}
+              </button>
+            </div>
+          </article>
+        `;
+      }
 
 function renderGrid(){
-      const data = getFiltered();
+        const data = getFiltered();
 
 if(!data.length){
-        problemGrid.innerHTML = `<div class="empty">No problems found for current filters.</div>`;
-        return;
-      }
+          problemGrid.innerHTML = `<div class="empty">No physics problems found for current filters.</div>`;
+          return;
+        }
 
 problemGrid.innerHTML = data.map(problemCard).join("");
 
 problemGrid.querySelectorAll("button[data-action]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const id = Number(btn.dataset.id);
-          const action = btn.dataset.action;
-          const p = problems.find(x => x.id === id);
-          if(!p) return;
+          btn.addEventListener("click", async () => {
+            const id = String(btn.dataset.id);
+            const action = btn.dataset.action;
+            const p = problems.find(x => String(x.id) === id);
+            if(!p) return;
 
 if(action === "solve"){
-            window.location.href = buildSolveUrl(p);
-            return;
-          }
+              window.location.href = buildSolveUrl(p);
+              return;
+            }
 
 if(action === "bookmark"){
-            if(bookmarkIds.includes(id)){
-              bookmarkIds = bookmarkIds.filter(x => x !== id);
-            } else {
-              bookmarkIds.push(id);
-            }
-            localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
-            render();
+              if(bookmarkIds.includes(id)){
+                bookmarkIds = bookmarkIds.filter(x => x !== id);
+              } else {
+                bookmarkIds.push(id);
+              }
+              localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+              render();
 
 try {
-              const user = await PC.getUser();
-              if (user) {
-               const res = await PC.toggleBookmark(user.id, "Physics", id);
-if (res.ok) {
-  const state = res.bookmarked;
-  if (state) {
-    if (!bookmarkIds.includes(id)) bookmarkIds.push(id);
-  } else {
-    bookmarkIds = bookmarkIds.filter(x => x !== id);
-  }
-}
-
-                localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
-                render();
+                if (!window.PC?.getUser || !window.PC?.toggleBookmark) return;
+                const user = await window.PC.getUser();
+                if (user) {
+                  const res = await window.PC.toggleBookmark(user.id, "Physics", id);
+                  if (res?.ok) {
+                    const state = !!res.bookmarked;
+                    if (state) {
+                      if (!bookmarkIds.includes(id)) bookmarkIds.push(id);
+                    } else {
+                      bookmarkIds = bookmarkIds.filter(x => x !== id);
+                    }
+                    localStorage.setItem(LS.bookmarked, JSON.stringify(bookmarkIds));
+                    render();
+                  }
+                }
+              } catch (e) {
+                console.error("Bookmark sync error:", e);
               }
-            } catch (e) {
-              console.error("Bookmark sync error:", e);
             }
-          }
+          });
         });
-      });
-    }
+      }
 
 function render(){
-      renderStats();
-      renderTopics();
-      renderGrid();
-    }
+        renderStats();
+        renderTopics();
+        renderGrid();
+      }
 
 searchInput.addEventListener("input", e => {
-      searchText = e.target.value;
-      localStorage.setItem(LS.search, searchText);
-      renderGrid();
-    });
+        searchText = e.target.value;
+        localStorage.setItem(LS.search, searchText);
+        renderGrid();
+      });
 
 difficultySelect.addEventListener("change", e => {
-      difficulty = e.target.value;
-      localStorage.setItem(LS.difficulty, difficulty);
-      renderGrid();
-    });
+        difficulty = e.target.value;
+        localStorage.setItem(LS.difficulty, difficulty);
+        renderGrid();
+      });
 
 sortSelect.addEventListener("change", e => {
-      sortBy = e.target.value;
-      localStorage.setItem(LS.sort, sortBy);
-      renderGrid();
-    });
+        sortBy = e.target.value;
+        localStorage.setItem(LS.sort, sortBy);
+        renderGrid();
+      });
 
 backBtn.addEventListener("click", () => {
-      window.location.href = "index.html";
-    });
+        window.location.href = "index.html";
+      });
 
-(async function init(){
+await fetchPhysicsQuestions();
       await loadCloudState();
       render();
     })();
