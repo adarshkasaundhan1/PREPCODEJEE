@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode • Contest Home</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#111b31;
+      --panel2:#162442;
+      --line:#25385d;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --yellow:#f59e0b;
+      --red:#ef4444;
+      --blue:#3b82f6;
+      --purple:#8b5cf6;
+    }
+
+*{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 10% -10%, #1d3b67 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1e2f56 0%, transparent 30%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+
+.container{max-width:1220px;margin:0 auto;padding:16px}
+    .topbar{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand .icon{color:var(--green);font-size:22px;font-weight:800}
+    .brand h1{font-size:24px;line-height:1}
+    .brand p{font-size:12px;color:var(--muted);margin-top:2px}
+    .user{
+      display:flex;align-items:center;gap:8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:6px 10px 6px 6px;
+      background:rgba(255,255,255,.03);
+      font-size:14px;
+    }
+    .avatar{
+      width:28px;height:28px;border-radius:50%;
+      display:grid;place-items:center;
+      background:var(--blue);font-weight:700;
+    }
+
+.hero{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      background:linear-gradient(180deg, rgba(59,130,246,.12), rgba(255,255,255,.02));
+      margin-bottom:14px;
+    }
+    .hero h2{font-size:30px;margin-bottom:6px}
+    .hero p{color:var(--muted)}
+
+.quick{
+      margin-top:12px;
+      display:flex;gap:8px;flex-wrap:wrap;
+    }
+    button{
+      border:none;cursor:pointer;border-radius:10px;padding:10px 13px;font-weight:700;color:#fff;
+    }
+    .btn-green{background:#15803d}
+    .btn-blue{background:#1d4ed8}
+    .btn-purple{background:#6d28d9}
+    .btn-outline{
+      background:transparent;border:1px solid var(--line);color:var(--text);
+    }
+
+.stats{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    }
+    .label{font-size:12px;color:var(--muted)}
+    .value{font-size:28px;font-weight:800;margin-top:6px}
+    .ok{color:#b9ffd0}
+    .warn{color:#ffdca3}
+    .bad{color:#ffc5c5}
+
+.controls{
+      display:grid;
+      grid-template-columns:1.3fr .7fr .7fr;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .input,.select{
+      width:100%;border:1px solid var(--line);border-radius:10px;
+      background:var(--panel);color:var(--text);padding:11px 12px;outline:none;
+    }
+    .input::placeholder{color:#8ca2cd}
+    .tabs{
+      display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;
+    }
+    .tab{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 12px;
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      font-weight:700;
+      cursor:pointer;
+      font-size:14px;
+    }
+    .tab.active{
+      border-color:rgba(34,197,94,.45);
+      background:rgba(34,197,94,.12);
+      color:#b9ffd0;
+    }
+
+.grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(240px,1fr));
+      gap:12px;
+    }
+    .contest-card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;flex-direction:column;gap:10px;
+    }
+    .row-top{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
+    }
+    .title{font-size:18px;font-weight:700;line-height:1.3}
+    .badge{
+      font-size:11px;padding:5px 8px;border-radius:999px;font-weight:700;border:1px solid transparent;
+      white-space:nowrap;
+    }
+    .live{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4);color:#b9ffd0}
+    .upcoming{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#ffdca3}
+    .ended{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#ffc5c5}
+
+.meta{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;
+      color:var(--muted);font-size:13px;
+    }
+    .meta div{
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:10px;
+      padding:8px;
+      background:rgba(255,255,255,.02);
+    }
+    .meta strong{display:block;color:var(--text);margin-top:3px;font-size:14px}
+    .timer{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:9px 10px;
+      background:var(--panel2);
+      font-size:13px;
+      color:#c9d8ff;
+    }
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+    .btn-sm{padding:9px 11px;font-size:13px;border-radius:9px}
+    .btn-enter{background:#16a34a}
+    .btn-join{background:#1d4ed8}
+    .btn-leave{
+      background:rgba(239,68,68,.12);
+      border:1px solid rgba(239,68,68,.4);
+      color:#ffd3d3;
+    }
+    .btn-disabled{
+      background:#334155;color:#cbd5e1;cursor:not-allowed;
+    }
+
+.empty{
+      grid-column:1/-1;
+      border:1px dashed var(--line);
+      border-radius:12px;
+      color:var(--muted);
+      padding:20px;
+      text-align:center;
+    }
+
+.footer{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+    }
+
+@media(max-width:1020px){
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .grid{grid-template-columns:repeat(2,minmax(220px,1fr))}
+      .controls{grid-template-columns:1fr}
+    }
+    @media(max-width:680px){
+      .grid{grid-template-columns:1fr}
+      .hero h2{font-size:25px}
+      .stats{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode</h1>
+          <p>LeetCode for JEE</p>
+        </div>
+      </div>
+      <div class="user">
+        <span class="avatar" id="avatarLetter">P</span>
+        <span id="userName">PrepCoder ▾</span>
+      </div>
+    </header>
+
+<section class="hero">
+      <h2>Contest Home</h2>
+      <p>Practice with live contests, register for upcoming events, and track your results.</p>
+
+<div class="quick">
+        <button class="btn-green" id="goList">Open Contest List</button>
+        <button class="btn-blue" id="goAttempt">Open Contest Attempt</button>
+        <button class="btn-purple" id="goResult">Open Contest Result</button>
+        <button class="btn-outline" id="resetHome">Reset Home Filters</button>
+      </div>
+    </section>
+
+<section class="stats">
+      <article class="card">
+        <div class="label">Total Contests</div>
+        <div class="value" id="totalCount">0</div>
+      </article>
+      <article class="card">
+        <div class="label">Live Now</div>
+        <div class="value ok" id="liveCount">0</div>
+      </article>
+      <article class="card">
+        <div class="label">Joined</div>
+        <div class="value warn" id="joinedCount">0</div>
+      </article>
+      <article class="card">
+        <div class="label">Ended</div>
+        <div class="value bad" id="endedCount">0</div>
+      </article>
+    </section>
+
+<section class="controls">
+      <input id="searchInput" class="input" placeholder="Search contest (Physics, Mock, Sprint...)" />
+      <select id="subjectSelect" class="select">
+        <option value="all">Subject: All</option>
+        <option value="Physics">Physics</option>
+        <option value="Chemistry">Chemistry</option>
+        <option value="Mathematics">Mathematics</option>
+        <option value="Mixed">Mixed</option>
+      </select>
+      <select id="sortSelect" class="select">
+        <option value="nearest">Sort: Nearest</option>
+        <option value="prize">Sort: Highest Prize</option>
+        <option value="participants">Sort: Most Participants</option>
+      </select>
+    </section>
+
+<section class="tabs" id="statusTabs">
+      <button class="tab active" data-status="all">All</button>
+      <button class="tab" data-status="live">Live</button>
+      <button class="tab" data-status="upcoming">Upcoming</button>
+      <button class="tab" data-status="ended">Ended</button>
+      <button class="tab" data-status="joined">Joined</button>
+    </section>
+
+<section class="grid" id="contestGrid"></section>
+
+<p class="footer">MVP • Pure HTML/CSS/JS • Supabase + localStorage enabled</p>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+
+<script>
+    const LS = {
+      joined: "prepcode_joined_contests",
+      status: "prepcode_home_status",
+      search: "prepcode_home_search",
+      subject: "prepcode_home_subject",
+      sort: "prepcode_home_sort",
+      selectedContest: "prepcode_selected_contest"
+    };
+
+const contestGrid = document.getElementById("contestGrid");
+    const searchInput = document.getElementById("searchInput");
+    const subjectSelect = document.getElementById("subjectSelect");
+    const sortSelect = document.getElementById("sortSelect");
+    const statusTabs = document.getElementById("statusTabs");
+
+const totalCount = document.getElementById("totalCount");
+    const liveCount = document.getElementById("liveCount");
+    const joinedCount = document.getElementById("joinedCount");
+    const endedCount = document.getElementById("endedCount");
+
+const goList = document.getElementById("goList");
+    const goAttempt = document.getElementById("goAttempt");
+    const goResult = document.getElementById("goResult");
+    const resetHome = document.getElementById("resetHome");
+
+const userName = document.getElementById("userName");
+    const avatarLetter = document.getElementById("avatarLetter");
+
+let contests = [];
+    let joined = JSON.parse(localStorage.getItem(LS.joined) || "[]")
+      .map(Number)
+      .filter(n => Number.isInteger(n));
+
+let activeStatus = localStorage.getItem(LS.status) || "all";
+    let searchText = localStorage.getItem(LS.search) || "";
+    let subject = localStorage.getItem(LS.subject) || "all";
+    let sortBy = localStorage.getItem(LS.sort) || "nearest";
+    let contestsChannel = null;
+
+searchInput.value = searchText;
+    subjectSelect.value = subject;
+    sortSelect.value = sortBy;
+    setActiveTab(activeStatus);
+
+function getSupabaseClient() {
+      return window.PC?.supabase || window.sb || null;
+    }
+
+async function getAuthUser() {
+      if (window.PC?.getUser) return await window.PC.getUser();
+      const sb = getSupabaseClient();
+      if (!sb) return null;
+      const { data } = await sb.auth.getUser();
+      return data?.user || null;
+    }
+
+async function guardAuthAndHydrateUser() {
+      const user = await getAuthUser();
+      if (!user) {
+        alert("Please login first to access Contest Home.");
+        window.location.href = "index.html";
+        return null;
+      }
+
+const display = user.email ? user.email.split("@")[0] : "PrepCoder";
+      userName.textContent = `${display} ▾`;
+      avatarLetter.textContent = display.charAt(0).toUpperCase();
+      return user;
+    }
+
+function normalizeContestRow(row) {
+      return {
+        id: Number(row.contest_num_id),
+        title: row.title || "Untitled Contest",
+        subject: row.subject || "Mixed",
+        startsAt: row.starts_at,
+        endsAt: row.ends_at,
+        prize: Number(row.prize || 0),
+        participants: Number(row.participants || 0),
+        questions: Number(row.questions || 0),
+        duration: Number(row.duration_min || 0)
+      };
+    }
+
+async function loadContestsFromDb() {
+      const sb = getSupabaseClient();
+      if (!sb) {
+        console.error("Supabase client not found.");
+        contests = [];
+        render();
+        return;
+      }
+
+const { data, error } = await sb
+        .from("contests")
+        .select("*")
+        .eq("is_active", true)
+        .order("starts_at", { ascending: true });
+
+if (error) {
+        console.error("loadContestsFromDb error:", error.message);
+        contests = [];
+      } else {
+        contests = (data || []).map(normalizeContestRow).filter(c => Number.isInteger(c.id));
+      }
+
+render();
+    }
+
+function subscribeContestRealtime() {
+      const sb = getSupabaseClient();
+      if (!sb) return;
+
+if (contestsChannel) {
+        try { sb.removeChannel(contestsChannel); } catch {}
+      }
+
+contestsChannel = sb
+        .channel("contests-live-public")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "contests" },
+          async () => {
+            await loadContestsFromDb();
+          }
+        )
+        .subscribe();
+    }
+
+function nowMs(){ return Date.now(); }
+
+function getStatus(c){
+      const now = nowMs();
+      const s = new Date(c.startsAt).getTime();
+      const e = new Date(c.endsAt).getTime();
+      if(now >= s && now <= e) return "live";
+      if(now < s) return "upcoming";
+      return "ended";
+    }
+
+function formatDate(iso){
+      const d = new Date(iso);
+      return d.toLocaleString([], {
+        day:"2-digit", month:"short", year:"numeric",
+        hour:"2-digit", minute:"2-digit"
+      });
+    }
+
+function formatCountdown(ms){
+      if(ms <= 0) return "00:00:00";
+      const sec = Math.floor(ms/1000);
+      const h = Math.floor(sec/3600);
+      const m = Math.floor((sec%3600)/60);
+      const s = sec%60;
+      return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+    }
+
+function timerText(c, status){
+      const now = nowMs();
+      const s = new Date(c.startsAt).getTime();
+      const e = new Date(c.endsAt).getTime();
+      if(status === "live") return `Ends in ${formatCountdown(e-now)}`;
+      if(status === "upcoming") return `Starts in ${formatCountdown(s-now)}`;
+      return `Ended on ${formatDate(c.endsAt)}`;
+    }
+
+function setActiveTab(status){
+      [...statusTabs.querySelectorAll(".tab")].forEach(t=>{
+        t.classList.toggle("active", t.dataset.status === status);
+      });
+    }
+
+function setSelectedContestId(id){
+      localStorage.setItem(LS.selectedContest, String(id));
+    }
+
+function getDefaultContestId(){
+      const withStatus = contests.map(c => ({ ...c, status: getStatus(c) }));
+
+const joinedLive = withStatus.find(c => joined.includes(c.id) && c.status === "live");
+      if (joinedLive) return joinedLive.id;
+
+const anyLive = withStatus.find(c => c.status === "live");
+      if (anyLive) return anyLive.id;
+
+const joinedUpcoming = withStatus.find(c => joined.includes(c.id) && c.status === "upcoming");
+      if (joinedUpcoming) return joinedUpcoming.id;
+
+const anyUpcoming = withStatus.find(c => c.status === "upcoming");
+      if (anyUpcoming) return anyUpcoming.id;
+
+return contests[0]?.id || null;
+    }
+
+function computeStats(){
+      const withStatus = contests.map(c=>({...c,status:getStatus(c)}));
+      const validContestIds = new Set(contests.map(c => c.id));
+      const uniqueJoined = [...new Set(joined)].filter(id => validContestIds.has(id));
+
+totalCount.textContent = withStatus.length;
+      liveCount.textContent = withStatus.filter(c=>c.status==="live").length;
+      joinedCount.textContent = uniqueJoined.length;
+      endedCount.textContent = withStatus.filter(c=>c.status==="ended").length;
+    }
+
+function getFiltered(){
+      let data = contests.map(c=>({...c,status:getStatus(c)}));
+
+if(searchText.trim()){
+        const q = searchText.toLowerCase();
+        data = data.filter(c =>
+          c.title.toLowerCase().includes(q) ||
+          c.subject.toLowerCase().includes(q)
+        );
+      }
+
+if(subject !== "all"){
+        data = data.filter(c => c.subject === subject);
+      }
+
+if(activeStatus === "joined"){
+        data = data.filter(c => joined.includes(c.id));
+      }else if(activeStatus !== "all"){
+        data = data.filter(c => c.status === activeStatus);
+      }
+
+if(sortBy === "prize"){
+        data.sort((a,b)=>b.prize-a.prize);
+      }else if(sortBy === "participants"){
+        data.sort((a,b)=>b.participants-a.participants);
+      }else{
+        data.sort((a,b)=>{
+          const ta = Math.abs(new Date(a.startsAt).getTime() - nowMs());
+          const tb = Math.abs(new Date(b.startsAt).getTime() - nowMs());
+          return ta - tb;
+        });
+      }
+
+return data;
+    }
+
+function cardHTML(c){
+      const isJoined = joined.includes(c.id);
+      const badgeClass = c.status;
+      let actions = "";
+
+if(c.status === "ended"){
+        actions = `
+          <button class="btn-sm btn-outline" data-action="result" data-id="${c.id}">View Result</button>
+          <button class="btn-sm btn-disabled" disabled>Contest Ended</button>
+        `;
+      }else if(c.status === "live"){
+        actions = `
+          <button class="btn-sm btn-enter" data-action="attempt" data-id="${c.id}">Enter Contest</button>
+          ${isJoined
+            ? `<button class="btn-sm btn-leave" data-action="leave" data-id="${c.id}">Leave</button>`
+            : `<button class="btn-sm btn-join" data-action="join" data-id="${c.id}">Join</button>`
+          }
+        `;
+      }else{
+        actions = isJoined
+          ? `<button class="btn-sm btn-leave" data-action="leave" data-id="${c.id}">Cancel Registration</button>`
+          : `<button class="btn-sm btn-join" data-action="join" data-id="${c.id}">Register</button>`;
+      }
+
+return `
+        <article class="contest-card">
+          <div class="row-top">
+            <h3 class="title">${c.title}</h3>
+            <span class="badge ${badgeClass}">${c.status.toUpperCase()}</span>
+          </div>
+
+<div class="meta">
+            <div>Subject<strong>${c.subject}</strong></div>
+            <div>Questions<strong>${c.questions}</strong></div>
+            <div>Duration<strong>${c.duration} min</strong></div>
+            <div>Participants<strong>${c.participants.toLocaleString()}</strong></div>
+            <div>Prize<strong>₹${c.prize.toLocaleString("en-IN")}</strong></div>
+            <div>Start<strong>${formatDate(c.startsAt)}</strong></div>
+          </div>
+
+<div class="timer">${timerText(c,c.status)}</div>
+          <div class="actions">${actions}</div>
+        </article>
+      `;
+    }
+
+function render(){
+      computeStats();
+      const data = getFiltered();
+
+if(!data.length){
+        contestGrid.innerHTML = `<div class="empty">No contests found for selected filters.</div>`;
+        return;
+      }
+
+contestGrid.innerHTML = data.map(cardHTML).join("");
+
+contestGrid.querySelectorAll("button[data-action]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const action = btn.dataset.action;
+          const id = Number(btn.dataset.id);
+
+if(action === "join"){
+            if(!joined.includes(id)) joined.push(id);
+            localStorage.setItem(LS.joined, JSON.stringify([...new Set(joined)]));
+            render();
+          }
+
+if(action === "leave"){
+            joined = joined.filter(x=>x!==id);
+            localStorage.setItem(LS.joined, JSON.stringify(joined));
+            render();
+          }
+
+if(action === "attempt"){
+            setSelectedContestId(id);
+            window.location.href = "contest-attempt.html";
+          }
+
+if(action === "result"){
+            setSelectedContestId(id);
+            window.location.href = "contest-result.html";
+          }
+        });
+      });
+    }
+
+searchInput.addEventListener("input", e=>{
+      searchText = e.target.value;
+      localStorage.setItem(LS.search, searchText);
+      render();
+    });
+
+subjectSelect.addEventListener("change", e=>{
+      subject = e.target.value;
+      localStorage.setItem(LS.subject, subject);
+      render();
+    });
+
+sortSelect.addEventListener("change", e=>{
+      sortBy = e.target.value;
+      localStorage.setItem(LS.sort, sortBy);
+      render();
+    });
+
+statusTabs.addEventListener("click", e=>{
+      const tab = e.target.closest(".tab");
+      if(!tab) return;
+      activeStatus = tab.dataset.status;
+      localStorage.setItem(LS.status, activeStatus);
+      setActiveTab(activeStatus);
+      render();
+    });
+
+goList.addEventListener("click", ()=>{
+      window.location.href = "contest-page.html";
+    });
+
+goAttempt.addEventListener("click", ()=>{
+      const id = getDefaultContestId();
+      if (!id) return alert("No contest available.");
+      setSelectedContestId(id);
+      window.location.href = "contest-attempt.html";
+    });
+
+goResult.addEventListener("click", ()=>{
+      const id = getDefaultContestId();
+      if (!id) return alert("No contest available.");
+      setSelectedContestId(id);
+      window.location.href = "contest-result.html";
+    });
+
+resetHome.addEventListener("click", ()=>{
+      localStorage.removeItem(LS.status);
+      localStorage.removeItem(LS.search);
+      localStorage.removeItem(LS.subject);
+      localStorage.removeItem(LS.sort);
+      activeStatus = "all";
+      searchText = "";
+      subject = "all";
+      sortBy = "nearest";
+      searchInput.value = "";
+      subjectSelect.value = "all";
+      sortSelect.value = "nearest";
+      setActiveTab("all");
+      render();
+    });
+
+// countdown refresh
+    setInterval(render, 1000);
+
+(async function init() {
+      const user = await guardAuthAndHydrateUser();
+      if (!user) return;
+
+await loadContestsFromDb();
+      subscribeContestRealtime();
+    })();
+
+window.addEventListener("beforeunload", () => {
+      const sb = getSupabaseClient();
+      if (sb && contestsChannel) {
+        try { sb.removeChannel(contestsChannel); } catch {}
+      }
+    });
+  </script>
+</body>
+</html>
