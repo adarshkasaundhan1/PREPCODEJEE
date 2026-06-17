@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode • Admin Contests</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#111b31;
+      --panel2:#162442;
+      --line:#25385d;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --yellow:#f59e0b;
+      --red:#ef4444;
+      --blue:#3b82f6;
+      --purple:#8b5cf6;
+    }
+
+*{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 10% -10%, #1d3b67 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1e2f56 0%, transparent 30%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+
+.container{max-width:1220px;margin:0 auto;padding:16px}
+    .topbar{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand .icon{color:var(--green);font-size:22px;font-weight:800}
+    .brand h1{font-size:22px;line-height:1}
+    .brand p{font-size:12px;color:var(--muted);margin-top:2px}
+    .user{
+      display:flex;align-items:center;gap:8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:6px 10px 6px 6px;
+      background:rgba(255,255,255,.03);
+      font-size:14px;
+    }
+    .avatar{
+      width:28px;height:28px;border-radius:50%;
+      display:grid;place-items:center;
+      background:var(--blue);font-weight:700;
+    }
+
+.row{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+.panel{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    }
+
+.panel h2{
+      font-size:20px;
+      margin-bottom:6px;
+    }
+    .muted{color:var(--muted)}
+
+.form-grid{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(3, minmax(220px,1fr));
+      gap:10px;
+    }
+
+.input,.select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--panel);
+      color:var(--text);
+      padding:11px 12px;
+      outline:none;
+    }
+    .input::placeholder{color:#8ca2cd}
+
+.actions{
+      margin-top:10px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+button{
+      border:none;cursor:pointer;border-radius:10px;padding:10px 13px;font-weight:700;color:#fff;
+    }
+    .btn-green{background:#15803d}
+    .btn-blue{background:#1d4ed8}
+    .btn-purple{background:#6d28d9}
+    .btn-red{background:#b91c1c}
+    .btn-outline{
+      background:transparent;border:1px solid var(--line);color:var(--text);
+    }
+    .btn-disabled{
+      background:#334155;color:#cbd5e1;cursor:not-allowed;
+    }
+
+.toolbar{
+      display:grid;
+      grid-template-columns:1fr .6fr .6fr;
+      gap:10px;
+      margin-top:12px;
+    }
+
+.grid{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(2, minmax(280px,1fr));
+      gap:12px;
+    }
+
+.contest-card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;flex-direction:column;gap:10px;
+    }
+    .row-top{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
+    }
+    .title{font-size:18px;font-weight:700;line-height:1.3}
+    .badge{
+      font-size:11px;padding:5px 8px;border-radius:999px;font-weight:700;border:1px solid transparent;
+      white-space:nowrap;
+    }
+    .active{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4);color:#b9ffd0}
+    .inactive{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#ffc5c5}
+    .live{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4);color:#b9ffd0}
+    .upcoming{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#ffdca3}
+    .ended{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#ffc5c5}
+
+.meta{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;
+      color:var(--muted);font-size:13px;
+    }
+    .meta div{
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:10px;
+      padding:8px;
+      background:rgba(255,255,255,.02);
+    }
+    .meta strong{display:block;color:var(--text);margin-top:3px;font-size:14px}
+
+.inline-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .empty{
+      border:1px dashed var(--line);
+      border-radius:12px;
+      color:var(--muted);
+      padding:20px;
+      text-align:center;
+    }
+
+.toast{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(59,130,246,.4);
+      background:rgba(59,130,246,.1);
+      color:#cfe2ff;
+      display:none;
+    }
+    .toast.error{
+      border-color:rgba(239,68,68,.4);
+      background:rgba(239,68,68,.1);
+      color:#ffd2d2;
+    }
+    .toast.success{
+      border-color:rgba(34,197,94,.4);
+      background:rgba(34,197,94,.1);
+      color:#bfffd5;
+    }
+
+.picker-wrap{
+      margin-top:12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(255,255,255,.02);
+      padding:10px;
+    }
+    .picker-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+    .picker-count{
+      font-size:12px;
+      color:#b9ffd0;
+      border:1px solid rgba(34,197,94,.35);
+      background:rgba(34,197,94,.1);
+      padding:5px 8px;
+      border-radius:999px;
+      font-weight:700;
+    }
+    .picker-list{
+      max-height:260px;
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--panel);
+    }
+    .q-row{
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      padding:10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      cursor:pointer;
+    }
+    .q-row:last-child{border-bottom:none}
+    .q-row:hover{background:rgba(255,255,255,.03)}
+    .q-title{font-weight:700;font-size:14px}
+    .q-meta{color:var(--muted);font-size:12px;margin-top:3px}
+
+.footer{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+    }
+
+@media(max-width:1020px){
+      .form-grid{grid-template-columns:1fr 1fr}
+      .toolbar{grid-template-columns:1fr}
+      .grid{grid-template-columns:1fr}
+    }
+    @media(max-width:680px){
+      .form-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode • Admin Contests</h1>
+          <p>Create, enable/disable, and delete contests</p>
+        </div>
+      </div>
+      <div class="user">
+        <span class="avatar" id="avatarLetter">A</span>
+        <span id="userName">Admin ▾</span>
+      </div>
+    </header>
+
+<section class="panel">
+      <h2>Create Contest</h2>
+      <p class="muted">Only admins can create contests. Active contests are visible to users on Contest Home.</p>
+
+<div class="form-grid">
+        <input id="titleInput" class="input" placeholder="Contest title (e.g., Physics Sprint #13)" />
+        <select id="subjectInput" class="select">
+          <option value="Physics">Physics</option>
+          <option value="Chemistry">Chemistry</option>
+          <option value="Mathematics">Mathematics</option>
+          <option value="Mixed">Mixed</option>
+        </select>
+        <input id="questionsInput" class="input" type="number" min="1" placeholder="Questions (e.g., 30)" />
+
+<input id="durationInput" class="input" type="number" min="1" placeholder="Duration in minutes (e.g., 90)" />
+        <input id="prizeInput" class="input" type="number" min="0" placeholder="Prize in ₹ (e.g., 5000)" />
+        <input id="participantsInput" class="input" type="number" min="0" placeholder="Participants (default 0)" />
+
+<input id="startsAtInput" class="input" type="datetime-local" />
+        <input id="endsAtInput" class="input" type="datetime-local" />
+        <select id="isActiveInput" class="select">
+          <option value="true">Active (show to users)</option>
+          <option value="false">Inactive (hidden from users)</option>
+        </select>
+      </div>
+
+<div class="picker-wrap">
+        <div class="picker-head">
+          <strong>Attach Questions to This Contest</strong>
+          <span class="picker-count" id="selectedCount">Selected: 0</span>
+        </div>
+        <input id="qSearchInput" class="input" placeholder="Search question title/topic/subject..." />
+        <div id="questionPicker" class="picker-list" style="margin-top:10px;"></div>
+      </div>
+
+<div class="actions">
+        <button class="btn-green" id="createBtn">Create Contest</button>
+        <button class="btn-outline" id="resetBtn">Reset Form</button>
+        <button class="btn-blue" id="goHomeBtn">Open Contest Home</button>
+      </div>
+
+<div class="toast" id="toast"></div>
+    </section>
+
+<section class="panel">
+      <h2>Manage Contests</h2>
+      <p class="muted">Toggle active status or delete contests. Status badge (LIVE/UPCOMING/ENDED) is based on time.</p>
+
+<div class="toolbar">
+        <input id="searchInput" class="input" placeholder="Search by title or subject..." />
+        <select id="filterActive" class="select">
+          <option value="all">Filter: All</option>
+          <option value="active">Only Active</option>
+          <option value="inactive">Only Inactive</option>
+        </select>
+        <select id="sortSelect" class="select">
+          <option value="newest">Sort: Newest</option>
+          <option value="start_asc">Sort: Start (Earliest)</option>
+          <option value="start_desc">Sort: Start (Latest)</option>
+          <option value="prize_desc">Sort: Highest Prize</option>
+        </select>
+      </div>
+
+<div id="contestGrid" class="grid"></div>
+    </section>
+
+<p class="footer">Admin Panel • Supabase RLS protected</p>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+
+<script>
+    const userNameEl = document.getElementById("userName");
+    const avatarLetterEl = document.getElementById("avatarLetter");
+
+const titleInput = document.getElementById("titleInput");
+    const subjectInput = document.getElementById("subjectInput");
+    const questionsInput = document.getElementById("questionsInput");
+    const durationInput = document.getElementById("durationInput");
+    const prizeInput = document.getElementById("prizeInput");
+    const participantsInput = document.getElementById("participantsInput");
+    const startsAtInput = document.getElementById("startsAtInput");
+    const endsAtInput = document.getElementById("endsAtInput");
+    const isActiveInput = document.getElementById("isActiveInput");
+
+const qSearchInput = document.getElementById("qSearchInput");
+    const questionPicker = document.getElementById("questionPicker");
+    const selectedCount = document.getElementById("selectedCount");
+
+const createBtn = document.getElementById("createBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const goHomeBtn = document.getElementById("goHomeBtn");
+
+const searchInput = document.getElementById("searchInput");
+    const filterActive = document.getElementById("filterActive");
+    const sortSelect = document.getElementById("sortSelect");
+    const contestGrid = document.getElementById("contestGrid");
+    const toast = document.getElementById("toast");
+
+let currentUser = null;
+    let contests = [];
+    let contestsChannel = null;
+
+let questionBank = [];
+    let selectedQuestionIds = new Set();
+
+function showToast(message, type = "") {
+      toast.textContent = message;
+      toast.className = "toast";
+      if (type) toast.classList.add(type);
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 2500);
+    }
+
+function getSupabaseClient() {
+      return window.PC?.supabase || window.sb || null;
+    }
+
+async function getAuthUser() {
+      if (window.PC?.getUser) return await window.PC.getUser();
+      const sb = getSupabaseClient();
+      if (!sb) return null;
+      const { data } = await sb.auth.getUser();
+      return data?.user || null;
+    }
+
+async function canAccessAdmin(user) {
+      if (!user) return false;
+
+if (window.PC?.canCurrentUserAccessAdmin) {
+        const res = await window.PC.canCurrentUserAccessAdmin();
+        return !!res?.canAccess;
+      }
+
+if (window.PC?.isAdmin) {
+        const res = await window.PC.isAdmin(user.id);
+        return !!res?.isAdmin;
+      }
+
+const sb = getSupabaseClient();
+      if (!sb) return false;
+      const { data, error } = await sb
+        .from("admin_users")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+if (error) return false;
+      return !!data;
+    }
+
+function nowMs() { return Date.now(); }
+
+function getTimeStatus(c) {
+      const n = nowMs();
+      const s = new Date(c.starts_at).getTime();
+      const e = new Date(c.ends_at).getTime();
+      if (n >= s && n <= e) return "live";
+      if (n < s) return "upcoming";
+      return "ended";
+    }
+
+function formatDate(iso) {
+      return new Date(iso).toLocaleString([], {
+        day: "2-digit", month: "short", year: "numeric",
+        hour: "2-digit", minute: "2-digit"
+      });
+    }
+
+function toISOFromDatetimeLocal(v) {
+      const d = new Date(v);
+      return d.toISOString();
+    }
+
+function isValidForm() {
+      if (!titleInput.value.trim()) return "Title is required.";
+      if (!subjectInput.value) return "Subject is required.";
+      if (!startsAtInput.value) return "Start time is required.";
+      if (!endsAtInput.value) return "End time is required.";
+
+const s = new Date(startsAtInput.value).getTime();
+      const e = new Date(endsAtInput.value).getTime();
+      if (!Number.isFinite(s) || !Number.isFinite(e)) return "Invalid date/time.";
+      if (e <= s) return "End time must be after start time.";
+
+const q = Number(questionsInput.value || 0);
+      const d = Number(durationInput.value || 0);
+      const p = Number(prizeInput.value || 0);
+      const part = Number(participantsInput.value || 0);
+
+if (q < 1) return "Questions must be at least 1.";
+      if (d < 1) return "Duration must be at least 1 minute.";
+      if (p < 0 || part < 0) return "Prize/Participants cannot be negative.";
+
+return null;
+    }
+
+function resetForm() {
+      titleInput.value = "";
+      subjectInput.value = "Physics";
+      questionsInput.value = "";
+      durationInput.value = "";
+      prizeInput.value = "";
+      participantsInput.value = "";
+      startsAtInput.value = "";
+      endsAtInput.value = "";
+      isActiveInput.value = "true";
+
+selectedQuestionIds.clear();
+      updateSelectedCount();
+      renderQuestionPicker();
+    }
+
+async function loadContests() {
+      const sb = getSupabaseClient();
+      if (!sb) {
+        showToast("Supabase client not found.", "error");
+        return;
+      }
+
+const { data, error } = await sb
+        .from("contests")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+if (error) {
+        console.error("loadContests error:", error.message);
+        showToast(error.message || "Failed to load contests.", "error");
+        return;
+      }
+
+contests = data || [];
+      renderGrid();
+    }
+
+async function loadQuestionBank() {
+      const sb = getSupabaseClient();
+      if (!sb) return;
+
+const { data, error } = await sb
+        .from("questions")
+        .select("id, subject, topic, title, difficulty")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+if (error) {
+        console.error("loadQuestionBank error:", error.message);
+        showToast("Failed to load question bank.", "error");
+        return;
+      }
+
+questionBank = data || [];
+      renderQuestionPicker();
+    }
+
+function updateSelectedCount() {
+      selectedCount.textContent = `Selected: ${selectedQuestionIds.size}`;
+    }
+
+function renderQuestionPicker() {
+      const q = (qSearchInput.value || "").trim().toLowerCase();
+
+const rows = questionBank.filter(row => {
+        if (!q) return true;
+        return (
+          String(row.title || "").toLowerCase().includes(q) ||
+          String(row.topic || "").toLowerCase().includes(q) ||
+          String(row.subject || "").toLowerCase().includes(q)
+        );
+      });
+
+if (!rows.length) {
+        questionPicker.innerHTML = `<div class="empty" style="margin:8px;">No questions found.</div>`;
+        return;
+      }
+
+questionPicker.innerHTML = rows.map(row => {
+        const isChecked = selectedQuestionIds.has(row.id) ? "checked" : "";
+        return `
+          <label class="q-row">
+            <input type="checkbox" data-qid="${row.id}" ${isChecked} />
+            <div>
+              <div class="q-title">${escapeHtml(row.title || "Untitled Question")}</div>
+              <div class="q-meta">${escapeHtml(row.subject || "")} • ${escapeHtml(row.topic || "")} • ${escapeHtml(row.difficulty || "Easy")}</div>
+            </div>
+          </label>
+        `;
+      }).join("");
+
+questionPicker.querySelectorAll("input[type='checkbox'][data-qid]").forEach(cb => {
+        cb.addEventListener("change", () => {
+          const qid = cb.dataset.qid;
+          if (!qid) return;
+          if (cb.checked) selectedQuestionIds.add(qid);
+          else selectedQuestionIds.delete(qid);
+          updateSelectedCount();
+        });
+      });
+    }
+
+function getFilteredContests() {
+      const q = searchInput.value.trim().toLowerCase();
+      const activeFilter = filterActive.value;
+      const sortBy = sortSelect.value;
+
+let data = [...contests];
+
+if (q) {
+        data = data.filter(c =>
+          String(c.title || "").toLowerCase().includes(q) ||
+          String(c.subject || "").toLowerCase().includes(q)
+        );
+      }
+
+if (activeFilter === "active") data = data.filter(c => c.is_active === true);
+      if (activeFilter === "inactive") data = data.filter(c => c.is_active === false);
+
+if (sortBy === "start_asc") {
+        data.sort((a,b) => new Date(a.starts_at) - new Date(b.starts_at));
+      } else if (sortBy === "start_desc") {
+        data.sort((a,b) => new Date(b.starts_at) - new Date(a.starts_at));
+      } else if (sortBy === "prize_desc") {
+        data.sort((a,b) => Number(b.prize || 0) - Number(a.prize || 0));
+      } else {
+        data.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+      }
+
+return data;
+    }
+
+function cardHTML(c) {
+      const timeStatus = getTimeStatus(c);
+      const activeCls = c.is_active ? "active" : "inactive";
+      const activeText = c.is_active ? "ACTIVE" : "INACTIVE";
+
+return `
+        <article class="contest-card">
+          <div class="row-top">
+            <h3 class="title">${escapeHtml(c.title || "Untitled Contest")}</h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+              <span class="badge ${activeCls}">${activeText}</span>
+              <span class="badge ${timeStatus}">${timeStatus.toUpperCase()}</span>
+            </div>
+          </div>
+
+<div class="meta">
+            <div>Subject<strong>${escapeHtml(c.subject || "Mixed")}</strong></div>
+            <div>Questions<strong>${Number(c.questions || 0)}</strong></div>
+            <div>Duration<strong>${Number(c.duration_min || 0)} min</strong></div>
+            <div>Participants<strong>${Number(c.participants || 0).toLocaleString()}</strong></div>
+            <div>Prize<strong>₹${Number(c.prize || 0).toLocaleString("en-IN")}</strong></div>
+            <div>Start<strong>${formatDate(c.starts_at)}</strong></div>
+          </div>
+
+<div class="inline-actions">
+            <button class="btn-blue" data-action="toggle" data-id="${c.id}" data-active="${c.is_active}">
+              ${c.is_active ? "Disable" : "Enable"}
+            </button>
+            <button class="btn-red" data-action="delete" data-id="${c.id}">
+              Delete
+            </button>
+          </div>
+        </article>
+      `;
+    }
+
+function escapeHtml(str = "") {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+function renderGrid() {
+      const data = getFilteredContests();
+
+if (!data.length) {
+        contestGrid.innerHTML = `<div class="empty">No contests found.</div>`;
+        return;
+      }
+
+contestGrid.innerHTML = data.map(cardHTML).join("");
+
+contestGrid.querySelectorAll("button[data-action]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const action = btn.dataset.action;
+          const id = btn.dataset.id;
+          if (!id) return;
+
+if (action === "toggle") {
+            const current = btn.dataset.active === "true";
+            await toggleContestActive(id, !current);
+          }
+
+if (action === "delete") {
+            const ok = confirm("Delete this contest permanently?");
+            if (!ok) return;
+            await deleteContest(id);
+          }
+        });
+      });
+    }
+
+async function createContest() {
+      const err = isValidForm();
+      if (err) {
+        showToast(err, "error");
+        return;
+      }
+
+const sb = getSupabaseClient();
+      if (!sb) {
+        showToast("Supabase client not found.", "error");
+        return;
+      }
+
+createBtn.disabled = true;
+      createBtn.textContent = "Creating...";
+
+const finalQuestionCount = Number(questionsInput.value || 0);
+
+const payload = {
+        title: titleInput.value.trim(),
+        subject: subjectInput.value,
+        starts_at: toISOFromDatetimeLocal(startsAtInput.value),
+        ends_at: toISOFromDatetimeLocal(endsAtInput.value),
+        prize: Number(prizeInput.value || 0),
+        participants: Number(participantsInput.value || 0),
+        questions: finalQuestionCount,
+        duration_min: Number(durationInput.value || 0),
+        is_active: isActiveInput.value === "true",
+        created_by: currentUser?.id || null
+      };
+
+const { data: inserted, error } = await sb
+        .from("contests")
+        .insert(payload)
+        .select("id")
+        .single();
+
+if (error) {
+        createBtn.disabled = false;
+        createBtn.textContent = "Create Contest";
+        console.error("createContest error:", error.message);
+        showToast(error.message || "Failed to create contest.", "error");
+        return;
+      }
+
+const contestId = inserted?.id;
+      let mappingFailed = false;
+
+if (contestId && selectedQuestionIds.size > 0) {
+        const rows = Array.from(selectedQuestionIds).map((qid, idx) => ({
+          contest_id: contestId,
+          question_id: qid,
+          question_order: idx + 1,
+          marks: 4,
+          negative_marks: 1
+        }));
+
+const { error: mapErr } = await sb.from("contest_questions").insert(rows);
+        if (mapErr) {
+          mappingFailed = true;
+          console.error("contest_questions insert error:", mapErr.message);
+        }
+      }
+
+createBtn.disabled = false;
+      createBtn.textContent = "Create Contest";
+
+if (mappingFailed) {
+        showToast("Contest created, but attaching questions failed.", "error");
+      } else {
+        showToast("Contest created successfully.", "success");
+      }
+
+resetForm();
+      await loadContests();
+    }
+
+async function toggleContestActive(id, nextActive) {
+      const sb = getSupabaseClient();
+      if (!sb) return showToast("Supabase client not found.", "error");
+
+const { error } = await sb
+        .from("contests")
+        .update({ is_active: nextActive })
+        .eq("id", id);
+
+if (error) {
+        console.error("toggleContestActive error:", error.message);
+        showToast(error.message || "Failed to update contest.", "error");
+        return;
+      }
+
+showToast(`Contest ${nextActive ? "enabled" : "disabled"}.`, "success");
+      await loadContests();
+    }
+
+async function deleteContest(id) {
+      const sb = getSupabaseClient();
+      if (!sb) return showToast("Supabase client not found.", "error");
+
+const { error } = await sb
+        .from("contests")
+        .delete()
+        .eq("id", id);
+
+if (error) {
+        console.error("deleteContest error:", error.message);
+        showToast(error.message || "Failed to delete contest.", "error");
+        return;
+      }
+
+showToast("Contest deleted.", "success");
+      await loadContests();
+    }
+
+function subscribeRealtime() {
+      const sb = getSupabaseClient();
+      if (!sb) return;
+
+if (contestsChannel) {
+        try { sb.removeChannel(contestsChannel); } catch {}
+      }
+
+contestsChannel = sb
+        .channel("admin-contests-live")
+        .on("postgres_changes", { event: "*", schema: "public", table: "contests" }, async () => {
+          await loadContests();
+        })
+        .subscribe();
+    }
+
+createBtn.addEventListener("click", createContest);
+    resetBtn.addEventListener("click", resetForm);
+    goHomeBtn.addEventListener("click", () => { window.location.href = "contest-home.html"; });
+
+searchInput.addEventListener("input", renderGrid);
+    filterActive.addEventListener("change", renderGrid);
+    sortSelect.addEventListener("change", renderGrid);
+    qSearchInput.addEventListener("input", renderQuestionPicker);
+
+window.addEventListener("beforeunload", () => {
+      const sb = getSupabaseClient();
+      if (sb && contestsChannel) {
+        try { sb.removeChannel(contestsChannel); } catch {}
+      }
+    });
+
+(async function init() {
+      const user = await getAuthUser();
+      if (!user) {
+        alert("Please login first.");
+        window.location.href = "index.html";
+        return;
+      }
+      currentUser = user;
+
+const display = user.email ? user.email.split("@")[0] : "Admin";
+      userNameEl.textContent = `${display} ▾`;
+      avatarLetterEl.textContent = display.charAt(0).toUpperCase();
+
+const allowed = await canAccessAdmin(user);
+      if (!allowed) {
+        alert("Access denied. Admin only.");
+        window.location.href = "index.html";
+        return;
+      }
+
+await loadQuestionBank();
+      updateSelectedCount();
+
+await loadContests();
+      subscribeRealtime();
+    })();
+  </script>
+</body>
+</html>
