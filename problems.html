@@ -218,8 +218,8 @@
         <h3>⚛ Physics</h3>
         <p>Kinematics, Mechanics, Electrostatics, Current Electricity, Waves, and more.</p>
         <div class="meta">
-          <span class="pill">50 Topics</span>
-          <span class="pill">512 Problems</span>
+          <span class="pill" id="phyTopicsPill">0 Topics</span>
+          <span class="pill" id="phyProblemsPill">0 Problems</span>
         </div>
         <button class="btn-go" data-target="physics-problems.html">Explore Physics</button>
       </article>
@@ -228,8 +228,8 @@
         <h3>🧪 Chemistry</h3>
         <p>Mole Concept, Bonding, Equilibrium, Organic Reactions, Electrochemistry, etc.</p>
         <div class="meta">
-          <span class="pill">40 Topics</span>
-          <span class="pill">420 Problems</span>
+          <span class="pill" id="chemTopicsPill">0 Topics</span>
+          <span class="pill" id="chemProblemsPill">0 Problems</span>
         </div>
         <button class="btn-go" data-target="chemistry-problems.html">Explore Chemistry</button>
       </article>
@@ -238,8 +238,8 @@
         <h3>π Mathematics</h3>
         <p>Algebra, Calculus, Coordinate Geometry, Probability, Vectors & 3D.</p>
         <div class="meta">
-          <span class="pill">60 Topics</span>
-          <span class="pill">620 Problems</span>
+          <span class="pill" id="mathTopicsPill">0 Topics</span>
+          <span class="pill" id="mathProblemsPill">0 Problems</span>
         </div>
         <button class="btn-go" data-target="math-problems.html">Explore Mathematics</button>
       </article>
@@ -273,122 +273,243 @@
   <script src="supabase-client.js"></script>
 
 <script>
-    // -------- Elements --------
-    const backBtn = document.getElementById("backBtn");
-    const searchInput = document.getElementById("searchInput");
-    const clearBtn = document.getElementById("clearBtn");
-    const subjectCards = document.querySelectorAll("#subjectCards .card");
-    const goButtons = document.querySelectorAll("button[data-target]");
+    (() => {
+      // -------- Elements --------
+      const backBtn = document.getElementById("backBtn");
+      const searchInput = document.getElementById("searchInput");
+      const clearBtn = document.getElementById("clearBtn");
+      const subjectCards = document.querySelectorAll("#subjectCards .card");
+      const goButtons = document.querySelectorAll("button[data-target]");
 
 const phySolvedStat = document.getElementById("phySolvedStat");
-    const chemSolvedStat = document.getElementById("chemSolvedStat");
-    const mathSolvedStat = document.getElementById("mathSolvedStat");
+      const chemSolvedStat = document.getElementById("chemSolvedStat");
+      const mathSolvedStat = document.getElementById("mathSolvedStat");
+
+const phyTopicsPill = document.getElementById("phyTopicsPill");
+      const phyProblemsPill = document.getElementById("phyProblemsPill");
+      const chemTopicsPill = document.getElementById("chemTopicsPill");
+      const chemProblemsPill = document.getElementById("chemProblemsPill");
+      const mathTopicsPill = document.getElementById("mathTopicsPill");
+      const mathProblemsPill = document.getElementById("mathProblemsPill");
+
+let questionStatsChannel = null;
+
+function getSbClient() {
+        return window.PC?.supabase || window.sb || null;
+      }
 
 // -------- Local helpers --------
-    function dedupeNumeric(arr) {
-      return [...new Set((arr || []).map(Number).filter(Number.isFinite))];
-    }
+      function dedupeNumeric(arr) {
+        return [...new Set((arr || []).map(Number).filter(Number.isFinite))];
+      }
 
 function localSolvedCount(key) {
-      return dedupeNumeric(JSON.parse(localStorage.getItem(key) || "[]")).length;
-    }
+        return dedupeNumeric(JSON.parse(localStorage.getItem(key) || "[]")).length;
+      }
 
-// -------- Load stats (local first, then cloud if logged in) --------
-    function renderStatsFromLocal() {
-      const phy = localSolvedCount("phy_solved_ids");
-      const chem = localSolvedCount("chem_solved_ids");
-      const math = localSolvedCount("math_solved_ids");
+// -------- Load solved stats (local first, then cloud if logged in) --------
+      function renderStatsFromLocal() {
+        const phy = localSolvedCount("phy_solved_ids");
+        const chem = localSolvedCount("chem_solved_ids");
+        const math = localSolvedCount("math_solved_ids");
 
 phySolvedStat.textContent = phy;
-      chemSolvedStat.textContent = chem;
-      mathSolvedStat.textContent = math;
-    }
+        chemSolvedStat.textContent = chem;
+        mathSolvedStat.textContent = math;
+      }
 
 async function syncStatsFromCloud() {
-      try {
-        if (!window.PC || !window.sb) return;
-        const user = await PC.getUser();
-        if (!user) return;
+        try {
+          const sbClient = getSbClient();
+          if (!sbClient || !window.PC?.getUser) return;
+
+const user = await window.PC.getUser();
+          if (!user) return;
 
 const [phyRes, chemRes, mathRes, mathAltRes] = await Promise.all([
-          sb.from("problem_attempts")
-            .select("problem_id")
-            .eq("user_id", user.id)
-            .eq("subject", "Physics")
-            .eq("is_correct", true),
+            sbClient.from("problem_attempts")
+              .select("problem_id")
+              .eq("user_id", user.id)
+              .eq("subject", "Physics")
+              .eq("is_correct", true),
 
-sb.from("problem_attempts")
-            .select("problem_id")
-            .eq("user_id", user.id)
-            .eq("subject", "Chemistry")
-            .eq("is_correct", true),
+sbClient.from("problem_attempts")
+              .select("problem_id")
+              .eq("user_id", user.id)
+              .eq("subject", "Chemistry")
+              .eq("is_correct", true),
 
-sb.from("problem_attempts")
-            .select("problem_id")
-            .eq("user_id", user.id)
-            .eq("subject", "Mathematics")
-            .eq("is_correct", true),
+sbClient.from("problem_attempts")
+              .select("problem_id")
+              .eq("user_id", user.id)
+              .eq("subject", "Mathematics")
+              .eq("is_correct", true),
 
-sb.from("problem_attempts")
-            .select("problem_id")
-            .eq("user_id", user.id)
-            .eq("subject", "Math")
-            .eq("is_correct", true)
-        ]);
+sbClient.from("problem_attempts")
+              .select("problem_id")
+              .eq("user_id", user.id)
+              .eq("subject", "Math")
+              .eq("is_correct", true)
+          ]);
 
 const phyIds = !phyRes.error ? dedupeNumeric((phyRes.data || []).map(x => x.problem_id)) : [];
-        const chemIds = !chemRes.error ? dedupeNumeric((chemRes.data || []).map(x => x.problem_id)) : [];
-        const mathIdsA = !mathRes.error ? dedupeNumeric((mathRes.data || []).map(x => x.problem_id)) : [];
-        const mathIdsB = !mathAltRes.error ? dedupeNumeric((mathAltRes.data || []).map(x => x.problem_id)) : [];
-        const mathIds = dedupeNumeric([...mathIdsA, ...mathIdsB]);
+          const chemIds = !chemRes.error ? dedupeNumeric((chemRes.data || []).map(x => x.problem_id)) : [];
+          const mathIdsA = !mathRes.error ? dedupeNumeric((mathRes.data || []).map(x => x.problem_id)) : [];
+          const mathIdsB = !mathAltRes.error ? dedupeNumeric((mathAltRes.data || []).map(x => x.problem_id)) : [];
+          const mathIds = dedupeNumeric([...mathIdsA, ...mathIdsB]);
 
 // sync local caches so subject pages and hub stay consistent
-        localStorage.setItem("phy_solved_ids", JSON.stringify(phyIds));
-        localStorage.setItem("chem_solved_ids", JSON.stringify(chemIds));
-        localStorage.setItem("math_solved_ids", JSON.stringify(mathIds));
+          localStorage.setItem("phy_solved_ids", JSON.stringify(phyIds));
+          localStorage.setItem("chem_solved_ids", JSON.stringify(chemIds));
+          localStorage.setItem("math_solved_ids", JSON.stringify(mathIds));
 
 renderStatsFromLocal();
-      } catch (err) {
-        console.error("Problems hub cloud sync error:", err);
+        } catch (err) {
+          console.error("Problems hub cloud sync error:", err);
+        }
       }
-    }
+
+// -------- Dynamic topic/problem counts from DB (questions table) --------
+      function normalizeSubjectForCounts(subject = "") {
+        const s = String(subject).toLowerCase().trim();
+        if (s.includes("phys")) return "Physics";
+        if (s.includes("chem")) return "Chemistry";
+        if (s === "math" || s === "maths" || s.includes("mathemat")) return "Mathematics";
+        return null;
+      }
+
+function renderSubjectCountPills(stats) {
+        const phy = stats.Physics || { topics: 0, problems: 0 };
+        const chem = stats.Chemistry || { topics: 0, problems: 0 };
+        const math = stats.Mathematics || { topics: 0, problems: 0 };
+
+phyTopicsPill.textContent = `${phy.topics} Topics`;
+        phyProblemsPill.textContent = `${phy.problems} Problems`;
+
+chemTopicsPill.textContent = `${chem.topics} Topics`;
+        chemProblemsPill.textContent = `${chem.problems} Problems`;
+
+mathTopicsPill.textContent = `${math.topics} Topics`;
+        mathProblemsPill.textContent = `${math.problems} Problems`;
+      }
+
+async function loadSubjectCountsFromDb() {
+        try {
+          const sbClient = getSbClient();
+          if (!sbClient) return;
+
+const { data, error } = await sbClient
+            .from("questions")
+            .select("subject, topic")
+            .eq("is_active", true);
+
+if (error) {
+            console.error("loadSubjectCountsFromDb error:", error.message);
+            return;
+          }
+
+const tmp = {
+            Physics: { problems: 0, topicSet: new Set() },
+            Chemistry: { problems: 0, topicSet: new Set() },
+            Mathematics: { problems: 0, topicSet: new Set() }
+          };
+
+(data || []).forEach(row => {
+            const subject = normalizeSubjectForCounts(row.subject || "");
+            if (!subject) return;
+            tmp[subject].problems += 1;
+
+const topic = String(row.topic || "").trim();
+            if (topic) tmp[subject].topicSet.add(topic.toLowerCase());
+          });
+
+const stats = {
+            Physics: { problems: tmp.Physics.problems, topics: tmp.Physics.topicSet.size },
+            Chemistry: { problems: tmp.Chemistry.problems, topics: tmp.Chemistry.topicSet.size },
+            Mathematics: { problems: tmp.Mathematics.problems, topics: tmp.Mathematics.topicSet.size }
+          };
+
+renderSubjectCountPills(stats);
+        } catch (e) {
+          console.error("loadSubjectCountsFromDb exception:", e);
+        }
+      }
+
+// -------- Realtime subscription --------
+      function subscribeQuestionCountsRealtime() {
+        const sbClient = getSbClient();
+        if (!sbClient) return;
+
+if (questionStatsChannel) {
+          try { sbClient.removeChannel(questionStatsChannel); } catch {}
+        }
+
+questionStatsChannel = sbClient
+          .channel("problems-hub-question-counts-live")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "questions" },
+            async () => {
+              await loadSubjectCountsFromDb();
+            }
+          )
+          .subscribe((status) => {
+            console.log("Problems hub realtime status:", status);
+          });
+      }
+
+function unsubscribeQuestionCountsRealtime() {
+        const sbClient = getSbClient();
+        if (!sbClient || !questionStatsChannel) return;
+        try { sbClient.removeChannel(questionStatsChannel); } catch {}
+        questionStatsChannel = null;
+      }
 
 // -------- Navigation --------
-    backBtn.addEventListener("click", () => {
-      window.location.href = "index.html";
-    });
+      backBtn.addEventListener("click", () => {
+        window.location.href = "index.html";
+      });
 
 goButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        const target = btn.dataset.target;
-        window.location.href = target;
+        btn.addEventListener("click", () => {
+          const target = btn.dataset.target;
+          window.location.href = target;
+        });
       });
-    });
 
 // -------- Search Filter --------
-    function filterCards() {
-      const q = searchInput.value.trim().toLowerCase();
+      function filterCards() {
+        const q = searchInput.value.trim().toLowerCase();
 
 subjectCards.forEach(card => {
-        const name = card.dataset.name.toLowerCase();
-        const visible = q === "" || name.includes(q);
-        card.style.display = visible ? "flex" : "none";
-      });
-    }
+          const name = card.dataset.name.toLowerCase();
+          const visible = q === "" || name.includes(q);
+          card.style.display = visible ? "flex" : "none";
+        });
+      }
 
 searchInput.addEventListener("input", filterCards);
 
 clearBtn.addEventListener("click", () => {
-      searchInput.value = "";
-      filterCards();
-      searchInput.focus();
-    });
+        searchInput.value = "";
+        filterCards();
+        searchInput.focus();
+      });
 
 // -------- Init --------
-    (async function init() {
-      renderStatsFromLocal();     // instant render
-      await syncStatsFromCloud(); // replace with cloud counts if logged in
-      filterCards();
+      (async function init() {
+        renderStatsFromLocal();
+        filterCards();
+
+await loadSubjectCountsFromDb();
+        subscribeQuestionCountsRealtime();
+
+await syncStatsFromCloud();
+      })();
+
+window.addEventListener("beforeunload", () => {
+        unsubscribeQuestionCountsRealtime();
+      });
     })();
   </script>
 </body>
