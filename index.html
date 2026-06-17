@@ -237,9 +237,9 @@
         <button data-tab="dashboard" class="active">🏠 Dashboard</button>
         <button data-tab="problems">☰ Problems</button>
         <button data-tab="contests">🏆 Contests</button>
+        <button data-tab="mock-test">🧪 Mock Test</button>
         <button data-tab="progress">📈 Progress</button>
         <button data-tab="bookmarks">🔖 Bookmarks</button>
-        <button data-tab="settings">⚙ Settings</button>
       </div>
 
 <div class="subjects">
@@ -263,7 +263,7 @@
           <button data-tab="problems">Problems</button>
           <button data-tab="contests">Contests</button>
           <button data-tab="progress">Progress</button>
-          <button data-tab="leaderboard">Leaderboard</button>
+          <button data-tab="mock-test">Mock Test</button>
         </nav>
         <div class="right-actions">
           <div class="streak">🔥 <span id="streakNum">0</span> Day Streak</div>
@@ -315,8 +315,17 @@
           </div>
         </div>
 
-<h3 style="margin-bottom:8px;">Recent Problems</h3>
-        <div class="panel recent">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+          <h3>Daily Problem</h3>
+          <span
+            id="dailyDateBadge"
+            style="font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid rgba(34,197,94,.35);background:rgba(34,197,94,.08);color:#b6ffcf;"
+          >
+            Daily Challenge · --
+          </span>
+        </div>
+
+<div class="panel recent">
           <div>
             <div class="q-meta">
               <span id="recentSubject" style="color:#60a5fa">Physics</span>
@@ -708,7 +717,7 @@ async function boot() {
       await loadSolvedIdsFromDb();
       await loadSubjectStatsFromDb();
       subscribeQuestionStatsRealtime();
-      await loadRecentFromDbOrLocal();
+      await loadDailyProblemFromDb();
     }
     boot();
 
@@ -728,6 +737,7 @@ topBtns.forEach(btn => {
         const tab = btn.dataset.tab;
         if (tab === "problems") return (window.location.href = "problems.html");
         if (tab === "contests") return (window.location.href = "contest-home.html");
+        if (tab === "mock-test") return (window.location.href = "mock-generator.html");
         setTopTab(tab);
         localStorage.setItem(KEYS.topTab, tab);
       });
@@ -738,6 +748,7 @@ sideBtns.forEach(btn => {
         const tab = btn.dataset.tab;
         if (tab === "problems") return (window.location.href = "problems.html");
         if (tab === "contests") return (window.location.href = "contest-home.html");
+        if (tab === "mock-test") return (window.location.href = "mock-generator.html");
         setSideTab(tab);
         localStorage.setItem(KEYS.sideTab, tab);
       });
@@ -812,6 +823,37 @@ function uniqueById(arr = []) {
         if (!map.has(id)) map.set(id, item);
       });
       return Array.from(map.values());
+    }
+
+function getUtcDateKey() {
+      return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    }
+
+function formatDailyDate(dateKey) {
+      const d = new Date(dateKey + "T00:00:00Z");
+      return d.toLocaleDateString(undefined, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC"
+      });
+    }
+
+function hashString(str = "") {
+      let h = 0;
+      for (let i = 0; i < str.length; i++) {
+        h = (h * 31 + str.charCodeAt(i)) >>> 0;
+      }
+      return h;
+    }
+
+function pickDailyQuestion(questions = []) {
+      const list = uniqueById(questions).sort((a, b) =>
+        String(a.id || "").localeCompare(String(b.id || ""))
+      );
+      if (!list.length) return null;
+      const idx = hashString(getUtcDateKey()) % list.length;
+      return list[idx];
     }
 
 function findNextUnsolvedProblem(baseProblem, pool = []) {
@@ -913,7 +955,7 @@ function renderRecentProblem(p) {
       recentSubject.textContent = normalizeSubject(p.subject || "Physics");
       recentTopic.textContent = p.topic || "Topic";
       recentDifficulty.textContent = p.difficulty || "Easy";
-      recentQuestion.textContent = p.text || p.title || "Recent problem";
+      recentQuestion.textContent = p.text || p.title || "Daily problem";
       recentMeta.textContent = `Difficulty: ${p.difficulty || "Easy"} · Marks: +${p.marks || 4} · From: ${p.source || "DB"}`;
 
 const opts = [
@@ -947,7 +989,7 @@ function normalizeQuestionRow(row) {
         marks: row.marks ?? 4,
         source: row.source || "Question Bank",
         title: row.title || "Practice Problem",
-        text: row.text || row.title || "Recent problem",
+        text: row.text || row.title || "Daily problem",
         a: row.option_a || "",
         b: row.option_b || "",
         c: row.option_c || "",
@@ -957,14 +999,7 @@ function normalizeQuestionRow(row) {
       };
     }
 
-function syncRecentToLocal(recentObj) {
-      const list = JSON.parse(localStorage.getItem(KEYS.recentList) || "[]");
-      const filtered = list.filter(x => String(x.id) !== String(recentObj.id));
-      filtered.unshift({ ...recentObj, viewedAt: new Date().toISOString() });
-      localStorage.setItem(KEYS.recentList, JSON.stringify(filtered.slice(0, 20)));
-    }
-
-async function fetchActiveQuestionsFromDb(limit = 100) {
+async function fetchActiveQuestionsFromDb(limit = 500) {
       const sb = getSupabaseClient();
       if (!sb) return [];
       const { data, error } = await sb
@@ -982,38 +1017,30 @@ if (error) {
 return (data || []).map(normalizeQuestionRow);
     }
 
-async function loadRecentFromDbOrLocal() {
-      try {
-        const dbQuestions = await fetchActiveQuestionsFromDb(100);
+async function loadDailyProblemFromDb() {
+      const badge = document.getElementById("dailyDateBadge");
+      if (badge) {
+        badge.textContent = `Daily Challenge · ${formatDailyDate(getUtcDateKey())}`;
+      }
+
+try {
+        const dbQuestions = await fetchActiveQuestionsFromDb(500);
         if (dbQuestions.length) {
           recentPool = uniqueById(dbQuestions);
-
-const unsolved = recentPool.filter(p => !isProblemSolved(p));
-          const poolToUse = unsolved.length ? unsolved : recentPool;
-
-let idx = Number(localStorage.getItem(KEYS.rotationIdx) || 0);
-          if (!Number.isFinite(idx) || idx < 0) idx = 0;
-          idx = idx % poolToUse.length;
-
-const chosen = poolToUse[idx];
-          localStorage.setItem(KEYS.rotationIdx, String((idx + 1) % poolToUse.length));
-
-renderRecentProblem(chosen);
-          syncRecentToLocal(chosen);
-          return;
+          const daily = pickDailyQuestion(recentPool);
+          if (daily) {
+            renderRecentProblem(daily);
+            setContinueProblem(daily);
+            return;
+          }
         }
       } catch (e) {
-        console.error("loadRecentFromDb error:", e);
+        console.error("loadDailyProblemFromDb error:", e);
       }
 
-const localList = JSON.parse(localStorage.getItem(KEYS.recentList) || "[]");
-      if (localList.length) {
-        recentPool = uniqueById(localList);
-        renderRecentProblem(recentPool[0]);
-      } else {
-        recentPool = [defaultRecent];
-        renderRecentProblem(defaultRecent);
-      }
+recentPool = [defaultRecent];
+      renderRecentProblem(defaultRecent);
+      setContinueProblem(defaultRecent);
     }
 
 async function saveSolvedToDb(questionId, isCorrect) {
@@ -1064,12 +1091,8 @@ if (currentUser && window.PC?.updateStreakOnSolve) {
           }
         }
 
-const next = findNextUnsolvedProblem(currentRecent, recentPool);
-        if (next && String(next.id) !== String(currentRecent.id)) {
-          setTimeout(() => renderRecentProblem(next), 500);
-        } else {
-          renderContinuePractice(currentRecent);
-        }
+// Daily problem stays same for the day (no auto-switch)
+        renderContinuePractice(currentRecent);
       } else {
         if (currentRecent?.id) await saveSolvedToDb(currentRecent.id, false);
         const correctInput = optionsWrap.querySelector(`input[value="${correctAns}"]`);
