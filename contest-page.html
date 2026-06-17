@@ -30,82 +30,35 @@
         linear-gradient(180deg, var(--bg2), var(--bg));
     }
 
-.container{
-      max-width:1200px;
-      margin:0 auto;
-      padding:18px;
-    }
-
-.topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px 14px;
+.container{max-width:1200px;margin:0 auto;padding:18px}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:center;
+      border:1px solid var(--line);border-radius:14px;padding:12px 14px;
       background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
       margin-bottom:14px;
     }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .brand-icon{
-      color:var(--green);
-      font-weight:800;
-      font-size:22px;
-    }
-    .brand h1{
-      font-size:24px;
-      line-height:1;
-    }
-    .brand p{
-      color:var(--muted);
-      font-size:12px;
-      margin-top:2px;
-    }
-    .right-mini{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand-icon{color:var(--green);font-weight:800;font-size:22px}
+    .brand h1{font-size:24px;line-height:1}
+    .brand p{color:var(--muted);font-size:12px;margin-top:2px}
+    .right-mini{display:flex;align-items:center;gap:10px}
     .streak{
       border:1px solid rgba(245,158,11,.35);
       background:rgba(245,158,11,.1);
-      color:#ffd38b;
-      border-radius:10px;
-      padding:7px 10px;
-      font-weight:700;
-      font-size:14px;
+      color:#ffd38b;border-radius:10px;padding:7px 10px;font-weight:700;font-size:14px;
     }
     .profile{
-      border:1px solid var(--line);
-      border-radius:999px;
-      padding:5px 10px 5px 5px;
-      display:flex;
-      align-items:center;
-      gap:8px;
-      background:rgba(255,255,255,.03);
-      font-size:14px;
+      border:1px solid var(--line);border-radius:999px;padding:5px 10px 5px 5px;
+      display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);font-size:14px;
     }
     .avatar{
-      width:28px;height:28px;border-radius:50%;
-      display:grid;place-items:center;
-      background:var(--blue);
-      font-weight:700;
+      width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+      background:var(--blue);font-weight:700;
     }
 
-.page-head{
-      margin:10px 0 14px;
-    }
-    .page-head h2{
-      font-size:32px;
-      margin-bottom:6px;
-    }
-    .page-head p{
-      color:var(--muted);
-    }
+.page-head{margin:10px 0 14px}
+    .page-head h2{font-size:32px;margin-bottom:6px}
+    .page-head p{color:var(--muted)}
 
 .controls{
       display:grid;
@@ -113,168 +66,65 @@
       gap:10px;
       margin-bottom:14px;
     }
-    .input, .select{
-      width:100%;
-      border:1px solid var(--line);
-      background:var(--panel);
-      color:var(--text);
-      border-radius:10px;
-      padding:11px 12px;
-      outline:none;
+    .input,.select{
+      width:100%;border:1px solid var(--line);background:var(--panel);color:var(--text);
+      border-radius:10px;padding:11px 12px;outline:none;
     }
     .input::placeholder{color:#8ca2cd}
-    .filter-tabs{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-bottom:14px;
-    }
+    .filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
     .tab{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-      color:var(--text);
-      border-radius:999px;
-      padding:8px 12px;
-      cursor:pointer;
-      font-weight:600;
-      font-size:14px;
+      border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);
+      border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:600;font-size:14px;
     }
     .tab.active{
-      border-color:rgba(34,197,94,.4);
-      background:rgba(34,197,94,.12);
-      color:#baffce;
+      border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.12);color:#baffce;
     }
 
-.grid{
-      display:grid;
-      grid-template-columns:repeat(3, minmax(240px, 1fr));
-      gap:12px;
-    }
-
-.card{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px;
+.grid{display:grid;grid-template-columns:repeat(3,minmax(240px,1fr));gap:12px}
+    .card{
+      border:1px solid var(--line);border-radius:14px;padding:14px;
       background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      display:flex;
-      flex-direction:column;
-      gap:10px;
+      display:flex;flex-direction:column;gap:10px;
     }
 
-.card-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:8px;
-    }
-    .title{
-      font-size:18px;
-      line-height:1.3;
-      font-weight:700;
-    }
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+    .title{font-size:18px;line-height:1.3;font-weight:700}
     .status{
-      font-size:12px;
-      padding:5px 9px;
-      border-radius:999px;
-      border:1px solid transparent;
-      white-space:nowrap;
+      font-size:12px;padding:5px 9px;border-radius:999px;border:1px solid transparent;white-space:nowrap;
     }
-    .status.live{
-      background:rgba(34,197,94,.12);
-      color:#baffce;
-      border-color:rgba(34,197,94,.4);
-    }
-    .status.upcoming{
-      background:rgba(245,158,11,.12);
-      color:#ffdca3;
-      border-color:rgba(245,158,11,.4);
-    }
-    .status.ended{
-      background:rgba(239,68,68,.12);
-      color:#ffc5c5;
-      border-color:rgba(239,68,68,.35);
-    }
+    .status.live{background:rgba(34,197,94,.12);color:#baffce;border-color:rgba(34,197,94,.4)}
+    .status.upcoming{background:rgba(245,158,11,.12);color:#ffdca3;border-color:rgba(245,158,11,.4)}
+    .status.ended{background:rgba(239,68,68,.12);color:#ffc5c5;border-color:rgba(239,68,68,.35)}
 
 .meta{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-      font-size:13px;
-      color:var(--muted);
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;color:var(--muted);
     }
     .meta div{
-      border:1px solid rgba(255,255,255,.05);
-      background:rgba(255,255,255,.02);
-      border-radius:10px;
-      padding:8px;
+      border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02);
+      border-radius:10px;padding:8px;
     }
-    .meta strong{
-      display:block;
-      color:var(--text);
-      margin-top:4px;
-      font-size:14px;
-    }
+    .meta strong{display:block;color:var(--text);margin-top:4px;font-size:14px}
 
 .timer{
-      border:1px solid var(--line);
-      border-radius:10px;
-      padding:9px 10px;
-      background:var(--panel-2);
-      font-size:13px;
-      color:#c9d8ff;
+      border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--panel-2);
+      font-size:13px;color:#c9d8ff;
     }
     .timer strong{color:#fff}
 
-.actions{
-      margin-top:auto;
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-    button{
-      border:none;
-      cursor:pointer;
-      border-radius:10px;
-      padding:10px 12px;
-      font-weight:700;
-      font-size:14px;
-    }
-    .btn-primary{
-      background:#16a34a;
-      color:white;
-      flex:1;
-    }
-    .btn-outline{
-      background:transparent;
-      color:var(--text);
-      border:1px solid var(--line);
-      flex:1;
-    }
-    .btn-danger{
-      background:rgba(239,68,68,.12);
-      color:#ffc5c5;
-      border:1px solid rgba(239,68,68,.35);
-      flex:1;
-    }
+.actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+    button{border:none;cursor:pointer;border-radius:10px;padding:10px 12px;font-weight:700;font-size:14px}
+    .btn-primary{background:#16a34a;color:white;flex:1}
+    .btn-outline{background:transparent;color:var(--text);border:1px solid var(--line);flex:1}
+    .btn-danger{background:rgba(239,68,68,.12);color:#ffc5c5;border:1px solid rgba(239,68,68,.35);flex:1}
 
-.empty{
-      grid-column:1/-1;
-      text-align:center;
-      color:var(--muted);
-      border:1px dashed var(--line);
-      border-radius:12px;
-      padding:24px;
+.empty,.loading{
+      grid-column:1/-1;text-align:center;color:var(--muted);
+      border:1px dashed var(--line);border-radius:12px;padding:24px;
     }
-
-.foot{
-      margin-top:15px;
-      color:var(--muted);
-      font-size:13px;
-      text-align:center;
-    }
+    .foot{margin-top:15px;color:var(--muted);font-size:13px;text-align:center}
 
 @media(max-width:980px){
-      .grid{grid-template-columns:repeat(2, minmax(240px,1fr))}
+      .grid{grid-template-columns:repeat(2,minmax(240px,1fr))}
       .controls{grid-template-columns:1fr}
     }
     @media(max-width:680px){
@@ -330,30 +180,25 @@
       <button class="tab" data-status="joined">Joined</button>
     </section>
 
-<section class="grid" id="contestGrid"></section>
-    <p class="foot">MVP • Pure HTML/CSS/JS • State saved in localStorage</p>
+<section class="grid" id="contestGrid">
+      <div class="loading">Loading contests from database...</div>
+    </section>
+
+<p class="foot">Live source: <strong>public.contests</strong></p>
   </div>
 
-<script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script>
     const LS = {
       joinedIds: "prepcode_joined_contests",
       activeStatus: "prepcode_contest_status",
       searchText: "prepcode_contest_search",
       sortBy: "prepcode_contest_sort",
       subject: "prepcode_contest_subject",
-      selectedContest: "prepcode_selected_contest"
+      selectedContest: "prepcode_selected_contest",
+      selectedContestMeta: "prepcode_selected_contest_meta"
     };
-
-const contests = [
-      { id: 1, title: "Physics Sprint #12", subject: "Physics", startsAt: "2026-06-15T06:30:00Z", endsAt: "2026-06-15T09:00:00Z", prize: 5000, participants: 1240, questions: 30, durationMin: 150 },
-      { id: 2, title: "Chem Rapid Fire", subject: "Chemistry", startsAt: "2026-06-15T12:30:00Z", endsAt: "2026-06-15T14:00:00Z", prize: 3000, participants: 980, questions: 25, durationMin: 90 },
-      { id: 3, title: "Math Master Arena", subject: "Mathematics", startsAt: "2026-06-16T08:00:00Z", endsAt: "2026-06-16T10:00:00Z", prize: 7000, participants: 1510, questions: 35, durationMin: 120 },
-      { id: 4, title: "JEE Full Mock #21", subject: "Mixed", startsAt: "2026-06-14T07:00:00Z", endsAt: "2026-06-14T10:00:00Z", prize: 10000, participants: 3240, questions: 75, durationMin: 180 },
-      { id: 5, title: "Organic Chemistry Clash", subject: "Chemistry", startsAt: "2026-06-17T09:00:00Z", endsAt: "2026-06-17T10:30:00Z", prize: 2500, participants: 620, questions: 20, durationMin: 90 },
-      { id: 6, title: "Mechanics Marathon", subject: "Physics", startsAt: "2026-06-15T07:45:00Z", endsAt: "2026-06-15T11:15:00Z", prize: 8000, participants: 1760, questions: 40, durationMin: 210 },
-      { id: 7, title: "Algebra Blitz", subject: "Mathematics", startsAt: "2026-06-13T08:00:00Z", endsAt: "2026-06-13T09:15:00Z", prize: 2000, participants: 740, questions: 18, durationMin: 75 },
-      { id: 8, title: "PCM Speed Test", subject: "Mixed", startsAt: "2026-06-18T06:30:00Z", endsAt: "2026-06-18T08:00:00Z", prize: 4000, participants: 910, questions: 30, durationMin: 90 }
-    ];
 
 const contestGrid = document.getElementById("contestGrid");
     const searchInput = document.getElementById("searchInput");
@@ -361,7 +206,8 @@ const contestGrid = document.getElementById("contestGrid");
     const subjectSelect = document.getElementById("subjectSelect");
     const statusTabs = document.getElementById("statusTabs");
 
-let joinedIds = JSON.parse(localStorage.getItem(LS.joinedIds) || "[]");
+let contests = [];
+    let joinedIds = JSON.parse(localStorage.getItem(LS.joinedIds) || "[]");
     let activeStatus = localStorage.getItem(LS.activeStatus) || "all";
     let searchText = localStorage.getItem(LS.searchText) || "";
     let sortBy = localStorage.getItem(LS.sortBy) || "newest";
@@ -372,8 +218,40 @@ searchInput.value = searchText;
     subjectSelect.value = subjectFilter;
     setActiveStatusTab(activeStatus);
 
-function nowMs() {
-      return Date.now();
+function getSupabaseClient() {
+      return window.PC?.supabase || window.sb || null;
+    }
+
+function nowMs() { return Date.now(); }
+
+function normalizeContest(row) {
+      const id = row.id;
+      const title = row.title || row.name || "Untitled Contest";
+      const subject = row.subject || "Mixed";
+
+const startsAt = row.starts_at || row.start_time || row.start_at || row.startsAt || new Date().toISOString();
+      const endsAt = row.ends_at || row.end_time || row.end_at || row.endsAt ||
+        new Date(new Date(startsAt).getTime() + Number(row.duration_min || row.duration || 60) * 60000).toISOString();
+
+const prize = Number(row.prize_pool ?? row.prize ?? 0);
+      const participants = Number(row.participants_count ?? row.participants ?? 0);
+      const questions = Number(row.total_questions ?? row.questions_count ?? row.questions ?? 0);
+      const durationMin = Number(row.duration_min ?? row.duration ?? 0);
+
+return { id, title, subject, startsAt, endsAt, prize, participants, questions, durationMin };
+    }
+
+async function loadContestsFromDB() {
+      const sb = getSupabaseClient();
+      if (!sb) throw new Error("Supabase client not found");
+
+const { data, error } = await sb
+        .from("contests")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+if (error) throw error;
+      contests = (data || []).map(normalizeContest).filter(c => c.id);
     }
 
 function getStatus(c) {
@@ -394,7 +272,7 @@ function formatDate(iso) {
     }
 
 function formatINR(n) {
-      return "₹" + n.toLocaleString("en-IN");
+      return "₹" + Number(n || 0).toLocaleString("en-IN");
     }
 
 function formatCountdown(ms) {
@@ -457,16 +335,22 @@ if (sortBy === "prize") {
 return data;
     }
 
+function persistSelectedContest(c) {
+      localStorage.setItem(LS.selectedContest, c.id);
+      localStorage.setItem(LS.selectedContestMeta, JSON.stringify({
+        id: c.id,
+        title: c.title,
+        duration_min: c.durationMin
+      }));
+    }
+
 function contestCard(c) {
       const isJoined = joinedIds.includes(c.id);
-      const statusClass = c.status;
       const timer = getTimerText(c, c.status);
 
 let actionHTML = "";
       if (c.status === "ended") {
-        actionHTML = `
-          <button class="btn-outline" data-action="view" data-id="${c.id}">View Results</button>
-        `;
+        actionHTML = `<button class="btn-outline" data-action="view" data-id="${c.id}">View Results</button>`;
       } else if (c.status === "live") {
         actionHTML = `
           <button class="btn-primary" data-action="enter" data-id="${c.id}">Enter Contest</button>
@@ -485,14 +369,14 @@ return `
         <article class="card">
           <div class="card-top">
             <h3 class="title">${c.title}</h3>
-            <span class="status ${statusClass}">${c.status.toUpperCase()}</span>
+            <span class="status ${c.status}">${c.status.toUpperCase()}</span>
           </div>
 
 <div class="meta">
             <div>Subject<strong>${c.subject}</strong></div>
-            <div>Questions<strong>${c.questions}</strong></div>
-            <div>Duration<strong>${c.durationMin} min</strong></div>
-            <div>Participants<strong>${c.participants.toLocaleString()}</strong></div>
+            <div>Questions<strong>${c.questions || "-"}</strong></div>
+            <div>Duration<strong>${c.durationMin || "-"} min</strong></div>
+            <div>Participants<strong>${Number(c.participants || 0).toLocaleString()}</strong></div>
             <div>Prize Pool<strong>${formatINR(c.prize)}</strong></div>
             <div>Starts<strong>${formatDate(c.startsAt)}</strong></div>
           </div>
@@ -515,23 +399,25 @@ contestGrid.innerHTML = data.map(contestCard).join("");
 
 contestGrid.querySelectorAll("button[data-action]").forEach(btn => {
         btn.addEventListener("click", () => {
-          const id = Number(btn.dataset.id);
+          const id = btn.dataset.id;
           const action = btn.dataset.action;
+          const selected = contests.find(c => String(c.id) === String(id));
+          if (!selected) return;
 
 if (action === "join") {
             if (!joinedIds.includes(id)) joinedIds.push(id);
             localStorage.setItem(LS.joinedIds, JSON.stringify(joinedIds));
             render();
           } else if (action === "leave") {
-            joinedIds = joinedIds.filter(x => x !== id);
+            joinedIds = joinedIds.filter(x => String(x) !== String(id));
             localStorage.setItem(LS.joinedIds, JSON.stringify(joinedIds));
             render();
           } else if (action === "enter") {
-            localStorage.setItem(LS.selectedContest, String(id));
-            window.location.href = "contest-attempt.html";
+            persistSelectedContest(selected);
+            window.location.href = `contest-attempt.html?contestId=${encodeURIComponent(selected.id)}`;
           } else if (action === "view") {
-            localStorage.setItem(LS.selectedContest, String(id));
-            window.location.href = "contest-result.html";
+            persistSelectedContest(selected);
+            window.location.href = `contest-result.html?contestId=${encodeURIComponent(selected.id)}`;
           }
         });
       });
@@ -564,8 +450,18 @@ statusTabs.addEventListener("click", (e) => {
       render();
     });
 
-setInterval(render, 1000);
-    render();
+async function init() {
+      try {
+        await loadContestsFromDB();
+        render();
+        setInterval(render, 1000);
+      } catch (err) {
+        console.error("contest-page init error:", err);
+        contestGrid.innerHTML = `<div class="empty">Failed to load contests from database.</div>`;
+      }
+    }
+
+init();
   </script>
 </body>
 </html>
