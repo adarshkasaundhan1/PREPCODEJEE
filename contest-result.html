@@ -265,6 +265,7 @@ table{
     const RESULT_KEY = "prepcode_contest_results"; // fallback only
     const SELECTED_CONTEST_KEY = "prepcode_selected_contest";
     const SELECTED_CONTEST_META_KEY = "prepcode_selected_contest_meta";
+    const LAST_SUBMITTED_KEY = "prepcode_last_submitted_contest";
 
 const contestSelect = document.getElementById("contestSelect");
     const exportBtn = document.getElementById("exportBtn");
@@ -360,9 +361,18 @@ const raw = localStorage.getItem(SELECTED_CONTEST_KEY);
       if (isUuid(raw)) return raw;
 
 try {
+        const parsed = JSON.parse(raw || "{}");
+        if (isUuid(parsed.id)) return parsed.id;
+        if (isUuid(parsed.contest_id)) return parsed.contest_id;
+      } catch {}
+
+try {
         const meta = JSON.parse(localStorage.getItem(SELECTED_CONTEST_META_KEY) || "{}");
         if (isUuid(meta.id)) return meta.id;
       } catch {}
+
+const last = localStorage.getItem(LAST_SUBMITTED_KEY);
+      if (isUuid(last)) return last;
 
 return null;
     }
@@ -400,9 +410,24 @@ function addRanks(sortedRows) {
     }
 
 function getYouRow(rankedRows) {
-      const mine = rankedRows.filter(r => r.user === YOU);
-      if (!mine.length) return null;
-      return mine.sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0];
+      if (!rankedRows.length) return null;
+
+if (currentUser?.id) {
+        const mineById = rankedRows.filter(r => String(r.userId) === String(currentUser.id));
+        if (mineById.length) {
+          return mineById.sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0];
+        }
+      }
+
+const mineByName = rankedRows.filter(r => r.user === YOU);
+      if (!mineByName.length) return null;
+      return mineByName.sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0];
+    }
+
+function persistSelectedContest(id, name = "") {
+      if (!isUuid(id)) return;
+      localStorage.setItem(SELECTED_CONTEST_KEY, id);
+      localStorage.setItem(SELECTED_CONTEST_META_KEY, JSON.stringify({ id, title: name }));
     }
 
 function renderContestOptions() {
@@ -422,15 +447,8 @@ if (!selectedContestId || !contests.some(c => c.contestId === selectedContestId)
       }
 
 contestSelect.value = selectedContestId;
-      localStorage.setItem(SELECTED_CONTEST_KEY, selectedContestId);
-
-const selectedMeta = contests.find(c => c.contestId === selectedContestId);
-      if (selectedMeta) {
-        localStorage.setItem(SELECTED_CONTEST_META_KEY, JSON.stringify({
-          id: selectedMeta.contestId,
-          title: selectedMeta.contestName
-        }));
-      }
+      const selectedMeta = contests.find(c => c.contestId === selectedContestId);
+      if (selectedMeta) persistSelectedContest(selectedMeta.contestId, selectedMeta.contestName);
     }
 
 function renderPage() {
@@ -464,11 +482,11 @@ const table = `
           <tbody>
             ${ranked.map(r => {
               const rankClass = r.rank === 1 ? "rank-1" : r.rank === 2 ? "rank-2" : r.rank === 3 ? "rank-3" : "";
-              const isYou = r.user === YOU ? "you" : "";
+              const isYou = (currentUser?.id && String(r.userId) === String(currentUser.id)) || r.user === YOU;
               return `
                 <tr>
                   <td><span class="rank-chip ${rankClass}">#${r.rank}</span></td>
-                  <td class="${isYou}">${r.user}${r.user === YOU ? " (You)" : ""}</td>
+                  <td class="${isYou ? "you" : ""}">${r.user}${isYou ? " (You)" : ""}</td>
                   <td>${Number(r.score || 0)}</td>
                   <td>${r.accuracy || "0.00"}%</td>
                   <td>${Number(r.attempted || 0)}/${Number(r.totalQuestions || 0)}</td>
@@ -491,7 +509,7 @@ if (!me) {
         wrongVal.textContent = "-";
         unattemptVal.textContent = "-";
         maxVal.textContent = "-";
-        subjectBars.innerHTML = `<div class="empty">No result for user "${YOU}" in this contest.</div>`;
+        subjectBars.innerHTML = `<div class="empty">No result for your user in this contest yet.</div>`;
         return;
       }
 
@@ -520,11 +538,13 @@ const bars = subjectBreakdown(me);
 async function loadContestTitleMap(contestIds) {
       contestTitleMap = new Map();
       if (!contestIds.length) return;
-      const { data, error } = await sb
+
+const { data, error } = await sb
         .from("contests")
         .select("id,title")
         .in("id", contestIds);
-      if (error) return;
+
+if (error) return;
       (data || []).forEach(c => contestTitleMap.set(c.id, c.title || "Untitled Contest"));
     }
 
@@ -568,6 +588,33 @@ function loadLocalFallbackResults() {
       }
     }
 
+function autoFixSelectedContest() {
+      if (!allResults.length) return;
+
+const hasRowsForSelected = selectedContestId && getContestResults(selectedContestId).length > 0;
+      if (hasRowsForSelected) return;
+
+// prefer latest contest by this user
+      if (currentUser?.id) {
+        const mine = allResults
+          .filter(r => String(r.userId) === String(currentUser.id))
+          .sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
+        if (mine.length) {
+          selectedContestId = mine[0].contestId;
+          persistSelectedContest(mine[0].contestId, mine[0].contestName);
+          localStorage.setItem(LAST_SUBMITTED_KEY, mine[0].contestId);
+          return;
+        }
+      }
+
+// fallback latest global
+      const latest = allResults.slice().sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0];
+      if (latest?.contestId) {
+        selectedContestId = latest.contestId;
+        persistSelectedContest(latest.contestId, latest.contestName);
+      }
+    }
+
 async function refreshDataAndRender() {
       try {
         await loadLiveResultsFromSupabase();
@@ -580,7 +627,8 @@ async function refreshDataAndRender() {
         allResults = loadLocalFallbackResults();
       }
 
-renderContestOptions();
+autoFixSelectedContest();
+      renderContestOptions();
       renderPage();
     }
 
@@ -605,7 +653,8 @@ liveChannel = sb
 contestSelect.addEventListener("change", e => {
       selectedContestId = e.target.value || null;
       if (selectedContestId) {
-        localStorage.setItem(SELECTED_CONTEST_KEY, selectedContestId);
+        const selectedName = uniqueContests(allResults).find(c => c.contestId === selectedContestId)?.contestName || "";
+        persistSelectedContest(selectedContestId, selectedName);
       }
       renderPage();
     });
@@ -668,6 +717,7 @@ if (!sb) {
         usingLiveSupabase = false;
         footerText.innerHTML = `Fallback source: <strong>localStorage (${RESULT_KEY})</strong>`;
         allResults = loadLocalFallbackResults();
+        autoFixSelectedContest();
         renderContestOptions();
         renderPage();
         return;
@@ -689,6 +739,7 @@ init().catch(err => {
       usingLiveSupabase = false;
       footerText.innerHTML = `Fallback source: <strong>localStorage (${RESULT_KEY})</strong>`;
       allResults = loadLocalFallbackResults();
+      autoFixSelectedContest();
       renderContestOptions();
       renderPage();
     });
