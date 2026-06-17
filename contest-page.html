@@ -159,7 +159,7 @@
 <section class="controls">
       <input id="searchInput" class="input" placeholder="Search contest (e.g. Physics Sprint, JEE Mock...)" />
       <select id="sortSelect" class="select">
-        <option value="newest">Sort: Newest</option>
+        <option value="newest">Sort: Nearest</option>
         <option value="prize">Sort: Highest Prize</option>
         <option value="participants">Sort: Most Participants</option>
       </select>
@@ -197,7 +197,8 @@
       sortBy: "prepcode_contest_sort",
       subject: "prepcode_contest_subject",
       selectedContest: "prepcode_selected_contest",
-      selectedContestMeta: "prepcode_selected_contest_meta"
+      selectedContestMeta: "prepcode_selected_contest_meta",
+      lastSubmittedContest: "prepcode_last_submitted_contest"
     };
 
 const contestGrid = document.getElementById("contestGrid");
@@ -207,11 +208,12 @@ const contestGrid = document.getElementById("contestGrid");
     const statusTabs = document.getElementById("statusTabs");
 
 let contests = [];
-    let joinedIds = JSON.parse(localStorage.getItem(LS.joinedIds) || "[]");
+    let joinedIds = JSON.parse(localStorage.getItem(LS.joinedIds) || "[]").map(String).filter(Boolean);
     let activeStatus = localStorage.getItem(LS.activeStatus) || "all";
     let searchText = localStorage.getItem(LS.searchText) || "";
     let sortBy = localStorage.getItem(LS.sortBy) || "newest";
     let subjectFilter = localStorage.getItem(LS.subject) || "all";
+    let liveChannel = null;
 
 searchInput.value = searchText;
     sortSelect.value = sortBy;
@@ -222,36 +224,83 @@ function getSupabaseClient() {
       return window.PC?.supabase || window.sb || null;
     }
 
+function isUuid(v) {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
+    }
+
 function nowMs() { return Date.now(); }
 
 function normalizeContest(row) {
-      const id = row.id;
-      const title = row.title || row.name || "Untitled Contest";
-      const subject = row.subject || "Mixed";
+      const startsAt = row.starts_at || row.start_time || row.start_at || row.startsAt || null;
+      const durationMin = Number(row.duration_min ?? row.duration ?? 60);
+      const endsAt =
+        row.ends_at || row.end_time || row.end_at || row.endsAt ||
+        (startsAt ? new Date(new Date(startsAt).getTime() + durationMin * 60000).toISOString() : null);
 
-const startsAt = row.starts_at || row.start_time || row.start_at || row.startsAt || new Date().toISOString();
-      const endsAt = row.ends_at || row.end_time || row.end_at || row.endsAt ||
-        new Date(new Date(startsAt).getTime() + Number(row.duration_min || row.duration || 60) * 60000).toISOString();
-
-const prize = Number(row.prize_pool ?? row.prize ?? 0);
-      const participants = Number(row.participants_count ?? row.participants ?? 0);
-      const questions = Number(row.total_questions ?? row.questions_count ?? row.questions ?? 0);
-      const durationMin = Number(row.duration_min ?? row.duration ?? 0);
-
-return { id, title, subject, startsAt, endsAt, prize, participants, questions, durationMin };
+return {
+        id: String(row.id || ""),
+        title: row.title || row.name || "Untitled Contest",
+        subject: row.subject || "Mixed",
+        startsAt,
+        endsAt,
+        prize: Number(row.prize_pool ?? row.prize ?? 0),
+        participants: Number(row.participants_count ?? row.participants ?? 0),
+        questions: Number(row.total_questions ?? row.questions_count ?? row.questions ?? 0),
+        durationMin
+      };
     }
 
 async function loadContestsFromDB() {
       const sb = getSupabaseClient();
       if (!sb) throw new Error("Supabase client not found");
 
-const { data, error } = await sb
+let data = null;
+      let error = null;
+
+({ data, error } = await sb
         .from("contests")
         .select("*")
-        .order("created_at", { ascending: false });
+        .eq("is_active", true)
+        .order("starts_at", { ascending: true }));
+
+if (error) {
+        ({ data, error } = await sb
+          .from("contests")
+          .select("*")
+          .order("starts_at", { ascending: true }));
+      }
 
 if (error) throw error;
-      contests = (data || []).map(normalizeContest).filter(c => c.id);
+
+contests = (data || [])
+        .map(normalizeContest)
+        .filter(c => isUuid(c.id) && c.startsAt && c.endsAt);
+
+// clean joined ids
+      const valid = new Set(contests.map(c => c.id));
+      joinedIds = [...new Set(joinedIds)].filter(id => valid.has(id));
+      localStorage.setItem(LS.joinedIds, JSON.stringify(joinedIds));
+    }
+
+function subscribeContestsRealtime() {
+      const sb = getSupabaseClient();
+      if (!sb) return;
+
+if (liveChannel) {
+        try { sb.removeChannel(liveChannel); } catch {}
+      }
+
+liveChannel = sb
+        .channel("contests-page-live")
+        .on("postgres_changes", { event: "*", schema: "public", table: "contests" }, async () => {
+          try {
+            await loadContestsFromDB();
+            render();
+          } catch (e) {
+            console.error("Realtime refresh error:", e);
+          }
+        })
+        .subscribe();
     }
 
 function getStatus(c) {
@@ -266,8 +315,7 @@ function getStatus(c) {
 function formatDate(iso) {
       const d = new Date(iso);
       return d.toLocaleString([], {
-        day: "2-digit", month: "short", year: "numeric",
-        hour: "2-digit", minute: "2-digit"
+        day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
       });
     }
 
@@ -336,11 +384,12 @@ return data;
     }
 
 function persistSelectedContest(c) {
+      if (!c || !isUuid(c.id)) return;
       localStorage.setItem(LS.selectedContest, c.id);
       localStorage.setItem(LS.selectedContestMeta, JSON.stringify({
         id: c.id,
-        title: c.title,
-        duration_min: c.durationMin
+        title: c.title || "",
+        duration_min: Number(c.durationMin || 0)
       }));
     }
 
@@ -399,17 +448,18 @@ contestGrid.innerHTML = data.map(contestCard).join("");
 
 contestGrid.querySelectorAll("button[data-action]").forEach(btn => {
         btn.addEventListener("click", () => {
-          const id = btn.dataset.id;
+          const id = String(btn.dataset.id || "");
           const action = btn.dataset.action;
-          const selected = contests.find(c => String(c.id) === String(id));
+          const selected = contests.find(c => String(c.id) === id);
           if (!selected) return;
 
 if (action === "join") {
             if (!joinedIds.includes(id)) joinedIds.push(id);
+            joinedIds = [...new Set(joinedIds)];
             localStorage.setItem(LS.joinedIds, JSON.stringify(joinedIds));
             render();
           } else if (action === "leave") {
-            joinedIds = joinedIds.filter(x => String(x) !== String(id));
+            joinedIds = joinedIds.filter(x => String(x) !== id);
             localStorage.setItem(LS.joinedIds, JSON.stringify(joinedIds));
             render();
           } else if (action === "enter") {
@@ -454,12 +504,20 @@ async function init() {
       try {
         await loadContestsFromDB();
         render();
+        subscribeContestsRealtime();
         setInterval(render, 1000);
       } catch (err) {
         console.error("contest-page init error:", err);
         contestGrid.innerHTML = `<div class="empty">Failed to load contests from database.</div>`;
       }
     }
+
+window.addEventListener("beforeunload", () => {
+      const sb = getSupabaseClient();
+      if (sb && liveChannel) {
+        try { sb.removeChannel(liveChannel); } catch {}
+      }
+    });
 
 init();
   </script>
