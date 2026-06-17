@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode • Contests</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#111b31;
+      --panel-2:#162442;
+      --line:#243759;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --yellow:#f59e0b;
+      --red:#ef4444;
+      --blue:#3b82f6;
+      --purple:#8b5cf6;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 10% -10%, #1d3a66 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1e2f56 0%, transparent 32%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+
+.container{
+      max-width:1200px;
+      margin:0 auto;
+      padding:18px;
+    }
+
+.topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      margin-bottom:14px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand-icon{
+      color:var(--green);
+      font-weight:800;
+      font-size:22px;
+    }
+    .brand h1{
+      font-size:24px;
+      line-height:1;
+    }
+    .brand p{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:2px;
+    }
+    .right-mini{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .streak{
+      border:1px solid rgba(245,158,11,.35);
+      background:rgba(245,158,11,.1);
+      color:#ffd38b;
+      border-radius:10px;
+      padding:7px 10px;
+      font-weight:700;
+      font-size:14px;
+    }
+    .profile{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:5px 10px 5px 5px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:rgba(255,255,255,.03);
+      font-size:14px;
+    }
+    .avatar{
+      width:28px;height:28px;border-radius:50%;
+      display:grid;place-items:center;
+      background:var(--blue);
+      font-weight:700;
+    }
+
+.page-head{
+      margin:10px 0 14px;
+    }
+    .page-head h2{
+      font-size:32px;
+      margin-bottom:6px;
+    }
+    .page-head p{
+      color:var(--muted);
+    }
+
+.controls{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr .7fr;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .input, .select{
+      width:100%;
+      border:1px solid var(--line);
+      background:var(--panel);
+      color:var(--text);
+      border-radius:10px;
+      padding:11px 12px;
+      outline:none;
+    }
+    .input::placeholder{color:#8ca2cd}
+    .filter-tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .tab{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      border-radius:999px;
+      padding:8px 12px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+    }
+    .tab.active{
+      border-color:rgba(34,197,94,.4);
+      background:rgba(34,197,94,.12);
+      color:#baffce;
+    }
+
+.grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(240px, 1fr));
+      gap:12px;
+    }
+
+.card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+.card-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:8px;
+    }
+    .title{
+      font-size:18px;
+      line-height:1.3;
+      font-weight:700;
+    }
+    .status{
+      font-size:12px;
+      padding:5px 9px;
+      border-radius:999px;
+      border:1px solid transparent;
+      white-space:nowrap;
+    }
+    .status.live{
+      background:rgba(34,197,94,.12);
+      color:#baffce;
+      border-color:rgba(34,197,94,.4);
+    }
+    .status.upcoming{
+      background:rgba(245,158,11,.12);
+      color:#ffdca3;
+      border-color:rgba(245,158,11,.4);
+    }
+    .status.ended{
+      background:rgba(239,68,68,.12);
+      color:#ffc5c5;
+      border-color:rgba(239,68,68,.35);
+    }
+
+.meta{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .meta div{
+      border:1px solid rgba(255,255,255,.05);
+      background:rgba(255,255,255,.02);
+      border-radius:10px;
+      padding:8px;
+    }
+    .meta strong{
+      display:block;
+      color:var(--text);
+      margin-top:4px;
+      font-size:14px;
+    }
+
+.timer{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:9px 10px;
+      background:var(--panel-2);
+      font-size:13px;
+      color:#c9d8ff;
+    }
+    .timer strong{color:#fff}
+
+.actions{
+      margin-top:auto;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    button{
+      border:none;
+      cursor:pointer;
+      border-radius:10px;
+      padding:10px 12px;
+      font-weight:700;
+      font-size:14px;
+    }
+    .btn-primary{
+      background:#16a34a;
+      color:white;
+      flex:1;
+    }
+    .btn-outline{
+      background:transparent;
+      color:var(--text);
+      border:1px solid var(--line);
+      flex:1;
+    }
+    .btn-danger{
+      background:rgba(239,68,68,.12);
+      color:#ffc5c5;
+      border:1px solid rgba(239,68,68,.35);
+      flex:1;
+    }
+
+.empty{
+      grid-column:1/-1;
+      text-align:center;
+      color:var(--muted);
+      border:1px dashed var(--line);
+      border-radius:12px;
+      padding:24px;
+    }
+
+.foot{
+      margin-top:15px;
+      color:var(--muted);
+      font-size:13px;
+      text-align:center;
+    }
+
+@media(max-width:980px){
+      .grid{grid-template-columns:repeat(2, minmax(240px,1fr))}
+      .controls{grid-template-columns:1fr}
+    }
+    @media(max-width:680px){
+      .grid{grid-template-columns:1fr}
+      .topbar{flex-direction:column;align-items:flex-start;gap:10px}
+      .right-mini{width:100%;justify-content:space-between}
+      .page-head h2{font-size:27px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode</h1>
+          <p>LeetCode for JEE</p>
+        </div>
+      </div>
+      <div class="right-mini">
+        <div class="streak">🔥 7 Day Streak</div>
+        <div class="profile"><span class="avatar">P</span> PrepCoder ▾</div>
+      </div>
+    </header>
+
+<section class="page-head">
+      <h2>All Contests</h2>
+      <p>Join live contests, register for upcoming ones, and review ended contests.</p>
+    </section>
+
+<section class="controls">
+      <input id="searchInput" class="input" placeholder="Search contest (e.g. Physics Sprint, JEE Mock...)" />
+      <select id="sortSelect" class="select">
+        <option value="newest">Sort: Newest</option>
+        <option value="prize">Sort: Highest Prize</option>
+        <option value="participants">Sort: Most Participants</option>
+      </select>
+      <select id="subjectSelect" class="select">
+        <option value="all">Subject: All</option>
+        <option value="Physics">Physics</option>
+        <option value="Chemistry">Chemistry</option>
+        <option value="Mathematics">Mathematics</option>
+        <option value="Mixed">Mixed</option>
+      </select>
+    </section>
+
+<section class="filter-tabs" id="statusTabs">
+      <button class="tab active" data-status="all">All</button>
+      <button class="tab" data-status="live">Live</button>
+      <button class="tab" data-status="upcoming">Upcoming</button>
+      <button class="tab" data-status="ended">Ended</button>
+      <button class="tab" data-status="joined">Joined</button>
+    </section>
+
+<section class="grid" id="contestGrid"></section>
+    <p class="foot">MVP • Pure HTML/CSS/JS • State saved in localStorage</p>
+  </div>
+
+<script>
+    const LS = {
+      joinedIds: "prepcode_joined_contests",
+      activeStatus: "prepcode_contest_status",
+      searchText: "prepcode_contest_search",
+      sortBy: "prepcode_contest_sort",
+      subject: "prepcode_contest_subject",
+      selectedContest: "prepcode_selected_contest"
+    };
+
+const contests = [
+      { id: 1, title: "Physics Sprint #12", subject: "Physics", startsAt: "2026-06-15T06:30:00Z", endsAt: "2026-06-15T09:00:00Z", prize: 5000, participants: 1240, questions: 30, durationMin: 150 },
+      { id: 2, title: "Chem Rapid Fire", subject: "Chemistry", startsAt: "2026-06-15T12:30:00Z", endsAt: "2026-06-15T14:00:00Z", prize: 3000, participants: 980, questions: 25, durationMin: 90 },
+      { id: 3, title: "Math Master Arena", subject: "Mathematics", startsAt: "2026-06-16T08:00:00Z", endsAt: "2026-06-16T10:00:00Z", prize: 7000, participants: 1510, questions: 35, durationMin: 120 },
+      { id: 4, title: "JEE Full Mock #21", subject: "Mixed", startsAt: "2026-06-14T07:00:00Z", endsAt: "2026-06-14T10:00:00Z", prize: 10000, participants: 3240, questions: 75, durationMin: 180 },
+      { id: 5, title: "Organic Chemistry Clash", subject: "Chemistry", startsAt: "2026-06-17T09:00:00Z", endsAt: "2026-06-17T10:30:00Z", prize: 2500, participants: 620, questions: 20, durationMin: 90 },
+      { id: 6, title: "Mechanics Marathon", subject: "Physics", startsAt: "2026-06-15T07:45:00Z", endsAt: "2026-06-15T11:15:00Z", prize: 8000, participants: 1760, questions: 40, durationMin: 210 },
+      { id: 7, title: "Algebra Blitz", subject: "Mathematics", startsAt: "2026-06-13T08:00:00Z", endsAt: "2026-06-13T09:15:00Z", prize: 2000, participants: 740, questions: 18, durationMin: 75 },
+      { id: 8, title: "PCM Speed Test", subject: "Mixed", startsAt: "2026-06-18T06:30:00Z", endsAt: "2026-06-18T08:00:00Z", prize: 4000, participants: 910, questions: 30, durationMin: 90 }
+    ];
+
+const contestGrid = document.getElementById("contestGrid");
+    const searchInput = document.getElementById("searchInput");
+    const sortSelect = document.getElementById("sortSelect");
+    const subjectSelect = document.getElementById("subjectSelect");
+    const statusTabs = document.getElementById("statusTabs");
+
+let joinedIds = JSON.parse(localStorage.getItem(LS.joinedIds) || "[]");
+    let activeStatus = localStorage.getItem(LS.activeStatus) || "all";
+    let searchText = localStorage.getItem(LS.searchText) || "";
+    let sortBy = localStorage.getItem(LS.sortBy) || "newest";
+    let subjectFilter = localStorage.getItem(LS.subject) || "all";
+
+searchInput.value = searchText;
+    sortSelect.value = sortBy;
+    subjectSelect.value = subjectFilter;
+    setActiveStatusTab(activeStatus);
+
+function nowMs() {
+      return Date.now();
+    }
+
+function getStatus(c) {
+      const now = nowMs();
+      const start = new Date(c.startsAt).getTime();
+      const end = new Date(c.endsAt).getTime();
+      if (now >= start && now <= end) return "live";
+      if (now < start) return "upcoming";
+      return "ended";
+    }
+
+function formatDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleString([], {
+        day: "2-digit", month: "short", year: "numeric",
+        hour: "2-digit", minute: "2-digit"
+      });
+    }
+
+function formatINR(n) {
+      return "₹" + n.toLocaleString("en-IN");
+    }
+
+function formatCountdown(ms) {
+      if (ms <= 0) return "00:00:00";
+      const sec = Math.floor(ms / 1000);
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+    }
+
+function setActiveStatusTab(status) {
+      [...statusTabs.querySelectorAll(".tab")].forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.status === status);
+      });
+    }
+
+function getTimerText(c, status) {
+      const now = nowMs();
+      const start = new Date(c.startsAt).getTime();
+      const end = new Date(c.endsAt).getTime();
+      if (status === "live") return `Ends in: ${formatCountdown(end - now)}`;
+      if (status === "upcoming") return `Starts in: ${formatCountdown(start - now)}`;
+      return `Ended on ${formatDate(c.endsAt)}`;
+    }
+
+function getFilteredContests() {
+      let data = contests.map(c => ({ ...c, status: getStatus(c) }));
+
+if (searchText.trim()) {
+        const q = searchText.toLowerCase();
+        data = data.filter(c =>
+          c.title.toLowerCase().includes(q) ||
+          c.subject.toLowerCase().includes(q)
+        );
+      }
+
+if (subjectFilter !== "all") {
+        data = data.filter(c => c.subject === subjectFilter);
+      }
+
+if (activeStatus === "joined") {
+        data = data.filter(c => joinedIds.includes(c.id));
+      } else if (activeStatus !== "all") {
+        data = data.filter(c => c.status === activeStatus);
+      }
+
+if (sortBy === "prize") {
+        data.sort((a,b) => b.prize - a.prize);
+      } else if (sortBy === "participants") {
+        data.sort((a,b) => b.participants - a.participants);
+      } else {
+        data.sort((a,b) => {
+          const ta = Math.abs(new Date(a.startsAt).getTime() - nowMs());
+          const tb = Math.abs(new Date(b.startsAt).getTime() - nowMs());
+          return ta - tb;
+        });
+      }
+
+return data;
+    }
+
+function contestCard(c) {
+      const isJoined = joinedIds.includes(c.id);
+      const statusClass = c.status;
+      const timer = getTimerText(c, c.status);
+
+let actionHTML = "";
+      if (c.status === "ended") {
+        actionHTML = `
+          <button class="btn-outline" data-action="view" data-id="${c.id}">View Results</button>
+        `;
+      } else if (c.status === "live") {
+        actionHTML = `
+          <button class="btn-primary" data-action="enter" data-id="${c.id}">Enter Contest</button>
+          ${isJoined
+            ? `<button class="btn-danger" data-action="leave" data-id="${c.id}">Leave</button>`
+            : `<button class="btn-outline" data-action="join" data-id="${c.id}">Join</button>`
+          }
+        `;
+      } else {
+        actionHTML = isJoined
+          ? `<button class="btn-danger" data-action="leave" data-id="${c.id}">Cancel Registration</button>`
+          : `<button class="btn-primary" data-action="join" data-id="${c.id}">Register</button>`;
+      }
+
+return `
+        <article class="card">
+          <div class="card-top">
+            <h3 class="title">${c.title}</h3>
+            <span class="status ${statusClass}">${c.status.toUpperCase()}</span>
+          </div>
+
+<div class="meta">
+            <div>Subject<strong>${c.subject}</strong></div>
+            <div>Questions<strong>${c.questions}</strong></div>
+            <div>Duration<strong>${c.durationMin} min</strong></div>
+            <div>Participants<strong>${c.participants.toLocaleString()}</strong></div>
+            <div>Prize Pool<strong>${formatINR(c.prize)}</strong></div>
+            <div>Starts<strong>${formatDate(c.startsAt)}</strong></div>
+          </div>
+
+<div class="timer"><strong>${timer}</strong></div>
+          <div class="actions">${actionHTML}</div>
+        </article>
+      `;
+    }
+
+function render() {
+      const data = getFilteredContests();
+
+if (!data.length) {
+        contestGrid.innerHTML = `<div class="empty">No contests found for current filters.</div>`;
+        return;
+      }
+
+contestGrid.innerHTML = data.map(contestCard).join("");
+
+contestGrid.querySelectorAll("button[data-action]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.dataset.id);
+          const action = btn.dataset.action;
+
+if (action === "join") {
+            if (!joinedIds.includes(id)) joinedIds.push(id);
+            localStorage.setItem(LS.joinedIds, JSON.stringify(joinedIds));
+            render();
+          } else if (action === "leave") {
+            joinedIds = joinedIds.filter(x => x !== id);
+            localStorage.setItem(LS.joinedIds, JSON.stringify(joinedIds));
+            render();
+          } else if (action === "enter") {
+            localStorage.setItem(LS.selectedContest, String(id));
+            window.location.href = "contest-attempt.html";
+          } else if (action === "view") {
+            localStorage.setItem(LS.selectedContest, String(id));
+            window.location.href = "contest-result.html";
+          }
+        });
+      });
+    }
+
+searchInput.addEventListener("input", (e) => {
+      searchText = e.target.value;
+      localStorage.setItem(LS.searchText, searchText);
+      render();
+    });
+
+sortSelect.addEventListener("change", (e) => {
+      sortBy = e.target.value;
+      localStorage.setItem(LS.sortBy, sortBy);
+      render();
+    });
+
+subjectSelect.addEventListener("change", (e) => {
+      subjectFilter = e.target.value;
+      localStorage.setItem(LS.subject, subjectFilter);
+      render();
+    });
+
+statusTabs.addEventListener("click", (e) => {
+      const tab = e.target.closest(".tab");
+      if (!tab) return;
+      activeStatus = tab.dataset.status;
+      localStorage.setItem(LS.activeStatus, activeStatus);
+      setActiveStatusTab(activeStatus);
+      render();
+    });
+
+setInterval(render, 1000);
+    render();
+  </script>
+</body>
+</html>
