@@ -262,487 +262,488 @@ table{
   <script src="supabase-client.js"></script>
 
 <script>
-    const RESULT_KEY = "prepcode_contest_results"; // fallback only
-    const SELECTED_CONTEST_KEY = "prepcode_selected_contest";
-    const SELECTED_CONTEST_META_KEY = "prepcode_selected_contest_meta";
-    const LAST_SUBMITTED_KEY = "prepcode_last_submitted_contest";
+    (() => {
+      "use strict";
+
+const RESULT_KEY = "prepcode_contest_results";
+      const SELECTED_CONTEST_KEY = "prepcode_selected_contest";
+      const SELECTED_CONTEST_META_KEY = "prepcode_selected_contest_meta";
+      const LAST_SUBMITTED_KEY = "prepcode_last_submitted_contest";
 
 const contestSelect = document.getElementById("contestSelect");
-    const exportBtn = document.getElementById("exportBtn");
-    const clearBtn = document.getElementById("clearBtn");
-    const footerText = document.getElementById("footerText");
+      const exportBtn = document.getElementById("exportBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const footerText = document.getElementById("footerText");
 
 const scoreVal = document.getElementById("scoreVal");
-    const rankVal = document.getElementById("rankVal");
-    const accVal = document.getElementById("accVal");
-    const attemptVal = document.getElementById("attemptVal");
+      const rankVal = document.getElementById("rankVal");
+      const accVal = document.getElementById("accVal");
+      const attemptVal = document.getElementById("attemptVal");
 
 const contestName = document.getElementById("contestName");
-    const submittedAt = document.getElementById("submittedAt");
-    const correctVal = document.getElementById("correctVal");
-    const wrongVal = document.getElementById("wrongVal");
-    const unattemptVal = document.getElementById("unattemptVal");
-    const maxVal = document.getElementById("maxVal");
+      const submittedAt = document.getElementById("submittedAt");
+      const correctVal = document.getElementById("correctVal");
+      const wrongVal = document.getElementById("wrongVal");
+      const unattemptVal = document.getElementById("unattemptVal");
+      const maxVal = document.getElementById("maxVal");
 
 const subjectBars = document.getElementById("subjectBars");
-    const leaderboardWrap = document.getElementById("leaderboardWrap");
+      const leaderboardWrap = document.getElementById("leaderboardWrap");
 
-let sb = null;
-    let currentUser = null;
-    let YOU = "PrepCoder";
-    let allResults = [];
-    let selectedContestId = null;
-    let liveChannel = null;
-    let contestTitleMap = new Map();
-    let usingLiveSupabase = true;
+let sbClient = null;
+      let currentUser = null;
+      let YOU = "PrepCoder";
+      let allResults = [];
+      let selectedContestId = null;
+      let liveChannel = null;
+      let contestTitleMap = new Map();
+      let usingLiveSupabase = true;
 
 function getSupabaseClient() {
-      return window.PC?.supabase || window.sb || null;
-    }
+        return window.PC?.supabase || window.sb || null;
+      }
 
 function isUuid(v) {
-      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
-    }
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
+      }
 
 function formatDate(iso) {
-      if (!iso) return "-";
-      const d = new Date(iso);
-      return d.toLocaleString([], {
-        day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
-      });
-    }
+        if (!iso) return "-";
+        const d = new Date(iso);
+        return d.toLocaleString([], {
+          day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+        });
+      }
 
 function resetSummaryCards() {
-      scoreVal.textContent = "0";
-      rankVal.textContent = "-";
-      accVal.textContent = "0%";
-      attemptVal.textContent = "0/0";
-      contestName.textContent = "-";
-      submittedAt.textContent = "-";
-      correctVal.textContent = "0";
-      wrongVal.textContent = "0";
-      unattemptVal.textContent = "0";
-      maxVal.textContent = "0";
-      subjectBars.innerHTML = `<div class="empty">No data.</div>`;
-    }
+        scoreVal.textContent = "0";
+        rankVal.textContent = "-";
+        accVal.textContent = "0%";
+        attemptVal.textContent = "0/0";
+        contestName.textContent = "-";
+        submittedAt.textContent = "-";
+        correctVal.textContent = "0";
+        wrongVal.textContent = "0";
+        unattemptVal.textContent = "0";
+        maxVal.textContent = "0";
+        subjectBars.innerHTML = `<div class="empty">No data.</div>`;
+      }
 
 function subjectBreakdown(result) {
-      const totalPct = result.maxScore ? (result.score / result.maxScore) * 100 : 0;
-      const name = (result.contestName || "").toLowerCase();
+        const totalPct = result.maxScore ? (result.score / result.maxScore) * 100 : 0;
+        const name = (result.contestName || "").toLowerCase();
 
 let phy = totalPct, chem = totalPct, math = totalPct, mixed = totalPct;
 
 if (name.includes("physics")) {
-        phy = totalPct; chem = Math.max(0, totalPct - 12); math = Math.max(0, totalPct - 10); mixed = Math.max(0, totalPct - 8);
-      } else if (name.includes("chem")) {
-        chem = totalPct; phy = Math.max(0, totalPct - 10); math = Math.max(0, totalPct - 12); mixed = Math.max(0, totalPct - 8);
-      } else if (name.includes("math")) {
-        math = totalPct; phy = Math.max(0, totalPct - 10); chem = Math.max(0, totalPct - 12); mixed = Math.max(0, totalPct - 8);
-      } else {
-        phy = Math.max(0, Math.min(100, totalPct + 2));
-        chem = Math.max(0, Math.min(100, totalPct - 1));
-        math = Math.max(0, Math.min(100, totalPct + 1));
-        mixed = totalPct;
-      }
+          phy = totalPct; chem = Math.max(0, totalPct - 12); math = Math.max(0, totalPct - 10); mixed = Math.max(0, totalPct - 8);
+        } else if (name.includes("chem")) {
+          chem = totalPct; phy = Math.max(0, totalPct - 10); math = Math.max(0, totalPct - 12); mixed = Math.max(0, totalPct - 8);
+        } else if (name.includes("math")) {
+          math = totalPct; phy = Math.max(0, totalPct - 10); chem = Math.max(0, totalPct - 12); mixed = Math.max(0, totalPct - 8);
+        } else {
+          phy = Math.max(0, Math.min(100, totalPct + 2));
+          chem = Math.max(0, Math.min(100, totalPct - 1));
+          math = Math.max(0, Math.min(100, totalPct + 1));
+          mixed = totalPct;
+        }
 
 return [
-        { key: "Physics", val: Math.round(phy), cls: "b-phy" },
-        { key: "Chemistry", val: Math.round(chem), cls: "b-chem" },
-        { key: "Mathematics", val: Math.round(math), cls: "b-math" },
-        { key: "Mixed", val: Math.round(mixed), cls: "b-mixed" }
-      ];
-    }
+          { key: "Physics", val: Math.round(phy), cls: "b-phy" },
+          { key: "Chemistry", val: Math.round(chem), cls: "b-chem" },
+          { key: "Mathematics", val: Math.round(math), cls: "b-math" },
+          { key: "Mixed", val: Math.round(mixed), cls: "b-mixed" }
+        ];
+      }
 
 function resolveSelectedContestId() {
-      const urlId = new URLSearchParams(window.location.search).get("contestId");
-      if (isUuid(urlId)) return urlId;
+        const urlId = new URLSearchParams(window.location.search).get("contestId");
+        if (isUuid(urlId)) return urlId;
 
 const raw = localStorage.getItem(SELECTED_CONTEST_KEY);
-      if (isUuid(raw)) return raw;
+        if (isUuid(raw)) return raw;
 
 try {
-        const parsed = JSON.parse(raw || "{}");
-        if (isUuid(parsed.id)) return parsed.id;
-        if (isUuid(parsed.contest_id)) return parsed.contest_id;
-      } catch {}
+          const parsed = JSON.parse(raw || "{}");
+          if (isUuid(parsed.id)) return parsed.id;
+          if (isUuid(parsed.contest_id)) return parsed.contest_id;
+        } catch {}
 
 try {
-        const meta = JSON.parse(localStorage.getItem(SELECTED_CONTEST_META_KEY) || "{}");
-        if (isUuid(meta.id)) return meta.id;
-      } catch {}
+          const meta = JSON.parse(localStorage.getItem(SELECTED_CONTEST_META_KEY) || "{}");
+          if (isUuid(meta.id)) return meta.id;
+        } catch {}
 
 const last = localStorage.getItem(LAST_SUBMITTED_KEY);
-      if (isUuid(last)) return last;
+        if (isUuid(last)) return last;
 
 return null;
-    }
+      }
 
 async function getAuthUser() {
-      if (window.PC?.getUser) return await window.PC.getUser();
-      const { data } = await sb.auth.getUser();
-      return data?.user || null;
-    }
+        if (window.PC?.getUser) return await window.PC.getUser();
+        const { data } = await sbClient.auth.getUser();
+        return data?.user || null;
+      }
 
 function uniqueContests(results) {
-      const map = new Map();
-      results.forEach(r => {
-        const id = String(r.contestId || "");
-        const name = String(r.contestName || "Untitled Contest");
-        if (!id) return;
-        if (!map.has(id)) map.set(id, { contestId: id, contestName: name });
-      });
-      return [...map.values()];
-    }
+        const map = new Map();
+        results.forEach(r => {
+          const id = String(r.contestId || "");
+          const name = String(r.contestName || "Untitled Contest");
+          if (!id) return;
+          if (!map.has(id)) map.set(id, { contestId: id, contestName: name });
+        });
+        return [...map.values()];
+      }
 
 function getContestResults(contestId) {
-      return allResults.filter(r => String(r.contestId) === String(contestId));
-    }
+        return allResults.filter(r => String(r.contestId) === String(contestId));
+      }
 
 function sortLeaderboard(rows) {
-      return rows.slice().sort((a, b) => {
-        if (Number(b.score || 0) !== Number(a.score || 0)) return Number(b.score || 0) - Number(a.score || 0);
-        return new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0);
-      });
-    }
+        return rows.slice().sort((a, b) => {
+          if (Number(b.score || 0) !== Number(a.score || 0)) return Number(b.score || 0) - Number(a.score || 0);
+          return new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0);
+        });
+      }
 
 function addRanks(sortedRows) {
-      return sortedRows.map((row, i) => ({ ...row, rank: i + 1 }));
-    }
+        return sortedRows.map((row, i) => ({ ...row, rank: i + 1 }));
+      }
 
 function getYouRow(rankedRows) {
-      if (!rankedRows.length) return null;
+        if (!rankedRows.length) return null;
 
 if (currentUser?.id) {
-        const mineById = rankedRows.filter(r => String(r.userId) === String(currentUser.id));
-        if (mineById.length) {
-          return mineById.sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0];
+          const mineById = rankedRows.filter(r => String(r.userId) === String(currentUser.id));
+          if (mineById.length) {
+            return mineById.sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0];
+          }
         }
-      }
 
 const mineByName = rankedRows.filter(r => r.user === YOU);
-      if (!mineByName.length) return null;
-      return mineByName.sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0];
-    }
+        if (!mineByName.length) return null;
+        return mineByName.sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0];
+      }
 
 function persistSelectedContest(id, name = "") {
-      if (!isUuid(id)) return;
-      localStorage.setItem(SELECTED_CONTEST_KEY, id);
-      localStorage.setItem(SELECTED_CONTEST_META_KEY, JSON.stringify({ id, title: name }));
-    }
+        if (!isUuid(id)) return;
+        localStorage.setItem(SELECTED_CONTEST_KEY, id);
+        localStorage.setItem(SELECTED_CONTEST_META_KEY, JSON.stringify({ id, title: name }));
+      }
 
 function renderContestOptions() {
-      const contests = uniqueContests(allResults);
-      if (!contests.length) {
-        contestSelect.innerHTML = `<option value="">No contests found</option>`;
-        selectedContestId = null;
-        return;
-      }
+        const contests = uniqueContests(allResults);
+        if (!contests.length) {
+          contestSelect.innerHTML = `<option value="">No contests found</option>`;
+          selectedContestId = null;
+          return;
+        }
 
 contestSelect.innerHTML = contests
-        .map(c => `<option value="${c.contestId}">${c.contestName}</option>`)
-        .join("");
+          .map(c => `<option value="${c.contestId}">${c.contestName}</option>`)
+          .join("");
 
 if (!selectedContestId || !contests.some(c => c.contestId === selectedContestId)) {
-        selectedContestId = contests[0].contestId;
-      }
+          selectedContestId = contests[0].contestId;
+        }
 
 contestSelect.value = selectedContestId;
-      const selectedMeta = contests.find(c => c.contestId === selectedContestId);
-      if (selectedMeta) persistSelectedContest(selectedMeta.contestId, selectedMeta.contestName);
-    }
+        const selectedMeta = contests.find(c => c.contestId === selectedContestId);
+        if (selectedMeta) persistSelectedContest(selectedMeta.contestId, selectedMeta.contestName);
+      }
 
 function renderPage() {
-      if (!selectedContestId) {
-        resetSummaryCards();
-        leaderboardWrap.innerHTML = `<div class="empty">No result data available yet.</div>`;
-        return;
-      }
+        if (!selectedContestId) {
+          resetSummaryCards();
+          leaderboardWrap.innerHTML = `<div class="empty">No result data available yet.</div>`;
+          return;
+        }
 
 const rows = getContestResults(selectedContestId);
-      if (!rows.length) {
-        resetSummaryCards();
-        leaderboardWrap.innerHTML = `<div class="empty">No results for this contest yet.</div>`;
-        return;
-      }
+        if (!rows.length) {
+          resetSummaryCards();
+          leaderboardWrap.innerHTML = `<div class="empty">No results for this contest yet.</div>`;
+          return;
+        }
 
 const ranked = addRanks(sortLeaderboard(rows));
-      const me = getYouRow(ranked);
+        const me = getYouRow(ranked);
 
-const table = `
-        <table>
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>User</th>
-              <th>Score</th>
-              <th>Accuracy</th>
-              <th>Attempted</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${ranked.map(r => {
-              const rankClass = r.rank === 1 ? "rank-1" : r.rank === 2 ? "rank-2" : r.rank === 3 ? "rank-3" : "";
-              const isYou = (currentUser?.id && String(r.userId) === String(currentUser.id)) || r.user === YOU;
-              return `
-                <tr>
-                  <td><span class="rank-chip ${rankClass}">#${r.rank}</span></td>
-                  <td class="${isYou ? "you" : ""}">${r.user}${isYou ? " (You)" : ""}</td>
-                  <td>${Number(r.score || 0)}</td>
-                  <td>${r.accuracy || "0.00"}%</td>
-                  <td>${Number(r.attempted || 0)}/${Number(r.totalQuestions || 0)}</td>
-                </tr>
-              `;
-            }).join("")}
-          </tbody>
-        </table>
-      `;
-      leaderboardWrap.innerHTML = table;
+leaderboardWrap.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>User</th>
+                <th>Score</th>
+                <th>Accuracy</th>
+                <th>Attempted</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${ranked.map(r => {
+                const rankClass = r.rank === 1 ? "rank-1" : r.rank === 2 ? "rank-2" : r.rank === 3 ? "rank-3" : "";
+                const isYou = (currentUser?.id && String(r.userId) === String(currentUser.id)) || r.user === YOU;
+                return `
+                  <tr>
+                    <td><span class="rank-chip ${rankClass}">#${r.rank}</span></td>
+                    <td class="${isYou ? "you" : ""}">${r.user}${isYou ? " (You)" : ""}</td>
+                    <td>${Number(r.score || 0)}</td>
+                    <td>${r.accuracy || "0.00"}%</td>
+                    <td>${Number(r.attempted || 0)}/${Number(r.totalQuestions || 0)}</td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        `;
 
 if (!me) {
-        scoreVal.textContent = "-";
-        rankVal.textContent = "-";
-        accVal.textContent = "-";
-        attemptVal.textContent = "-";
-        contestName.textContent = rows[0].contestName || "-";
-        submittedAt.textContent = "-";
-        correctVal.textContent = "-";
-        wrongVal.textContent = "-";
-        unattemptVal.textContent = "-";
-        maxVal.textContent = "-";
-        subjectBars.innerHTML = `<div class="empty">No result for your user in this contest yet.</div>`;
-        return;
-      }
+          scoreVal.textContent = "-";
+          rankVal.textContent = "-";
+          accVal.textContent = "-";
+          attemptVal.textContent = "-";
+          contestName.textContent = rows[0].contestName || "-";
+          submittedAt.textContent = "-";
+          correctVal.textContent = "-";
+          wrongVal.textContent = "-";
+          unattemptVal.textContent = "-";
+          maxVal.textContent = "-";
+          subjectBars.innerHTML = `<div class="empty">No result for your user in this contest yet.</div>`;
+          return;
+        }
 
 scoreVal.textContent = `${Number(me.score || 0)}`;
-      rankVal.textContent = `#${me.rank}`;
-      accVal.textContent = `${me.accuracy || "0.00"}%`;
-      attemptVal.textContent = `${Number(me.attempted || 0)}/${Number(me.totalQuestions || 0)}`;
+        rankVal.textContent = `#${me.rank}`;
+        accVal.textContent = `${me.accuracy || "0.00"}%`;
+        attemptVal.textContent = `${Number(me.attempted || 0)}/${Number(me.totalQuestions || 0)}`;
 
 contestName.textContent = me.contestName || "-";
-      submittedAt.textContent = formatDate(me.submittedAt);
-      correctVal.textContent = Number(me.correct || 0);
-      wrongVal.textContent = Number(me.wrong || 0);
-      unattemptVal.textContent = Number(me.unattempted || 0);
-      maxVal.textContent = Number(me.maxScore || 0);
+        submittedAt.textContent = formatDate(me.submittedAt);
+        correctVal.textContent = Number(me.correct || 0);
+        wrongVal.textContent = Number(me.wrong || 0);
+        unattemptVal.textContent = Number(me.unattempted || 0);
+        maxVal.textContent = Number(me.maxScore || 0);
 
 const bars = subjectBreakdown(me);
-      subjectBars.innerHTML = bars.map(b => `
-        <div class="bar-row">
-          <span>${b.key}</span>
-          <div class="bar"><span class="${b.cls}" style="width:${Math.max(0, Math.min(100,b.val))}%"></span></div>
-          <strong>${b.val}%</strong>
-        </div>
-      `).join("");
-    }
+        subjectBars.innerHTML = bars.map(b => `
+          <div class="bar-row">
+            <span>${b.key}</span>
+            <div class="bar"><span class="${b.cls}" style="width:${Math.max(0, Math.min(100,b.val))}%"></span></div>
+            <strong>${b.val}%</strong>
+          </div>
+        `).join("");
+      }
 
 async function loadContestTitleMap(contestIds) {
-      contestTitleMap = new Map();
-      if (!contestIds.length) return;
+        contestTitleMap = new Map();
+        if (!contestIds.length) return;
 
-const { data, error } = await sb
-        .from("contests")
-        .select("id,title")
-        .in("id", contestIds);
+const { data, error } = await sbClient
+          .from("contests")
+          .select("id,title")
+          .in("id", contestIds);
 
 if (error) return;
-      (data || []).forEach(c => contestTitleMap.set(c.id, c.title || "Untitled Contest"));
-    }
+        (data || []).forEach(c => contestTitleMap.set(c.id, c.title || "Untitled Contest"));
+      }
 
 async function loadLiveResultsFromSupabase() {
-      const { data, error } = await sb
-        .from("contest_submissions")
-        .select("contest_id,user_id,user_name,score,max_score,accuracy,attempted,total_questions,correct,wrong,unattempted,submitted_at")
-        .order("submitted_at", { ascending: false });
+        const { data, error } = await sbClient
+          .from("contest_submissions")
+          .select("contest_id,user_id,user_name,score,max_score,accuracy,attempted,total_questions,correct,wrong,unattempted,submitted_at")
+          .order("submitted_at", { ascending: false });
 
 if (error) throw error;
 
 const rows = data || [];
-      const contestIds = [...new Set(rows.map(r => r.contest_id).filter(Boolean))];
-      await loadContestTitleMap(contestIds);
+        const contestIds = [...new Set(rows.map(r => r.contest_id).filter(Boolean))];
+        await loadContestTitleMap(contestIds);
 
 allResults = rows.map(r => ({
-        contestId: r.contest_id,
-        contestName: contestTitleMap.get(r.contest_id) || "Untitled Contest",
-        user: r.user_name || "User",
-        userId: r.user_id,
-        submittedAt: r.submitted_at,
-        totalQuestions: Number(r.total_questions || 0),
-        correct: Number(r.correct || 0),
-        wrong: Number(r.wrong || 0),
-        unattempted: Number(r.unattempted || 0),
-        attempted: Number(r.attempted || 0),
-        score: Number(r.score || 0),
-        maxScore: Number(r.max_score || 0),
-        accuracy: Number(r.accuracy || 0).toFixed(2)
-      }));
-    }
+          contestId: r.contest_id,
+          contestName: contestTitleMap.get(r.contest_id) || "Untitled Contest",
+          user: r.user_name || "User",
+          userId: r.user_id,
+          submittedAt: r.submitted_at,
+          totalQuestions: Number(r.total_questions || 0),
+          correct: Number(r.correct || 0),
+          wrong: Number(r.wrong || 0),
+          unattempted: Number(r.unattempted || 0),
+          attempted: Number(r.attempted || 0),
+          score: Number(r.score || 0),
+          maxScore: Number(r.max_score || 0),
+          accuracy: Number(r.accuracy || 0).toFixed(2)
+        }));
+      }
 
 function loadLocalFallbackResults() {
-      const raw = localStorage.getItem(RESULT_KEY);
-      if (!raw) return [];
-      try {
-        const arr = JSON.parse(raw);
-        return Array.isArray(arr) ? arr : [];
-      } catch {
-        return [];
-      }
-    }
-
-function autoFixSelectedContest() {
-      if (!allResults.length) return;
-
-const hasRowsForSelected = selectedContestId && getContestResults(selectedContestId).length > 0;
-      if (hasRowsForSelected) return;
-
-// prefer latest contest by this user
-      if (currentUser?.id) {
-        const mine = allResults
-          .filter(r => String(r.userId) === String(currentUser.id))
-          .sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
-        if (mine.length) {
-          selectedContestId = mine[0].contestId;
-          persistSelectedContest(mine[0].contestId, mine[0].contestName);
-          localStorage.setItem(LAST_SUBMITTED_KEY, mine[0].contestId);
-          return;
+        const raw = localStorage.getItem(RESULT_KEY);
+        if (!raw) return [];
+        try {
+          const arr = JSON.parse(raw);
+          return Array.isArray(arr) ? arr : [];
+        } catch {
+          return [];
         }
       }
 
-// fallback latest global
-      const latest = allResults.slice().sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0];
-      if (latest?.contestId) {
-        selectedContestId = latest.contestId;
-        persistSelectedContest(latest.contestId, latest.contestName);
+function autoFixSelectedContest() {
+        if (!allResults.length) return;
+
+const hasRowsForSelected = selectedContestId && getContestResults(selectedContestId).length > 0;
+        if (hasRowsForSelected) return;
+
+if (currentUser?.id) {
+          const mine = allResults
+            .filter(r => String(r.userId) === String(currentUser.id))
+            .sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
+          if (mine.length) {
+            selectedContestId = mine[0].contestId;
+            persistSelectedContest(mine[0].contestId, mine[0].contestName);
+            localStorage.setItem(LAST_SUBMITTED_KEY, mine[0].contestId);
+            return;
+          }
+        }
+
+const latest = allResults.slice().sort((a,b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))[0];
+        if (latest?.contestId) {
+          selectedContestId = latest.contestId;
+          persistSelectedContest(latest.contestId, latest.contestName);
+        }
       }
-    }
 
 async function refreshDataAndRender() {
-      try {
-        await loadLiveResultsFromSupabase();
-        usingLiveSupabase = true;
-        footerText.innerHTML = `Live source: <strong>contest_submissions</strong>`;
-      } catch (e) {
-        console.error("Live load failed, fallback local:", e?.message || e);
-        usingLiveSupabase = false;
-        footerText.innerHTML = `Fallback source: <strong>localStorage (${RESULT_KEY})</strong>`;
-        allResults = loadLocalFallbackResults();
-      }
+        try {
+          await loadLiveResultsFromSupabase();
+          usingLiveSupabase = true;
+          footerText.innerHTML = `Live source: <strong>contest_submissions</strong>`;
+        } catch (e) {
+          console.error("Live load failed, fallback local:", e?.message || e);
+          usingLiveSupabase = false;
+          footerText.innerHTML = `Fallback source: <strong>localStorage (${RESULT_KEY})</strong>`;
+          allResults = loadLocalFallbackResults();
+        }
 
 autoFixSelectedContest();
-      renderContestOptions();
-      renderPage();
-    }
+        renderContestOptions();
+        renderPage();
+      }
 
 function unsubscribeLive() {
-      if (!sb || !liveChannel) return;
-      try { sb.removeChannel(liveChannel); } catch {}
-      liveChannel = null;
-    }
+        if (!sbClient || !liveChannel) return;
+        try { sbClient.removeChannel(liveChannel); } catch {}
+        liveChannel = null;
+      }
 
 function subscribeLiveAll() {
-      if (!sb || !usingLiveSupabase) return;
-      unsubscribeLive();
+        if (!sbClient || !usingLiveSupabase) return;
+        unsubscribeLive();
 
-liveChannel = sb
-        .channel("contest-submissions-live")
-        .on("postgres_changes", { event: "*", schema: "public", table: "contest_submissions" }, async () => {
-          await refreshDataAndRender();
-        })
-        .subscribe();
-    }
+liveChannel = sbClient
+          .channel("contest-submissions-live")
+          .on("postgres_changes", { event: "*", schema: "public", table: "contest_submissions" }, async () => {
+            await refreshDataAndRender();
+          })
+          .subscribe();
+      }
 
 contestSelect.addEventListener("change", e => {
-      selectedContestId = e.target.value || null;
-      if (selectedContestId) {
-        const selectedName = uniqueContests(allResults).find(c => c.contestId === selectedContestId)?.contestName || "";
-        persistSelectedContest(selectedContestId, selectedName);
-      }
-      renderPage();
-    });
+        selectedContestId = e.target.value || null;
+        if (selectedContestId) {
+          const selectedName = uniqueContests(allResults).find(c => c.contestId === selectedContestId)?.contestName || "";
+          persistSelectedContest(selectedContestId, selectedName);
+        }
+        renderPage();
+      });
 
 exportBtn.addEventListener("click", () => {
-      if (!selectedContestId) return alert("No contest selected.");
-      const data = getContestResults(selectedContestId);
-      if (!data.length) return alert("No results to export for selected contest.");
+        if (!selectedContestId) return alert("No contest selected.");
+        const data = getContestResults(selectedContestId);
+        if (!data.length) return alert("No results to export for selected contest.");
 
 const selectedName = uniqueContests(allResults).find(c => c.contestId === selectedContestId)?.contestName || selectedContestId;
-      const safeName = selectedName.replace(/[^a-z0-9-_]+/gi, "_").slice(0, 60);
+        const safeName = selectedName.replace(/[^a-z0-9-_]+/gi, "_").slice(0, 60);
 
 const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
 
 const a = document.createElement("a");
-      a.href = url;
-      a.download = `${safeName}_results.json`;
-      a.click();
+        a.href = url;
+        a.download = `${safeName}_results.json`;
+        a.click();
 
 URL.revokeObjectURL(url);
-    });
+      });
 
 clearBtn.addEventListener("click", async () => {
-      if (!selectedContestId) return alert("No contest selected.");
+        if (!selectedContestId) return alert("No contest selected.");
 
-if (usingLiveSupabase && sb && currentUser) {
-        const ok = confirm("Delete your submission for this contest?");
-        if (!ok) return;
+if (usingLiveSupabase && sbClient && currentUser) {
+          const ok = confirm("Delete your submission for this contest?");
+          if (!ok) return;
 
-const { error } = await sb
-          .from("contest_submissions")
-          .delete()
-          .eq("contest_id", selectedContestId)
-          .eq("user_id", currentUser.id);
+const { error } = await sbClient
+            .from("contest_submissions")
+            .delete()
+            .eq("contest_id", selectedContestId)
+            .eq("user_id", currentUser.id);
 
 if (error) {
-          alert(error.message || "Failed to delete submission.");
+            alert(error.message || "Failed to delete submission.");
+            return;
+          }
+
+await refreshDataAndRender();
           return;
+        }
+
+const ok = confirm("Clear local fallback results?");
+        if (!ok) return;
+        localStorage.removeItem(RESULT_KEY);
+        allResults = [];
+        renderContestOptions();
+        resetSummaryCards();
+        leaderboardWrap.innerHTML = `<div class="empty">Results cleared.</div>`;
+      });
+
+async function init() {
+        selectedContestId = resolveSelectedContestId();
+        sbClient = getSupabaseClient();
+
+if (!sbClient) {
+          usingLiveSupabase = false;
+          footerText.innerHTML = `Fallback source: <strong>localStorage (${RESULT_KEY})</strong>`;
+          allResults = loadLocalFallbackResults();
+          autoFixSelectedContest();
+          renderContestOptions();
+          renderPage();
+          return;
+        }
+
+currentUser = await getAuthUser();
+        if (currentUser) {
+          YOU = currentUser.email ? currentUser.email.split("@")[0] : "PrepCoder";
         }
 
 await refreshDataAndRender();
-        return;
+        subscribeLiveAll();
       }
 
-const ok = confirm("Clear local fallback results?");
-      if (!ok) return;
-      localStorage.removeItem(RESULT_KEY);
-      allResults = [];
-      renderContestOptions();
-      resetSummaryCards();
-      leaderboardWrap.innerHTML = `<div class="empty">Results cleared.</div>`;
-    });
+window.addEventListener("beforeunload", () => unsubscribeLive());
 
-async function init() {
-      selectedContestId = resolveSelectedContestId();
-      sb = getSupabaseClient();
-
-if (!sb) {
+init().catch(err => {
+        console.error("contest-result init error:", err);
         usingLiveSupabase = false;
         footerText.innerHTML = `Fallback source: <strong>localStorage (${RESULT_KEY})</strong>`;
         allResults = loadLocalFallbackResults();
         autoFixSelectedContest();
         renderContestOptions();
         renderPage();
-        return;
-      }
-
-currentUser = await getAuthUser();
-      if (currentUser) {
-        YOU = currentUser.email ? currentUser.email.split("@")[0] : "PrepCoder";
-      }
-
-await refreshDataAndRender();
-      subscribeLiveAll();
-    }
-
-window.addEventListener("beforeunload", () => unsubscribeLive());
-
-init().catch(err => {
-      console.error("contest-result init error:", err);
-      usingLiveSupabase = false;
-      footerText.innerHTML = `Fallback source: <strong>localStorage (${RESULT_KEY})</strong>`;
-      allResults = loadLocalFallbackResults();
-      autoFixSelectedContest();
-      renderContestOptions();
-      renderPage();
-    });
+      });
+    })();
   </script>
 </body>
 </html>
