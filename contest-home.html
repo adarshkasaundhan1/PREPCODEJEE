@@ -6,211 +6,101 @@
   <title>PrepCode • Contest Home</title>
   <style>
     :root{
-      --bg:#070d1a;
-      --bg2:#0b1426;
-      --panel:#111b31;
-      --panel2:#162442;
-      --line:#25385d;
-      --text:#eaf1ff;
-      --muted:#9db0d6;
-      --green:#22c55e;
-      --yellow:#f59e0b;
-      --red:#ef4444;
-      --blue:#3b82f6;
-      --purple:#8b5cf6;
+      --bg:#070d1a; --bg2:#0b1426; --panel:#111b31; --panel2:#162442; --line:#25385d;
+      --text:#eaf1ff; --muted:#9db0d6; --green:#22c55e; --yellow:#f59e0b; --red:#ef4444; --blue:#3b82f6; --purple:#8b5cf6;
     }
-
-*{box-sizing:border-box;margin:0;padding:0}
+    *{box-sizing:border-box;margin:0;padding:0}
     body{
-      font-family:Inter,Segoe UI,Arial,sans-serif;
-      color:var(--text);
-      min-height:100vh;
+      font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);min-height:100vh;
       background:
         radial-gradient(circle at 10% -10%, #1d3b67 0%, transparent 35%),
         radial-gradient(circle at 100% 0%, #1e2f56 0%, transparent 30%),
         linear-gradient(180deg,var(--bg2),var(--bg));
     }
-
-.container{max-width:1220px;margin:0 auto;padding:16px}
+    .container{max-width:1220px;margin:0 auto;padding:16px}
     .topbar{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px 14px;
+      border:1px solid var(--line);border-radius:14px;padding:12px 14px;
       background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
-      margin-bottom:14px;
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;
     }
     .brand{display:flex;align-items:center;gap:10px}
     .brand .icon{color:var(--green);font-size:22px;font-weight:800}
     .brand h1{font-size:24px;line-height:1}
     .brand p{font-size:12px;color:var(--muted);margin-top:2px}
     .user{
-      display:flex;align-items:center;gap:8px;
-      border:1px solid var(--line);
-      border-radius:999px;
-      padding:6px 10px 6px 6px;
-      background:rgba(255,255,255,.03);
-      font-size:14px;
+      display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;
+      padding:6px 10px 6px 6px;background:rgba(255,255,255,.03);font-size:14px;
     }
-    .avatar{
-      width:28px;height:28px;border-radius:50%;
-      display:grid;place-items:center;
-      background:var(--blue);font-weight:700;
-    }
-
-.hero{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:16px;
-      background:linear-gradient(180deg, rgba(59,130,246,.12), rgba(255,255,255,.02));
-      margin-bottom:14px;
+    .avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--blue);font-weight:700}
+    .hero{
+      border:1px solid var(--line);border-radius:14px;padding:16px;
+      background:linear-gradient(180deg, rgba(59,130,246,.12), rgba(255,255,255,.02));margin-bottom:14px;
     }
     .hero h2{font-size:30px;margin-bottom:6px}
     .hero p{color:var(--muted)}
-
-.quick{
-      margin-top:12px;
-      display:flex;gap:8px;flex-wrap:wrap;
-    }
-    button{
-      border:none;cursor:pointer;border-radius:10px;padding:10px 13px;font-weight:700;color:#fff;
-    }
+    .quick{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+    button{border:none;cursor:pointer;border-radius:10px;padding:10px 13px;font-weight:700;color:#fff}
     .btn-green{background:#15803d}
     .btn-blue{background:#1d4ed8}
     .btn-purple{background:#6d28d9}
-    .btn-outline{
-      background:transparent;border:1px solid var(--line);color:var(--text);
-    }
-
-.stats{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:10px;
-      margin-bottom:14px;
-    }
+    .btn-outline{background:transparent;border:1px solid var(--line);color:var(--text)}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
     .card{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px;
+      border:1px solid var(--line);border-radius:14px;padding:14px;
       background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
     }
     .label{font-size:12px;color:var(--muted)}
     .value{font-size:28px;font-weight:800;margin-top:6px}
-    .ok{color:#b9ffd0}
-    .warn{color:#ffdca3}
-    .bad{color:#ffc5c5}
-
-.controls{
-      display:grid;
-      grid-template-columns:1.3fr .7fr .7fr;
-      gap:10px;
-      margin-bottom:14px;
-    }
+    .ok{color:#b9ffd0}.warn{color:#ffdca3}.bad{color:#ffc5c5}
+    .controls{display:grid;grid-template-columns:1.3fr .7fr .7fr;gap:10px;margin-bottom:14px}
     .input,.select{
-      width:100%;border:1px solid var(--line);border-radius:10px;
-      background:var(--panel);color:var(--text);padding:11px 12px;outline:none;
+      width:100%;border:1px solid var(--line);border-radius:10px;background:var(--panel);
+      color:var(--text);padding:11px 12px;outline:none;
     }
     .input::placeholder{color:#8ca2cd}
-    .tabs{
-      display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;
-    }
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
     .tab{
-      border:1px solid var(--line);
-      border-radius:999px;
-      padding:8px 12px;
-      background:rgba(255,255,255,.03);
-      color:var(--text);
-      font-weight:700;
-      cursor:pointer;
-      font-size:14px;
+      border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:rgba(255,255,255,.03);
+      color:var(--text);font-weight:700;cursor:pointer;font-size:14px;
     }
-    .tab.active{
-      border-color:rgba(34,197,94,.45);
-      background:rgba(34,197,94,.12);
-      color:#b9ffd0;
-    }
-
-.grid{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(240px,1fr));
-      gap:12px;
-    }
+    .tab.active{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.12);color:#b9ffd0}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(240px,1fr));gap:12px}
     .contest-card{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px;
+      border:1px solid var(--line);border-radius:14px;padding:14px;
       background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
       display:flex;flex-direction:column;gap:10px;
     }
-    .row-top{
-      display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
-    }
+    .row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
     .title{font-size:18px;font-weight:700;line-height:1.3}
     .badge{
-      font-size:11px;padding:5px 8px;border-radius:999px;font-weight:700;border:1px solid transparent;
-      white-space:nowrap;
+      font-size:11px;padding:5px 8px;border-radius:999px;font-weight:700;border:1px solid transparent;white-space:nowrap;
     }
     .live{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4);color:#b9ffd0}
     .upcoming{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#ffdca3}
     .ended{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#ffc5c5}
-
-.meta{
-      display:grid;grid-template-columns:1fr 1fr;gap:8px;
-      color:var(--muted);font-size:13px;
-    }
+    .meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;color:var(--muted);font-size:13px}
     .meta div{
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:10px;
-      padding:8px;
-      background:rgba(255,255,255,.02);
+      border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px;background:rgba(255,255,255,.02);
     }
     .meta strong{display:block;color:var(--text);margin-top:3px;font-size:14px}
     .timer{
-      border:1px solid var(--line);
-      border-radius:10px;
-      padding:9px 10px;
-      background:var(--panel2);
-      font-size:13px;
-      color:#c9d8ff;
+      border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--panel2);font-size:13px;color:#c9d8ff;
     }
     .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
     .btn-sm{padding:9px 11px;font-size:13px;border-radius:9px}
     .btn-enter{background:#16a34a}
     .btn-join{background:#1d4ed8}
-    .btn-leave{
-      background:rgba(239,68,68,.12);
-      border:1px solid rgba(239,68,68,.4);
-      color:#ffd3d3;
+    .btn-leave{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);color:#ffd3d3}
+    .btn-disabled{background:#334155;color:#cbd5e1;cursor:not-allowed}
+    .empty{
+      grid-column:1/-1;border:1px dashed var(--line);border-radius:12px;color:var(--muted);padding:20px;text-align:center;
     }
-    .btn-disabled{
-      background:#334155;color:#cbd5e1;cursor:not-allowed;
-    }
-
-.empty{
-      grid-column:1/-1;
-      border:1px dashed var(--line);
-      border-radius:12px;
-      color:var(--muted);
-      padding:20px;
-      text-align:center;
-    }
-
-.footer{
-      margin-top:14px;
-      color:var(--muted);
-      font-size:12px;
-      text-align:center;
-    }
-
-@media(max-width:1020px){
-      .stats{grid-template-columns:repeat(2,1fr)}
-      .grid{grid-template-columns:repeat(2,minmax(220px,1fr))}
-      .controls{grid-template-columns:1fr}
+    .footer{margin-top:14px;color:var(--muted);font-size:12px;text-align:center}
+    @media(max-width:1020px){
+      .stats{grid-template-columns:repeat(2,1fr)} .grid{grid-template-columns:repeat(2,minmax(220px,1fr))} .controls{grid-template-columns:1fr}
     }
     @media(max-width:680px){
-      .grid{grid-template-columns:1fr}
-      .hero h2{font-size:25px}
-      .stats{grid-template-columns:1fr}
+      .grid{grid-template-columns:1fr} .hero h2{font-size:25px} .stats{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -233,8 +123,7 @@
 <section class="hero">
       <h2>Contest Home</h2>
       <p>Practice with live contests, register for upcoming events, and track your results.</p>
-
-<div class="quick">
+      <div class="quick">
         <button class="btn-green" id="goList">Open Contest List</button>
         <button class="btn-blue" id="goAttempt">Open Contest Attempt</button>
         <button class="btn-purple" id="goResult">Open Contest Result</button>
@@ -243,22 +132,10 @@
     </section>
 
 <section class="stats">
-      <article class="card">
-        <div class="label">Total Contests</div>
-        <div class="value" id="totalCount">0</div>
-      </article>
-      <article class="card">
-        <div class="label">Live Now</div>
-        <div class="value ok" id="liveCount">0</div>
-      </article>
-      <article class="card">
-        <div class="label">Joined</div>
-        <div class="value warn" id="joinedCount">0</div>
-      </article>
-      <article class="card">
-        <div class="label">Ended</div>
-        <div class="value bad" id="endedCount">0</div>
-      </article>
+      <article class="card"><div class="label">Total Contests</div><div class="value" id="totalCount">0</div></article>
+      <article class="card"><div class="label">Live Now</div><div class="value ok" id="liveCount">0</div></article>
+      <article class="card"><div class="label">Joined</div><div class="value warn" id="joinedCount">0</div></article>
+      <article class="card"><div class="label">Ended</div><div class="value bad" id="endedCount">0</div></article>
     </section>
 
 <section class="controls">
@@ -286,14 +163,12 @@
     </section>
 
 <section class="grid" id="contestGrid"></section>
-
-<p class="footer">MVP • Pure HTML/CSS/JS • Supabase + localStorage enabled</p>
+    <p class="footer">MVP • Pure HTML/CSS/JS • Supabase + localStorage enabled</p>
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
-
-<script>
+  <script>
     const LS = {
       joined: "prepcode_joined_contests",
       status: "prepcode_home_status",
@@ -301,7 +176,8 @@
       subject: "prepcode_home_subject",
       sort: "prepcode_home_sort",
       selectedContest: "prepcode_selected_contest",
-      selectedContestMeta: "prepcode_selected_contest_meta"
+      selectedContestMeta: "prepcode_selected_contest_meta",
+      lastSubmittedContest: "prepcode_last_submitted_contest"
     };
 
 const contestGrid = document.getElementById("contestGrid");
@@ -324,11 +200,8 @@ const userName = document.getElementById("userName");
     const avatarLetter = document.getElementById("avatarLetter");
 
 let contests = [];
-    let joined = JSON.parse(localStorage.getItem(LS.joined) || "[]")
-      .map(String)
-      .filter(Boolean);
-
-let activeStatus = localStorage.getItem(LS.status) || "all";
+    let joined = JSON.parse(localStorage.getItem(LS.joined) || "[]").map(String).filter(Boolean);
+    let activeStatus = localStorage.getItem(LS.status) || "all";
     let searchText = localStorage.getItem(LS.search) || "";
     let subject = localStorage.getItem(LS.subject) || "all";
     let sortBy = localStorage.getItem(LS.sort) || "nearest";
@@ -339,13 +212,8 @@ searchInput.value = searchText;
     sortSelect.value = sortBy;
     setActiveTab(activeStatus);
 
-function getSupabaseClient() {
-      return window.PC?.supabase || window.sb || null;
-    }
-
-function isUuid(v) {
-      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
-    }
+function getSupabaseClient() { return window.PC?.supabase || window.sb || null; }
+    function isUuid(v) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || "")); }
 
 async function getAuthUser() {
       if (window.PC?.getUser) return await window.PC.getUser();
@@ -362,54 +230,59 @@ async function guardAuthAndHydrateUser() {
         window.location.href = "index.html";
         return null;
       }
-
-const display = user.email ? user.email.split("@")[0] : "PrepCoder";
+      const display = user.email ? user.email.split("@")[0] : "PrepCoder";
       userName.textContent = `${display} ▾`;
       avatarLetter.textContent = display.charAt(0).toUpperCase();
       return user;
     }
 
 function normalizeContestRow(row) {
+      const startsAt = row.starts_at || row.start_time || row.start_at || null;
+      const durationMin = Number(row.duration_min ?? row.duration ?? 0);
+      const computedEnd = startsAt ? new Date(new Date(startsAt).getTime() + durationMin * 60000).toISOString() : null;
       return {
-        id: String(row.id || ""), // UUID from DB
+        id: String(row.id || ""),
         title: row.title || "Untitled Contest",
         subject: row.subject || "Mixed",
-        startsAt: row.starts_at,
-        endsAt: row.ends_at,
-        prize: Number(row.prize || 0),
-        participants: Number(row.participants || 0),
-        questions: Number(row.questions || 0),
-        duration: Number(row.duration_min || 0)
+        startsAt,
+        endsAt: row.ends_at || row.end_time || row.end_at || computedEnd,
+        prize: Number(row.prize_pool ?? row.prize ?? 0),
+        participants: Number(row.participants_count ?? row.participants ?? 0),
+        questions: Number(row.total_questions ?? row.questions ?? 0),
+        duration: durationMin
       };
     }
 
 async function loadContestsFromDb() {
       const sb = getSupabaseClient();
-      if (!sb) {
-        console.error("Supabase client not found.");
-        contests = [];
-        render();
-        return;
-      }
+      if (!sb) { contests = []; render(); return; }
 
-const { data, error } = await sb
+let data = null, error = null;
+
+// First try with is_active filter
+      ({ data, error } = await sb
         .from("contests")
         .select("*")
         .eq("is_active", true)
-        .order("starts_at", { ascending: true });
+        .order("starts_at", { ascending: true }));
+
+// If column missing or query fails, retry without filter
+      if (error) {
+        ({ data, error } = await sb
+          .from("contests")
+          .select("*")
+          .order("starts_at", { ascending: true }));
+      }
 
 if (error) {
         console.error("loadContestsFromDb error:", error.message);
         contests = [];
       } else {
-        contests = (data || [])
-          .map(normalizeContestRow)
-          .filter(c => isUuid(c.id));
+        contests = (data || []).map(normalizeContestRow).filter(c => isUuid(c.id) && c.startsAt && c.endsAt);
       }
 
-// cleanup joined IDs that are no longer valid
-      const validContestIds = new Set(contests.map(c => c.id));
-      joined = [...new Set(joined)].filter(id => validContestIds.has(id));
+const valid = new Set(contests.map(c => c.id));
+      joined = [...new Set(joined)].filter(id => valid.has(id));
       localStorage.setItem(LS.joined, JSON.stringify(joined));
 
 render();
@@ -425,13 +298,9 @@ if (contestsChannel) {
 
 contestsChannel = sb
         .channel("contests-live-public")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "contests" },
-          async () => {
-            await loadContestsFromDb();
-          }
-        )
+        .on("postgres_changes", { event: "*", schema: "public", table: "contests" }, async () => {
+          await loadContestsFromDb();
+        })
         .subscribe();
     }
 
@@ -448,10 +317,7 @@ function getStatus(c){
 
 function formatDate(iso){
       const d = new Date(iso);
-      return d.toLocaleString([], {
-        day:"2-digit", month:"short", year:"numeric",
-        hour:"2-digit", minute:"2-digit"
-      });
+      return d.toLocaleString([], { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
     }
 
 function formatCountdown(ms){
@@ -473,9 +339,7 @@ function timerText(c, status){
     }
 
 function setActiveTab(status){
-      [...statusTabs.querySelectorAll(".tab")].forEach(t=>{
-        t.classList.toggle("active", t.dataset.status === status);
-      });
+      [...statusTabs.querySelectorAll(".tab")].forEach(t => t.classList.toggle("active", t.dataset.status === status));
     }
 
 function setSelectedContest(contest){
@@ -488,26 +352,19 @@ function setSelectedContest(contest){
       }));
     }
 
-function getContestById(id){
-      return contests.find(c => c.id === id) || null;
-    }
+function getContestById(id){ return contests.find(c => c.id === id) || null; }
 
 function getDefaultContestId(){
       const withStatus = contests.map(c => ({ ...c, status: getStatus(c) }));
-
-const joinedLive = withStatus.find(c => joined.includes(c.id) && c.status === "live");
+      const joinedLive = withStatus.find(c => joined.includes(c.id) && c.status === "live");
       if (joinedLive) return joinedLive.id;
-
-const anyLive = withStatus.find(c => c.status === "live");
+      const anyLive = withStatus.find(c => c.status === "live");
       if (anyLive) return anyLive.id;
-
-const joinedUpcoming = withStatus.find(c => joined.includes(c.id) && c.status === "upcoming");
+      const joinedUpcoming = withStatus.find(c => joined.includes(c.id) && c.status === "upcoming");
       if (joinedUpcoming) return joinedUpcoming.id;
-
-const anyUpcoming = withStatus.find(c => c.status === "upcoming");
+      const anyUpcoming = withStatus.find(c => c.status === "upcoming");
       if (anyUpcoming) return anyUpcoming.id;
-
-return contests[0]?.id || null;
+      return contests[0]?.id || null;
     }
 
 function computeStats(){
@@ -526,40 +383,23 @@ function getFiltered(){
 
 if(searchText.trim()){
         const q = searchText.toLowerCase();
-        data = data.filter(c =>
-          c.title.toLowerCase().includes(q) ||
-          c.subject.toLowerCase().includes(q)
-        );
+        data = data.filter(c => c.title.toLowerCase().includes(q) || c.subject.toLowerCase().includes(q));
       }
 
-if(subject !== "all"){
-        data = data.filter(c => c.subject === subject);
-      }
+if(subject !== "all") data = data.filter(c => c.subject === subject);
 
-if(activeStatus === "joined"){
-        data = data.filter(c => joined.includes(c.id));
-      }else if(activeStatus !== "all"){
-        data = data.filter(c => c.status === activeStatus);
-      }
+if(activeStatus === "joined") data = data.filter(c => joined.includes(c.id));
+      else if(activeStatus !== "all") data = data.filter(c => c.status === activeStatus);
 
-if(sortBy === "prize"){
-        data.sort((a,b)=>b.prize-a.prize);
-      }else if(sortBy === "participants"){
-        data.sort((a,b)=>b.participants-a.participants);
-      }else{
-        data.sort((a,b)=>{
-          const ta = Math.abs(new Date(a.startsAt).getTime() - nowMs());
-          const tb = Math.abs(new Date(b.startsAt).getTime() - nowMs());
-          return ta - tb;
-        });
-      }
+if(sortBy === "prize") data.sort((a,b)=>b.prize-a.prize);
+      else if(sortBy === "participants") data.sort((a,b)=>b.participants-a.participants);
+      else data.sort((a,b)=>Math.abs(new Date(a.startsAt)-nowMs()) - Math.abs(new Date(b.startsAt)-nowMs()));
 
 return data;
     }
 
 function cardHTML(c){
       const isJoined = joined.includes(c.id);
-      const badgeClass = c.status;
       let actions = "";
 
 if(c.status === "ended"){
@@ -567,7 +407,7 @@ if(c.status === "ended"){
           <button class="btn-sm btn-outline" data-action="result" data-id="${c.id}">View Result</button>
           <button class="btn-sm btn-disabled" disabled>Contest Ended</button>
         `;
-      }else if(c.status === "live"){
+      } else if(c.status === "live"){
         actions = `
           <button class="btn-sm btn-enter" data-action="attempt" data-id="${c.id}">Enter Contest</button>
           ${isJoined
@@ -575,7 +415,7 @@ if(c.status === "ended"){
             : `<button class="btn-sm btn-join" data-action="join" data-id="${c.id}">Join</button>`
           }
         `;
-      }else{
+      } else {
         actions = isJoined
           ? `<button class="btn-sm btn-leave" data-action="leave" data-id="${c.id}">Cancel Registration</button>`
           : `<button class="btn-sm btn-join" data-action="join" data-id="${c.id}">Register</button>`;
@@ -585,10 +425,9 @@ return `
         <article class="contest-card">
           <div class="row-top">
             <h3 class="title">${c.title}</h3>
-            <span class="badge ${badgeClass}">${c.status.toUpperCase()}</span>
+            <span class="badge ${c.status}">${c.status.toUpperCase()}</span>
           </div>
-
-<div class="meta">
+          <div class="meta">
             <div>Subject<strong>${c.subject}</strong></div>
             <div>Questions<strong>${c.questions}</strong></div>
             <div>Duration<strong>${c.duration} min</strong></div>
@@ -596,8 +435,7 @@ return `
             <div>Prize<strong>₹${c.prize.toLocaleString("en-IN")}</strong></div>
             <div>Start<strong>${formatDate(c.startsAt)}</strong></div>
           </div>
-
-<div class="timer">${timerText(c,c.status)}</div>
+          <div class="timer">${timerText(c,c.status)}</div>
           <div class="actions">${actions}</div>
         </article>
       `;
@@ -624,12 +462,14 @@ if(action === "join"){
             if(!joined.includes(id)) joined.push(id);
             localStorage.setItem(LS.joined, JSON.stringify([...new Set(joined)]));
             render();
+            return;
           }
 
 if(action === "leave"){
             joined = joined.filter(x=>x!==id);
             localStorage.setItem(LS.joined, JSON.stringify(joined));
             render();
+            return;
           }
 
 if(action === "attempt"){
@@ -637,6 +477,7 @@ if(action === "attempt"){
             if (!contest) return alert("Contest not found.");
             setSelectedContest(contest);
             window.location.href = `contest-attempt.html?contestId=${encodeURIComponent(contest.id)}`;
+            return;
           }
 
 if(action === "result"){
@@ -649,25 +490,11 @@ if(action === "result"){
       });
     }
 
-searchInput.addEventListener("input", e=>{
-      searchText = e.target.value;
-      localStorage.setItem(LS.search, searchText);
-      render();
-    });
+searchInput.addEventListener("input", e => { searchText = e.target.value; localStorage.setItem(LS.search, searchText); render(); });
+    subjectSelect.addEventListener("change", e => { subject = e.target.value; localStorage.setItem(LS.subject, subject); render(); });
+    sortSelect.addEventListener("change", e => { sortBy = e.target.value; localStorage.setItem(LS.sort, sortBy); render(); });
 
-subjectSelect.addEventListener("change", e=>{
-      subject = e.target.value;
-      localStorage.setItem(LS.subject, subject);
-      render();
-    });
-
-sortSelect.addEventListener("change", e=>{
-      sortBy = e.target.value;
-      localStorage.setItem(LS.sort, sortBy);
-      render();
-    });
-
-statusTabs.addEventListener("click", e=>{
+statusTabs.addEventListener("click", e => {
       const tab = e.target.closest(".tab");
       if(!tab) return;
       activeStatus = tab.dataset.status;
@@ -676,11 +503,9 @@ statusTabs.addEventListener("click", e=>{
       render();
     });
 
-goList.addEventListener("click", ()=>{
-      window.location.href = "contest-page.html";
-    });
+goList.addEventListener("click", () => { window.location.href = "contest-page.html"; });
 
-goAttempt.addEventListener("click", ()=>{
+goAttempt.addEventListener("click", () => {
       const id = getDefaultContestId();
       if (!id) return alert("No contest available.");
       const contest = getContestById(id);
@@ -689,13 +514,13 @@ goAttempt.addEventListener("click", ()=>{
       window.location.href = `contest-attempt.html?contestId=${encodeURIComponent(contest.id)}`;
     });
 
-goResult.addEventListener("click", ()=>{
-      const id = getDefaultContestId();
+goResult.addEventListener("click", () => {
+      const last = localStorage.getItem(LS.lastSubmittedContest);
+      const id = (last && isUuid(last)) ? last : getDefaultContestId();
       if (!id) return alert("No contest available.");
       const contest = getContestById(id);
-      if (!contest) return alert("Contest not found.");
-      setSelectedContest(contest);
-      window.location.href = `contest-result.html?contestId=${encodeURIComponent(contest.id)}`;
+      if (contest) setSelectedContest(contest);
+      window.location.href = `contest-result.html?contestId=${encodeURIComponent(id)}`;
     });
 
 resetHome.addEventListener("click", ()=>{
@@ -703,13 +528,8 @@ resetHome.addEventListener("click", ()=>{
       localStorage.removeItem(LS.search);
       localStorage.removeItem(LS.subject);
       localStorage.removeItem(LS.sort);
-      activeStatus = "all";
-      searchText = "";
-      subject = "all";
-      sortBy = "nearest";
-      searchInput.value = "";
-      subjectSelect.value = "all";
-      sortSelect.value = "nearest";
+      activeStatus = "all"; searchText = ""; subject = "all"; sortBy = "nearest";
+      searchInput.value = ""; subjectSelect.value = "all"; sortSelect.value = "nearest";
       setActiveTab("all");
       render();
     });
@@ -719,8 +539,7 @@ setInterval(render, 1000);
 (async function init() {
       const user = await guardAuthAndHydrateUser();
       if (!user) return;
-
-await loadContestsFromDb();
+      await loadContestsFromDb();
       subscribeContestRealtime();
     })();
 
