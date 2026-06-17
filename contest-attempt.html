@@ -287,9 +287,10 @@
 
 <script>
     /************** CONFIG **************/
-    const USER_NAME = "PrepCoder";
+    const DEFAULT_USER_NAME = "PrepCoder";
     const KEY_RESULTS = "prepcode_contest_results";
     const KEY_SELECTED_CONTEST = "prepcode_selected_contest";
+    const KEY_SELECTED_CONTEST_META = "prepcode_selected_contest_meta";
 
 let CONTEST_ID = "";
     let CONTEST_NAME = "Contest";
@@ -300,6 +301,9 @@ let CONTEST_ID = "";
 
 let KEY_STATE = "";
     let state = null;
+    let currentUser = null;
+    let currentUserName = DEFAULT_USER_NAME;
+    let isSubmitting = false;
 
 /************** ELEMENTS **************/
     const contestNameEl = document.getElementById("contestName");
@@ -338,6 +342,14 @@ const loadingBox = document.getElementById("loadingBox");
       return window.PC?.supabase || window.sb || null;
     }
 
+async function getAuthUser() {
+      if (window.PC?.getUser) return await window.PC.getUser();
+      const sb = getSupabaseClient();
+      if (!sb) return null;
+      const { data } = await sb.auth.getUser();
+      return data?.user || null;
+    }
+
 function isUuid(v) {
       return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
     }
@@ -351,16 +363,22 @@ function letterToIndex(letter) {
       return 0;
     }
 
-function resolveContestIdFromStorage() {
-      const raw = localStorage.getItem(KEY_SELECTED_CONTEST);
-      if (!raw) return null;
+function resolveContestId() {
+      const urlId = new URLSearchParams(window.location.search).get("contestId");
+      if (isUuid(urlId)) return urlId;
 
-if (isUuid(raw)) return raw;
+const raw = localStorage.getItem(KEY_SELECTED_CONTEST);
+      if (isUuid(raw)) return raw;
 
 try {
-        const parsed = JSON.parse(raw);
+        const parsed = JSON.parse(raw || "{}");
         if (parsed && isUuid(parsed.id)) return parsed.id;
         if (parsed && isUuid(parsed.contest_id)) return parsed.contest_id;
+      } catch {}
+
+try {
+        const meta = JSON.parse(localStorage.getItem(KEY_SELECTED_CONTEST_META) || "{}");
+        if (meta && isUuid(meta.id)) return meta.id;
       } catch {}
 
 return null;
@@ -379,11 +397,13 @@ function showFatal(msg) {
         return;
       }
 
-const selectedContestId = resolveContestIdFromStorage();
+const selectedContestId = resolveContestId();
       if (!selectedContestId) {
         showFatal("No contest selected. Please join contest again.");
         return;
       }
+
+localStorage.setItem(KEY_SELECTED_CONTEST, selectedContestId);
 
 const { data: contest, error: contestErr } = await sb
         .from("contests")
@@ -400,6 +420,12 @@ if (contestErr || !contest) {
 CONTEST_ID = contest.id;
       CONTEST_NAME = contest.title || "Contest";
       DURATION_MIN = Number(contest.duration_min || 30);
+
+localStorage.setItem(KEY_SELECTED_CONTEST_META, JSON.stringify({
+        id: CONTEST_ID,
+        title: CONTEST_NAME,
+        duration_min: DURATION_MIN
+      }));
 
 const { data: mapped, error: mapErr } = await sb
         .from("contest_questions")
@@ -492,12 +518,8 @@ function loadState(){
       }
       try{
         const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed.answers) || parsed.answers.length !== QUESTIONS.length) {
-          return defaultState();
-        }
-        if (!Array.isArray(parsed.review) || parsed.review.length !== QUESTIONS.length) {
-          return defaultState();
-        }
+        if (!Array.isArray(parsed.answers) || parsed.answers.length !== QUESTIONS.length) return defaultState();
+        if (!Array.isArray(parsed.review) || parsed.review.length !== QUESTIONS.length) return defaultState();
         return parsed;
       } catch {
         return defaultState();
@@ -510,6 +532,7 @@ function saveState(){
 
 /************** RENDER **************/
     function render(){
+      if (!QUESTIONS.length) return;
       renderQuestion();
       renderPalette();
       renderStats();
@@ -524,6 +547,7 @@ if(state.submitted){
 function renderQuestion(){
       const i = state.currentIndex;
       const q = QUESTIONS[i];
+      if (!q) return;
 
 qNumberText.textContent = `Question ${i+1} / ${QUESTIONS.length}`;
       subjectBadge.textContent = q.subject;
@@ -566,14 +590,8 @@ function renderPalette(){
         const isAns = state.answers[i] !== null;
         const isRev = !!state.review[i];
 
-const cls = [
-          "qbtn",
-          isCur ? "current" : "",
-          isAns ? "answered" : "",
-          isRev ? "review" : ""
-        ].join(" ").trim();
-
-return `<button class="${cls}" data-i="${i}">${i+1}</button>`;
+const cls = ["qbtn", isCur ? "current" : "", isAns ? "answered" : "", isRev ? "review" : ""].join(" ").trim();
+        return `<button class="${cls}" data-i="${i}">${i+1}</button>`;
       }).join("");
 
 paletteEl.querySelectorAll(".qbtn").forEach(btn=>{
@@ -655,29 +673,16 @@ nextBtn.addEventListener("click", ()=>{
       }
     });
 
-submitBtn.addEventListener("click", ()=>{
-      if(state?.submitted) return;
+submitBtn.addEventListener("click", async ()=>{
+      if(state?.submitted || isSubmitting) return;
       const ok = confirm("Are you sure you want to submit the contest?");
-      if(ok) submitContest();
+      if(ok) await submitContest();
     });
 
-function autoSubmit(){
-      if(state.submitted) return;
+async function autoSubmit(){
+      if(state.submitted || isSubmitting) return;
       alert("Time is over. Contest auto-submitted.");
-      submitContest();
-    }
-
-function submitContest(){
-      const result = evaluateResult();
-      state.submitted = true;
-      state.finalResult = result;
-      saveState();
-      pushResultToHistory(result);
-      render();
-
-setTimeout(() => {
-        window.location.href = "contest-result.html";
-      }, 1200);
+      await submitContest();
     }
 
 function evaluateResult(){
@@ -692,10 +697,7 @@ QUESTIONS.forEach((q, i)=>{
 
 maxScore += plus;
 
-if(ans===null){
-          unattempted++;
-          return;
-        }
+if(ans===null){ unattempted++; return; }
 
 if(ans===q.correct){
           correct++;
@@ -712,7 +714,7 @@ const attempted = correct + wrong;
 return {
         contestId: CONTEST_ID,
         contestName: CONTEST_NAME,
-        user: USER_NAME,
+        user: currentUserName,
         submittedAt: new Date().toISOString(),
         totalQuestions: QUESTIONS.length,
         correct, wrong, unattempted,
@@ -723,10 +725,70 @@ return {
 function pushResultToHistory(result){
       const arr = JSON.parse(localStorage.getItem(KEY_RESULTS) || "[]");
       const filtered = arr.filter(
-        r => !(r.contestId === result.contestId && r.user === result.user)
+        r => !(String(r.contestId) === String(result.contestId) && String(r.user) === String(result.user))
       );
       filtered.push(result);
       localStorage.setItem(KEY_RESULTS, JSON.stringify(filtered));
+    }
+
+async function upsertSubmissionToSupabase(result) {
+      const sb = getSupabaseClient();
+      if (!sb || !currentUser) return false;
+
+const payload = {
+        contest_id: result.contestId,
+        user_id: currentUser.id,
+        user_name: result.user,
+        score: Number(result.score || 0),
+        max_score: Number(result.maxScore || 0),
+        accuracy: Number(result.accuracy || 0),
+        attempted: Number(result.attempted || 0),
+        total_questions: Number(result.totalQuestions || 0),
+        correct: Number(result.correct || 0),
+        wrong: Number(result.wrong || 0),
+        unattempted: Number(result.unattempted || 0),
+        submitted_at: result.submittedAt
+      };
+
+const { error } = await sb
+        .from("contest_submissions")
+        .upsert(payload, { onConflict: "contest_id,user_id" });
+
+if (error) {
+        console.error("contest_submissions upsert error:", error.message);
+        return false;
+      }
+      return true;
+    }
+
+async function submitContest(){
+      if (isSubmitting || state.submitted) return;
+      isSubmitting = true;
+
+try {
+        const result = evaluateResult();
+        state.submitted = true;
+        state.finalResult = result;
+        saveState();
+        pushResultToHistory(result);
+
+await upsertSubmissionToSupabase(result); // live leaderboard write
+
+render();
+
+localStorage.setItem(KEY_SELECTED_CONTEST, CONTEST_ID);
+        localStorage.setItem(KEY_SELECTED_CONTEST_META, JSON.stringify({
+          id: CONTEST_ID,
+          title: CONTEST_NAME,
+          duration_min: DURATION_MIN
+        }));
+
+setTimeout(() => {
+          window.location.href = `contest-result.html?contestId=${encodeURIComponent(CONTEST_ID)}`;
+        }, 1200);
+      } finally {
+        isSubmitting = false;
+      }
     }
 
 function lockUI(){
@@ -750,9 +812,11 @@ function showResult(r){
 
 /************** INIT **************/
     async function init() {
-      await loadContestData();
+      currentUser = await getAuthUser();
+      if (currentUser?.email) currentUserName = currentUser.email.split("@")[0];
 
-state = loadState();
+await loadContestData();
+      state = loadState();
 
 loadingBox.style.display = "none";
       attemptLayout.style.display = "grid";
