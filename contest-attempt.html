@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode • Contest Attempt</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#111b31;
+      --panel2:#162442;
+      --line:#25385d;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --red:#ef4444;
+      --yellow:#f59e0b;
+      --blue:#3b82f6;
+      --purple:#8b5cf6;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 10% -10%, #1d3b67 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1e2f56 0%, transparent 30%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+
+.container{max-width:1220px;margin:0 auto;padding:16px}
+    .topbar{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand .icon{color:var(--green);font-size:22px;font-weight:800}
+    .brand h1{font-size:24px;line-height:1}
+    .brand p{font-size:12px;color:var(--muted);margin-top:2px}
+    .contest-title{font-size:18px;font-weight:700}
+    .timer{
+      border:1px solid rgba(239,68,68,.4);
+      color:#ffc9c9;
+      background:rgba(239,68,68,.1);
+      border-radius:10px;
+      padding:8px 12px;
+      font-weight:800;
+      letter-spacing:.5px;
+    }
+
+.layout{
+      display:grid;
+      grid-template-columns: 1fr 330px;
+      gap:14px;
+    }
+
+.panel{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      padding:16px;
+    }
+
+.q-meta{
+      display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+      color:var(--muted);font-size:13px;margin-bottom:10px;
+    }
+    .badge{
+      border:1px solid rgba(34,197,94,.4);
+      background:rgba(34,197,94,.12);
+      color:#b9ffd0;
+      border-radius:999px;
+      padding:4px 8px;
+      font-size:12px;
+      font-weight:600;
+    }
+
+.question{
+      font-size:20px;
+      line-height:1.5;
+      margin-bottom:14px;
+    }
+
+.options{
+      display:grid;gap:10px;
+      margin-bottom:14px;
+    }
+    .opt{
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:rgba(255,255,255,.02);
+      padding:12px;
+      display:flex;align-items:flex-start;gap:10px;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .opt:hover{background:rgba(255,255,255,.04)}
+    .opt.active{
+      border-color:rgba(34,197,94,.5);
+      background:rgba(34,197,94,.10);
+    }
+    .opt input{accent-color:var(--green);margin-top:2px}
+
+.actions{
+      display:flex;gap:8px;flex-wrap:wrap;
+    }
+    button{
+      border:none;cursor:pointer;border-radius:10px;padding:10px 13px;font-weight:700;color:#fff;
+    }
+    .btn-primary{background:#16a34a}
+    .btn-secondary{background:#334155}
+    .btn-outline{
+      background:transparent;border:1px solid var(--line);color:var(--text)
+    }
+    .btn-danger{
+      background:rgba(239,68,68,.12);
+      border:1px solid rgba(239,68,68,.35);
+      color:#ffd3d3;
+    }
+    .nav-row{
+      margin-top:12px;
+      display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;
+    }
+
+.summary h3{margin-bottom:10px}
+    .stats{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;
+    }
+    .stat{
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:10px;
+      padding:10px;
+      background:rgba(255,255,255,.02);
+      color:var(--muted);
+      font-size:12px;
+    }
+    .stat strong{display:block;color:var(--text);font-size:16px;margin-top:4px}
+
+.palette{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:8px;
+      margin:10px 0 14px;
+    }
+    .qbtn{
+      height:36px;
+      border-radius:8px;
+      border:1px solid var(--line);
+      background:#101b31;
+      color:var(--text);
+      font-weight:700;
+      cursor:pointer;
+    }
+    .qbtn.current{outline:2px solid var(--blue)}
+    .qbtn.answered{
+      background:rgba(34,197,94,.18);
+      border-color:rgba(34,197,94,.5);
+      color:#baffcf;
+    }
+    .qbtn.review{
+      background:rgba(245,158,11,.16);
+      border-color:rgba(245,158,11,.5);
+      color:#ffe2b0;
+    }
+
+.legend{
+      display:grid;gap:6px;
+      font-size:12px;color:var(--muted);
+      margin-bottom:12px;
+    }
+    .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+    .dot.g{background:var(--green)}
+    .dot.y{background:var(--yellow)}
+    .dot.b{background:var(--blue)}
+
+.result{
+      margin-top:14px;
+      border:1px solid rgba(34,197,94,.35);
+      background:rgba(34,197,94,.08);
+      border-radius:12px;
+      padding:14px;
+      display:none;
+    }
+    .result h3{margin-bottom:8px}
+    .result p{color:#c7ffd9;margin:4px 0}
+    .result .score{
+      font-size:30px;font-weight:800;color:#b4ffd0;margin:8px 0;
+    }
+
+.loading{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:14px;
+      color:var(--muted);
+      margin-bottom:12px;
+    }
+
+@media(max-width:980px){
+      .layout{grid-template-columns:1fr}
+      .palette{grid-template-columns:repeat(6,1fr)}
+    }
+    @media(max-width:560px){
+      .question{font-size:18px}
+      .palette{grid-template-columns:repeat(5,1fr)}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode</h1>
+          <p>LeetCode for JEE</p>
+        </div>
+      </div>
+      <div>
+        <div class="contest-title" id="contestName">Loading contest...</div>
+        <small id="markingRuleText" style="color:var(--muted)">+4 correct • -1 wrong • 0 unattempted</small>
+      </div>
+      <div class="timer" id="timer">Time Left: 00:00:00</div>
+    </header>
+
+<div id="loadingBox" class="loading">Loading contest questions...</div>
+
+<div class="layout" id="attemptLayout" style="display:none;">
+      <section class="panel">
+        <div class="q-meta">
+          <span id="qNumberText">Question 1 / 10</span>
+          <span class="badge" id="subjectBadge">Physics</span>
+          <span class="badge" id="difficultyBadge">Easy</span>
+        </div>
+
+<div class="question" id="questionText"></div>
+        <div class="options" id="optionsWrap"></div>
+
+<div class="actions">
+          <button class="btn-primary" id="saveBtn">Save Response</button>
+          <button class="btn-outline" id="clearBtn">Clear Response</button>
+          <button class="btn-secondary" id="markReviewBtn">Mark for Review</button>
+        </div>
+
+<div class="nav-row">
+          <button class="btn-outline" id="prevBtn">← Previous</button>
+          <button class="btn-outline" id="nextBtn">Next →</button>
+        </div>
+
+<div class="result" id="resultBox">
+          <h3>Contest Submitted ✅</h3>
+          <div class="score" id="scoreText">0</div>
+          <p id="resultLine1"></p>
+          <p id="resultLine2"></p>
+          <p id="resultLine3"></p>
+        </div>
+      </section>
+
+<aside class="panel summary">
+        <h3>Question Palette</h3>
+        <div class="stats">
+          <div class="stat">Answered<strong id="answeredCount">0</strong></div>
+          <div class="stat">Review<strong id="reviewCount">0</strong></div>
+          <div class="stat">Unanswered<strong id="unansweredCount">0</strong></div>
+          <div class="stat">Total<strong id="totalCount">0</strong></div>
+        </div>
+
+<div class="legend">
+          <div><span class="dot g"></span>Answered</div>
+          <div><span class="dot y"></span>Marked for review</div>
+          <div><span class="dot b"></span>Current question</div>
+        </div>
+
+<div class="palette" id="palette"></div>
+        <button class="btn-danger" id="submitBtn" style="width:100%">Submit Contest</button>
+      </aside>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+
+<script>
+    /************** CONFIG **************/
+    const USER_NAME = "PrepCoder";
+    const KEY_RESULTS = "prepcode_contest_results";
+    const KEY_SELECTED_CONTEST = "prepcode_selected_contest";
+
+let CONTEST_ID = "";
+    let CONTEST_NAME = "Contest";
+    let DURATION_MIN = 30;
+    let QUESTIONS = [];
+    let DEFAULT_MARK = 4;
+    let DEFAULT_NEGATIVE = 1;
+
+let KEY_STATE = "";
+    let state = null;
+
+/************** ELEMENTS **************/
+    const contestNameEl = document.getElementById("contestName");
+    const markingRuleText = document.getElementById("markingRuleText");
+    const timerEl = document.getElementById("timer");
+    const qNumberText = document.getElementById("qNumberText");
+    const subjectBadge = document.getElementById("subjectBadge");
+    const difficultyBadge = document.getElementById("difficultyBadge");
+    const questionText = document.getElementById("questionText");
+    const optionsWrap = document.getElementById("optionsWrap");
+    const paletteEl = document.getElementById("palette");
+
+const answeredCount = document.getElementById("answeredCount");
+    const reviewCount = document.getElementById("reviewCount");
+    const unansweredCount = document.getElementById("unansweredCount");
+    const totalCount = document.getElementById("totalCount");
+
+const saveBtn = document.getElementById("saveBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const markReviewBtn = document.getElementById("markReviewBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const submitBtn = document.getElementById("submitBtn");
+
+const resultBox = document.getElementById("resultBox");
+    const scoreText = document.getElementById("scoreText");
+    const resultLine1 = document.getElementById("resultLine1");
+    const resultLine2 = document.getElementById("resultLine2");
+    const resultLine3 = document.getElementById("resultLine3");
+
+const loadingBox = document.getElementById("loadingBox");
+    const attemptLayout = document.getElementById("attemptLayout");
+
+/************** HELPERS **************/
+    function getSupabaseClient() {
+      return window.PC?.supabase || window.sb || null;
+    }
+
+function isUuid(v) {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
+    }
+
+function letterToIndex(letter) {
+      const L = String(letter || "").trim().toUpperCase();
+      if (L === "A") return 0;
+      if (L === "B") return 1;
+      if (L === "C") return 2;
+      if (L === "D") return 3;
+      return 0;
+    }
+
+function resolveContestIdFromStorage() {
+      const raw = localStorage.getItem(KEY_SELECTED_CONTEST);
+      if (!raw) return null;
+
+if (isUuid(raw)) return raw;
+
+try {
+        const parsed = JSON.parse(raw);
+        if (parsed && isUuid(parsed.id)) return parsed.id;
+        if (parsed && isUuid(parsed.contest_id)) return parsed.contest_id;
+      } catch {}
+
+return null;
+    }
+
+function showFatal(msg) {
+      alert(msg);
+      window.location.href = "contest-home.html";
+    }
+
+/************** FETCH CONTEST + QUESTIONS **************/
+    async function loadContestData() {
+      const sb = getSupabaseClient();
+      if (!sb) {
+        showFatal("Supabase client not found.");
+        return;
+      }
+
+const selectedContestId = resolveContestIdFromStorage();
+      if (!selectedContestId) {
+        showFatal("No contest selected. Please join contest again.");
+        return;
+      }
+
+const { data: contest, error: contestErr } = await sb
+        .from("contests")
+        .select("id, title, duration_min")
+        .eq("id", selectedContestId)
+        .single();
+
+if (contestErr || !contest) {
+        console.error("contest load error:", contestErr?.message);
+        showFatal("Unable to load selected contest.");
+        return;
+      }
+
+CONTEST_ID = contest.id;
+      CONTEST_NAME = contest.title || "Contest";
+      DURATION_MIN = Number(contest.duration_min || 30);
+
+const { data: mapped, error: mapErr } = await sb
+        .from("contest_questions")
+        .select("question_id, question_order, marks, negative_marks")
+        .eq("contest_id", CONTEST_ID)
+        .order("question_order", { ascending: true });
+
+if (mapErr) {
+        console.error("contest_questions load error:", mapErr.message);
+        showFatal("Unable to load contest question mapping.");
+        return;
+      }
+
+if (!mapped || !mapped.length) {
+        showFatal("No questions attached to this contest yet.");
+        return;
+      }
+
+const qids = mapped.map(m => m.question_id);
+
+const { data: qRows, error: qErr } = await sb
+        .from("questions")
+        .select("id, subject, difficulty, text, title, option_a, option_b, option_c, option_d, correct")
+        .in("id", qids);
+
+if (qErr) {
+        console.error("questions load error:", qErr.message);
+        showFatal("Unable to load contest question details.");
+        return;
+      }
+
+const qMap = new Map((qRows || []).map(q => [q.id, q]));
+
+QUESTIONS = mapped.map((m, idx) => {
+        const q = qMap.get(m.question_id);
+        if (!q) return null;
+
+return {
+          id: q.id,
+          subject: q.subject || "Mixed",
+          difficulty: q.difficulty || "Easy",
+          text: q.text || q.title || "Question",
+          options: [
+            q.option_a || "",
+            q.option_b || "",
+            q.option_c || "",
+            q.option_d || ""
+          ],
+          correct: letterToIndex(q.correct),
+          marks: Number(m.marks ?? 4),
+          negativeMarks: Number(m.negative_marks ?? 1),
+          order: Number(m.question_order ?? idx + 1)
+        };
+      }).filter(Boolean);
+
+if (!QUESTIONS.length) {
+        showFatal("Mapped questions could not be resolved.");
+        return;
+      }
+
+DEFAULT_MARK = Number(QUESTIONS[0]?.marks ?? 4);
+      DEFAULT_NEGATIVE = Number(QUESTIONS[0]?.negativeMarks ?? 1);
+
+KEY_STATE = `prepcode_attempt_${CONTEST_ID}`;
+      contestNameEl.textContent = CONTEST_NAME;
+      markingRuleText.textContent = `+${DEFAULT_MARK} correct • -${DEFAULT_NEGATIVE} wrong • 0 unattempted`;
+    }
+
+/************** STORAGE **************/
+    function defaultState(){
+      return {
+        contestId: CONTEST_ID,
+        contestName: CONTEST_NAME,
+        startTime: Date.now(),
+        endTime: Date.now() + DURATION_MIN * 60 * 1000,
+        currentIndex: 0,
+        answers: Array(QUESTIONS.length).fill(null),
+        review: Array(QUESTIONS.length).fill(false),
+        submitted: false,
+        finalResult: null
+      };
+    }
+
+function loadState(){
+      const raw = localStorage.getItem(KEY_STATE);
+      if(!raw){
+        const d = defaultState();
+        localStorage.setItem(KEY_STATE, JSON.stringify(d));
+        return d;
+      }
+      try{
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed.answers) || parsed.answers.length !== QUESTIONS.length) {
+          return defaultState();
+        }
+        if (!Array.isArray(parsed.review) || parsed.review.length !== QUESTIONS.length) {
+          return defaultState();
+        }
+        return parsed;
+      } catch {
+        return defaultState();
+      }
+    }
+
+function saveState(){
+      localStorage.setItem(KEY_STATE, JSON.stringify(state));
+    }
+
+/************** RENDER **************/
+    function render(){
+      renderQuestion();
+      renderPalette();
+      renderStats();
+      renderTimer();
+
+if(state.submitted){
+        lockUI();
+        showResult(state.finalResult);
+      }
+    }
+
+function renderQuestion(){
+      const i = state.currentIndex;
+      const q = QUESTIONS[i];
+
+qNumberText.textContent = `Question ${i+1} / ${QUESTIONS.length}`;
+      subjectBadge.textContent = q.subject;
+      difficultyBadge.textContent = q.difficulty;
+      questionText.textContent = q.text;
+
+optionsWrap.innerHTML = q.options.map((opt, idx)=>{
+        const checked = state.answers[i] === idx ? "checked" : "";
+        const active = state.answers[i] === idx ? "active" : "";
+        const letter = String.fromCharCode(65 + idx);
+        return `
+          <label class="opt ${active}" data-idx="${idx}">
+            <input type="radio" name="opt" ${checked}/>
+            <span><strong>${letter}.</strong> ${opt}</span>
+          </label>
+        `;
+      }).join("");
+
+optionsWrap.querySelectorAll(".opt").forEach(el=>{
+        el.addEventListener("click", ()=>{
+          const idx = Number(el.dataset.idx);
+          state.answers[state.currentIndex] = idx;
+          saveState();
+          renderQuestion();
+          renderPalette();
+          renderStats();
+        });
+      });
+
+markReviewBtn.textContent = state.review[i] ? "Unmark Review" : "Mark for Review";
+      prevBtn.disabled = i === 0;
+      nextBtn.disabled = i === QUESTIONS.length - 1;
+      prevBtn.style.opacity = i===0 ? ".5" : "1";
+      nextBtn.style.opacity = i===QUESTIONS.length-1 ? ".5" : "1";
+    }
+
+function renderPalette(){
+      paletteEl.innerHTML = QUESTIONS.map((_, i)=>{
+        const isCur = i === state.currentIndex;
+        const isAns = state.answers[i] !== null;
+        const isRev = !!state.review[i];
+
+const cls = [
+          "qbtn",
+          isCur ? "current" : "",
+          isAns ? "answered" : "",
+          isRev ? "review" : ""
+        ].join(" ").trim();
+
+return `<button class="${cls}" data-i="${i}">${i+1}</button>`;
+      }).join("");
+
+paletteEl.querySelectorAll(".qbtn").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          state.currentIndex = Number(btn.dataset.i);
+          saveState();
+          renderQuestion();
+          renderPalette();
+        });
+      });
+    }
+
+function renderStats(){
+      const ans = state.answers.filter(a=>a!==null).length;
+      const rev = state.review.filter(Boolean).length;
+      answeredCount.textContent = ans;
+      reviewCount.textContent = rev;
+      unansweredCount.textContent = QUESTIONS.length - ans;
+      totalCount.textContent = QUESTIONS.length;
+    }
+
+function renderTimer(){
+      if(state.submitted){
+        timerEl.textContent = "Submitted";
+        timerEl.style.borderColor = "rgba(34,197,94,.4)";
+        timerEl.style.background = "rgba(34,197,94,.12)";
+        timerEl.style.color = "#baffcf";
+        return;
+      }
+      const ms = state.endTime - Date.now();
+      if(ms <= 0){
+        timerEl.textContent = "Time Left: 00:00:00";
+        autoSubmit();
+        return;
+      }
+      const sec = Math.floor(ms/1000);
+      const h = Math.floor(sec/3600);
+      const m = Math.floor((sec%3600)/60);
+      const s = sec%60;
+      timerEl.textContent = `Time Left: ${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+    }
+
+/************** ACTIONS **************/
+    saveBtn.addEventListener("click", ()=>{
+      if(state?.submitted) return;
+      alert("Response saved.");
+    });
+
+clearBtn.addEventListener("click", ()=>{
+      if(state?.submitted) return;
+      state.answers[state.currentIndex] = null;
+      saveState();
+      render();
+    });
+
+markReviewBtn.addEventListener("click", ()=>{
+      if(state?.submitted) return;
+      const i = state.currentIndex;
+      state.review[i] = !state.review[i];
+      saveState();
+      render();
+    });
+
+prevBtn.addEventListener("click", ()=>{
+      if(state?.submitted) return;
+      if(state.currentIndex>0){
+        state.currentIndex--;
+        saveState();
+        render();
+      }
+    });
+
+nextBtn.addEventListener("click", ()=>{
+      if(state?.submitted) return;
+      if(state.currentIndex<QUESTIONS.length-1){
+        state.currentIndex++;
+        saveState();
+        render();
+      }
+    });
+
+submitBtn.addEventListener("click", ()=>{
+      if(state?.submitted) return;
+      const ok = confirm("Are you sure you want to submit the contest?");
+      if(ok) submitContest();
+    });
+
+function autoSubmit(){
+      if(state.submitted) return;
+      alert("Time is over. Contest auto-submitted.");
+      submitContest();
+    }
+
+function submitContest(){
+      const result = evaluateResult();
+      state.submitted = true;
+      state.finalResult = result;
+      saveState();
+      pushResultToHistory(result);
+      render();
+
+setTimeout(() => {
+        window.location.href = "contest-result.html";
+      }, 1200);
+    }
+
+function evaluateResult(){
+      let correct=0, wrong=0, unattempted=0;
+      let score = 0;
+      let maxScore = 0;
+
+QUESTIONS.forEach((q, i)=>{
+        const ans = state.answers[i];
+        const plus = Number(q.marks ?? DEFAULT_MARK);
+        const minus = Number(q.negativeMarks ?? DEFAULT_NEGATIVE);
+
+maxScore += plus;
+
+if(ans===null){
+          unattempted++;
+          return;
+        }
+
+if(ans===q.correct){
+          correct++;
+          score += plus;
+        } else {
+          wrong++;
+          score -= minus;
+        }
+      });
+
+const attempted = correct + wrong;
+      const accuracy = attempted ? ((correct/attempted)*100).toFixed(2) : "0.00";
+
+return {
+        contestId: CONTEST_ID,
+        contestName: CONTEST_NAME,
+        user: USER_NAME,
+        submittedAt: new Date().toISOString(),
+        totalQuestions: QUESTIONS.length,
+        correct, wrong, unattempted,
+        attempted, score, maxScore, accuracy
+      };
+    }
+
+function pushResultToHistory(result){
+      const arr = JSON.parse(localStorage.getItem(KEY_RESULTS) || "[]");
+      const filtered = arr.filter(
+        r => !(r.contestId === result.contestId && r.user === result.user)
+      );
+      filtered.push(result);
+      localStorage.setItem(KEY_RESULTS, JSON.stringify(filtered));
+    }
+
+function lockUI(){
+      [saveBtn, clearBtn, markReviewBtn, prevBtn, nextBtn, submitBtn].forEach(btn=>{
+        btn.disabled = true;
+        btn.style.opacity = ".6";
+        btn.style.cursor = "not-allowed";
+      });
+      optionsWrap.querySelectorAll("input").forEach(i=> i.disabled = true);
+      paletteEl.querySelectorAll("button").forEach(b=> b.disabled = true);
+    }
+
+function showResult(r){
+      if(!r) return;
+      resultBox.style.display = "block";
+      scoreText.textContent = `${r.score} / ${r.maxScore}`;
+      resultLine1.textContent = `Correct: ${r.correct} | Wrong: ${r.wrong} | Unattempted: ${r.unattempted}`;
+      resultLine2.textContent = `Attempted: ${r.attempted}/${r.totalQuestions} | Accuracy: ${r.accuracy}%`;
+      resultLine3.textContent = `Redirecting to contest result page...`;
+    }
+
+/************** INIT **************/
+    async function init() {
+      await loadContestData();
+
+state = loadState();
+
+loadingBox.style.display = "none";
+      attemptLayout.style.display = "grid";
+
+render();
+      setInterval(renderTimer, 1000);
+    }
+
+init().catch(err => {
+      console.error("contest-attempt init error:", err);
+      showFatal("Failed to load contest attempt page.");
+    });
+  </script>
+</body>
+</html>
