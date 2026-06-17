@@ -291,6 +291,7 @@
     const KEY_RESULTS = "prepcode_contest_results";
     const KEY_SELECTED_CONTEST = "prepcode_selected_contest";
     const KEY_SELECTED_CONTEST_META = "prepcode_selected_contest_meta";
+    const KEY_LAST_SUBMITTED_CONTEST = "prepcode_last_submitted_contest";
 
 let CONTEST_ID = "";
     let CONTEST_NAME = "Contest";
@@ -363,23 +364,41 @@ function letterToIndex(letter) {
       return 0;
     }
 
+function persistSelectedContest(contestId, title, durationMin) {
+      if (!isUuid(contestId)) return;
+      localStorage.setItem(KEY_SELECTED_CONTEST, contestId);
+      localStorage.setItem(KEY_SELECTED_CONTEST_META, JSON.stringify({
+        id: contestId,
+        title: title || "",
+        duration_min: Number(durationMin || 0)
+      }));
+    }
+
 function resolveContestId() {
+      // 1) URL param
       const urlId = new URLSearchParams(window.location.search).get("contestId");
       if (isUuid(urlId)) return urlId;
 
-const raw = localStorage.getItem(KEY_SELECTED_CONTEST);
+// 2) selected contest key
+      const raw = localStorage.getItem(KEY_SELECTED_CONTEST);
       if (isUuid(raw)) return raw;
 
-try {
+// 3) selected contest key as JSON
+      try {
         const parsed = JSON.parse(raw || "{}");
         if (parsed && isUuid(parsed.id)) return parsed.id;
         if (parsed && isUuid(parsed.contest_id)) return parsed.contest_id;
       } catch {}
 
-try {
+// 4) selected contest meta
+      try {
         const meta = JSON.parse(localStorage.getItem(KEY_SELECTED_CONTEST_META) || "{}");
         if (meta && isUuid(meta.id)) return meta.id;
       } catch {}
+
+// 5) last submitted contest
+      const last = localStorage.getItem(KEY_LAST_SUBMITTED_CONTEST);
+      if (isUuid(last)) return last;
 
 return null;
     }
@@ -403,8 +422,6 @@ const selectedContestId = resolveContestId();
         return;
       }
 
-localStorage.setItem(KEY_SELECTED_CONTEST, selectedContestId);
-
 const { data: contest, error: contestErr } = await sb
         .from("contests")
         .select("id, title, duration_min")
@@ -421,11 +438,7 @@ CONTEST_ID = contest.id;
       CONTEST_NAME = contest.title || "Contest";
       DURATION_MIN = Number(contest.duration_min || 30);
 
-localStorage.setItem(KEY_SELECTED_CONTEST_META, JSON.stringify({
-        id: CONTEST_ID,
-        title: CONTEST_NAME,
-        duration_min: DURATION_MIN
-      }));
+persistSelectedContest(CONTEST_ID, CONTEST_NAME, DURATION_MIN);
 
 const { data: mapped, error: mapErr } = await sb
         .from("contest_questions")
@@ -589,8 +602,7 @@ function renderPalette(){
         const isCur = i === state.currentIndex;
         const isAns = state.answers[i] !== null;
         const isRev = !!state.review[i];
-
-const cls = ["qbtn", isCur ? "current" : "", isAns ? "answered" : "", isRev ? "review" : ""].join(" ").trim();
+        const cls = ["qbtn", isCur ? "current" : "", isAns ? "answered" : "", isRev ? "review" : ""].join(" ").trim();
         return `<button class="${cls}" data-i="${i}">${i+1}</button>`;
       }).join("");
 
@@ -772,19 +784,16 @@ try {
         saveState();
         pushResultToHistory(result);
 
-await upsertSubmissionToSupabase(result); // live leaderboard write
+await upsertSubmissionToSupabase(result);
+
+// keep contest context perfectly in sync
+        persistSelectedContest(CONTEST_ID, CONTEST_NAME, DURATION_MIN);
+        localStorage.setItem(KEY_LAST_SUBMITTED_CONTEST, CONTEST_ID);
 
 render();
 
-localStorage.setItem(KEY_SELECTED_CONTEST, CONTEST_ID);
-        localStorage.setItem(KEY_SELECTED_CONTEST_META, JSON.stringify({
-          id: CONTEST_ID,
-          title: CONTEST_NAME,
-          duration_min: DURATION_MIN
-        }));
-
 setTimeout(() => {
-          window.location.href = `contest-result.html?contestId=${encodeURIComponent(CONTEST_ID)}`;
+          window.location.href = `contest-result.html?contestId=${encodeURIComponent(result.contestId)}`;
         }, 1200);
       } finally {
         isSubmitting = false;
@@ -813,6 +822,11 @@ function showResult(r){
 /************** INIT **************/
     async function init() {
       currentUser = await getAuthUser();
+      if (!currentUser) {
+        alert("Please login first.");
+        window.location.href = "index.html";
+        return;
+      }
       if (currentUser?.email) currentUserName = currentUser.email.split("@")[0];
 
 await loadContestData();
