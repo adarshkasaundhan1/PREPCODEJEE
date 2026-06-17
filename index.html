@@ -219,6 +219,7 @@
           <div class="streak">🔥 <span id="streakNum">0</span> Day Streak</div>
 
 <button id="adminBtn" class="btn btn-outline" style="display:none;">Admin</button>
+          <button id="adminContestBtn" class="btn btn-outline" style="display:none;">Admin Contest</button>
 
 <button id="loginBtn" class="btn btn-outline">Login</button>
           <button id="logoutBtn" class="btn btn-outline">Logout</button>
@@ -342,6 +343,7 @@ const explorePhysicsBtn = document.getElementById("explorePhysicsBtn");
 const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const adminBtn = document.getElementById("adminBtn");
+    const adminContestBtn = document.getElementById("adminContestBtn");
     const profileName = document.getElementById("profileName");
     const avatarLetter = document.getElementById("avatarLetter");
 
@@ -395,7 +397,9 @@ setTopTab(localStorage.getItem(KEYS.topTab) || "home");
     renderBookmark();
     renderSidebarSubjectCounts();
     renderSubjectCardCounts();
-    if (adminBtn) adminBtn.style.display = "none";
+
+if (adminBtn) adminBtn.style.display = "none";
+    if (adminContestBtn) adminContestBtn.style.display = "none";
 
 loginBtn?.addEventListener("click", async () => {
       const email = prompt("Enter your email:");
@@ -417,6 +421,10 @@ logoutBtn?.addEventListener("click", async () => {
 
 adminBtn?.addEventListener("click", () => {
       window.location.href = "admin.html";
+    });
+
+adminContestBtn?.addEventListener("click", () => {
+      window.location.href = "admin-contests.html";
     });
 
 async function getAuthUser() {
@@ -456,17 +464,21 @@ let isAdminUser = false;
             const ar = await window.PC.isAdmin(user.id);
             isAdminUser = !!ar?.isAdmin;
           }
-          adminBtn.style.display = isAdminUser ? "inline-block" : "none";
+
+adminBtn.style.display = isAdminUser ? "inline-block" : "none";
+          adminContestBtn.style.display = isAdminUser ? "inline-block" : "none";
         } else {
           profileName.textContent = "PrepCoder ▾";
           avatarLetter.textContent = "P";
           loginBtn.style.display = "inline-block";
           logoutBtn.style.display = "none";
           adminBtn.style.display = "none";
+          adminContestBtn.style.display = "none";
         }
       } catch (e) {
         console.error("Auth state error:", e);
         if (adminBtn) adminBtn.style.display = "none";
+        if (adminContestBtn) adminContestBtn.style.display = "none";
       }
     }
 
@@ -592,7 +604,7 @@ topBtns.forEach(btn => {
       btn.addEventListener("click", () => {
         const tab = btn.dataset.tab;
         if (tab === "problems") return (window.location.href = "problems.html");
-        if (tab === "contests") return (window.location.href = "contesthome.html");
+        if (tab === "contests") return (window.location.href = "contest-home.html");
         setTopTab(tab);
         localStorage.setItem(KEYS.topTab, tab);
       });
@@ -602,7 +614,7 @@ sideBtns.forEach(btn => {
       btn.addEventListener("click", () => {
         const tab = btn.dataset.tab;
         if (tab === "problems") return (window.location.href = "problems.html");
-        if (tab === "contests") return (window.location.href = "contesthome.html");
+        if (tab === "contests") return (window.location.href = "contest-home.html");
         setSideTab(tab);
         localStorage.setItem(KEYS.sideTab, tab);
       });
