@@ -163,6 +163,56 @@
 
 .footer{margin-top:14px;color:var(--muted);font-size:13px}
 
+/* Login Modal */
+    .modal-backdrop{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      padding:16px;
+    }
+    .modal-backdrop.open{ display:flex; }
+    .modal-card{
+      width:min(460px, 100%);
+      background:linear-gradient(180deg, rgba(18,31,57,.98), rgba(12,22,40,.98));
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:18px;
+      position:relative;
+      box-shadow:0 20px 50px rgba(0,0,0,.45);
+    }
+    .modal-close{
+      position:absolute; top:10px; right:10px;
+      border:1px solid var(--line);
+      background:transparent; color:var(--text);
+      width:30px; height:30px; border-radius:8px; cursor:pointer;
+    }
+    .modal-close:hover{ background:rgba(255,255,255,.06); }
+    .modal-card h3{ font-size:22px; margin-bottom:6px; }
+    .modal-sub{ color:var(--muted); font-size:13px; margin-bottom:12px; }
+    .modal-form{ display:grid; gap:10px; }
+    .modal-input{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--panel);
+      color:var(--text);
+      padding:11px 12px;
+      outline:none;
+    }
+    .modal-input:focus{
+      border-color:rgba(34,197,94,.5);
+      box-shadow:0 0 0 3px rgba(34,197,94,.15);
+    }
+    .modal-msg{
+      margin-top:10px;
+      color:var(--muted);
+      min-height:18px;
+      font-size:13px;
+    }
+
 @media (max-width:1050px){
       .app{grid-template-columns:1fr}
       .sidebar{position:relative;height:auto}
@@ -298,6 +348,28 @@
     </main>
   </div>
 
+<!-- Login Modal -->
+  <div id="loginModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <button id="closeLoginModal" class="modal-close" aria-label="Close">✕</button>
+      <h3 id="loginTitle">Login to PrepCode</h3>
+      <p class="modal-sub">Enter your email to receive a magic sign-in link.</p>
+
+<form id="loginForm" class="modal-form">
+        <input
+          id="loginEmail"
+          type="email"
+          class="modal-input"
+          placeholder="you@example.com"
+          required
+        />
+        <button id="sendMagicBtn" type="submit" class="btn">Send Magic Link</button>
+      </form>
+
+<p id="loginMsg" class="modal-msg"></p>
+    </div>
+  </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
 
@@ -351,6 +423,14 @@ const physicsCardStats = document.getElementById("physicsCardStats");
     const chemistryCardStats = document.getElementById("chemistryCardStats");
     const mathCardStats = document.getElementById("mathCardStats");
 
+// Modal refs
+    const loginModal = document.getElementById("loginModal");
+    const closeLoginModal = document.getElementById("closeLoginModal");
+    const loginForm = document.getElementById("loginForm");
+    const loginEmail = document.getElementById("loginEmail");
+    const loginMsg = document.getElementById("loginMsg");
+    const sendMagicBtn = document.getElementById("sendMagicBtn");
+
 let streak = 0;
     let bookmarked = localStorage.getItem(KEYS.bookmarked) === "true";
     let currentUser = null;
@@ -391,6 +471,21 @@ function isUuid(v) {
       return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
     }
 
+function openLoginModal() {
+      if (!loginModal) return;
+      loginModal.classList.add("open");
+      loginModal.setAttribute("aria-hidden", "false");
+      loginMsg.textContent = "";
+      loginForm.reset();
+      setTimeout(() => loginEmail.focus(), 50);
+    }
+
+function closeModal() {
+      if (!loginModal) return;
+      loginModal.classList.remove("open");
+      loginModal.setAttribute("aria-hidden", "true");
+    }
+
 setTopTab(localStorage.getItem(KEYS.topTab) || "home");
     setSideTab(localStorage.getItem(KEYS.sideTab) || "dashboard");
     renderStreak();
@@ -401,15 +496,42 @@ setTopTab(localStorage.getItem(KEYS.topTab) || "home");
 if (adminBtn) adminBtn.style.display = "none";
     if (adminContestBtn) adminContestBtn.style.display = "none";
 
-loginBtn?.addEventListener("click", async () => {
-      const email = prompt("Enter your email:");
+loginBtn?.addEventListener("click", openLoginModal);
+    closeLoginModal?.addEventListener("click", closeModal);
+
+loginModal?.addEventListener("click", (e) => {
+      if (e.target === loginModal) closeModal();
+    });
+
+window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && loginModal?.classList.contains("open")) {
+        closeModal();
+      }
+    });
+
+loginForm?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = (loginEmail.value || "").trim();
       if (!email) return;
-      try {
-        const { error } = await window.PC.signInWithEmail(email);
-        if (error) return alert(error.message || "Login failed");
-        alert("Magic link sent. Check email, open link, then come back.");
+
+try {
+        sendMagicBtn.disabled = true;
+        sendMagicBtn.textContent = "Sending...";
+        loginMsg.textContent = "Sending magic link...";
+
+const { error } = await window.PC.signInWithEmail(email);
+        if (error) {
+          loginMsg.textContent = error.message || "Login failed";
+          return;
+        }
+
+loginMsg.textContent = "✅ Magic link sent. Check your email and come back.";
+        setTimeout(closeModal, 1200);
       } catch (e) {
-        alert(e.message || "Login failed");
+        loginMsg.textContent = e.message || "Login failed";
+      } finally {
+        sendMagicBtn.disabled = false;
+        sendMagicBtn.textContent = "Send Magic Link";
       }
     });
 
@@ -455,6 +577,7 @@ if (user) {
           avatarLetter.textContent = name.charAt(0).toUpperCase();
           loginBtn.style.display = "none";
           logoutBtn.style.display = "inline-block";
+          closeModal();
 
 let isAdminUser = false;
           if (window.PC?.canCurrentUserAccessAdmin) {
