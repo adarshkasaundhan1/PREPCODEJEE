@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode • Contest Results</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#111b31;
+      --panel2:#162442;
+      --line:#25385d;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --red:#ef4444;
+      --yellow:#f59e0b;
+      --blue:#3b82f6;
+      --purple:#8b5cf6;
+    }
+
+*{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 10% -10%, #1d3b67 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1e2f56 0%, transparent 30%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+
+.container{max-width:1220px;margin:0 auto;padding:16px}
+    .topbar{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+.brand{display:flex;align-items:center;gap:10px}
+    .brand .icon{color:var(--green);font-size:22px;font-weight:800}
+    .brand h1{font-size:24px;line-height:1}
+    .brand p{font-size:12px;color:var(--muted);margin-top:2px}
+
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    select, button{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 12px;
+      background:var(--panel);
+      color:var(--text);
+      font-weight:600;
+      cursor:pointer;
+    }
+    button:hover{filter:brightness(1.08)}
+    .btn-green{background:#166534;border-color:#1f7a40}
+    .btn-red{background:#5f1c24;border-color:#8a2d3a}
+
+.grid4{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      padding:14px;
+    }
+    .card .label{font-size:12px;color:var(--muted)}
+    .card .val{font-size:28px;font-weight:800;margin-top:5px}
+    .ok{color:#9dffbf}
+    .warn{color:#ffdca3}
+    .bad{color:#ffc9c9}
+
+.layout{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:12px;
+    }
+
+.section-title{
+      font-size:18px;
+      margin-bottom:10px;
+    }
+
+.result-box .row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:8px;
+    }
+    .pill{
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      border-radius:10px;
+      padding:10px;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .pill strong{display:block;color:var(--text);font-size:17px;margin-top:4px}
+
+table{
+      width:100%;
+      border-collapse:collapse;
+      overflow:hidden;
+      border-radius:12px;
+      margin-top:8px;
+      border:1px solid var(--line);
+    }
+    thead{background:rgba(59,130,246,.15)}
+    th, td{
+      padding:10px 8px;
+      text-align:left;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      font-size:14px;
+    }
+    th{font-size:13px;color:#c8d9ff}
+    tbody tr:hover{background:rgba(255,255,255,.03)}
+    .rank-chip{
+      display:inline-block;
+      min-width:30px;
+      text-align:center;
+      border-radius:999px;
+      font-weight:700;
+      padding:4px 8px;
+      background:rgba(255,255,255,.08);
+    }
+    .rank-1{background:rgba(245,158,11,.20);color:#ffdf9e}
+    .rank-2{background:rgba(156,163,175,.20);color:#e5e7eb}
+    .rank-3{background:rgba(180,83,9,.20);color:#ffd2a8}
+
+.you{
+      color:#b5ffd1;
+      font-weight:700;
+    }
+
+.bar-wrap{
+      margin-top:10px;
+      display:grid;
+      gap:10px;
+    }
+    .bar-row{
+      display:grid;
+      grid-template-columns:120px 1fr 60px;
+      gap:8px;
+      align-items:center;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background:#243758;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .bar > span{
+      height:100%;
+      display:block;
+      border-radius:999px;
+    }
+    .b-phy{background:linear-gradient(90deg,#1d4ed8,#60a5fa)}
+    .b-chem{background:linear-gradient(90deg,#b45309,#f59e0b)}
+    .b-math{background:linear-gradient(90deg,#6d28d9,#a78bfa)}
+    .b-mixed{background:linear-gradient(90deg,#0f766e,#2dd4bf)}
+
+.empty{
+      border:1px dashed var(--line);
+      border-radius:12px;
+      padding:16px;
+      color:var(--muted);
+      text-align:center;
+      margin-top:8px;
+    }
+
+.footer{
+      margin-top:14px;
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+    }
+
+@media(max-width:1020px){
+      .grid4{grid-template-columns:repeat(2,1fr)}
+      .layout{grid-template-columns:1fr}
+    }
+    @media(max-width:620px){
+      .grid4{grid-template-columns:1fr}
+      .bar-row{grid-template-columns:95px 1fr 50px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode</h1>
+          <p>LeetCode for JEE • Contest Results</p>
+        </div>
+      </div>
+
+<div class="controls">
+        <select id="contestSelect"></select>
+        <button id="exportBtn" class="btn-green">Export Selected JSON</button>
+        <button id="clearBtn" class="btn-red">Clear All Results</button>
+      </div>
+    </header>
+
+<section class="grid4">
+      <article class="card">
+        <div class="label">Your Score</div>
+        <div class="val ok" id="scoreVal">0</div>
+      </article>
+      <article class="card">
+        <div class="label">Your Rank</div>
+        <div class="val" id="rankVal">-</div>
+      </article>
+      <article class="card">
+        <div class="label">Accuracy</div>
+        <div class="val warn" id="accVal">0%</div>
+      </article>
+      <article class="card">
+        <div class="label">Attempted</div>
+        <div class="val" id="attemptVal">0/0</div>
+      </article>
+    </section>
+
+<section class="layout">
+      <article class="card result-box">
+        <h3 class="section-title">Your Performance</h3>
+        <div class="row">
+          <div class="pill">Contest<strong id="contestName">-</strong></div>
+          <div class="pill">Submitted At<strong id="submittedAt">-</strong></div>
+          <div class="pill">Correct<strong id="correctVal">0</strong></div>
+          <div class="pill">Wrong<strong id="wrongVal">0</strong></div>
+          <div class="pill">Unattempted<strong id="unattemptVal">0</strong></div>
+          <div class="pill">Max Score<strong id="maxVal">0</strong></div>
+        </div>
+
+<h3 class="section-title" style="margin-top:14px;">Subject-wise Score %</h3>
+        <div class="bar-wrap" id="subjectBars"></div>
+      </article>
+
+<article class="card">
+        <h3 class="section-title">Leaderboard</h3>
+        <div id="leaderboardWrap"></div>
+      </article>
+    </section>
+
+<p class="footer">
+      Reads from localStorage key: <strong>prepcode_contest_results</strong>
+    </p>
+  </div>
+
+<script>
+    const RESULT_KEY = "prepcode_contest_results";
+    const SELECTED_CONTEST_KEY = "prepcode_selected_contest";
+    const YOU = "PrepCoder";
+
+function loadResults() {
+      const raw = localStorage.getItem(RESULT_KEY);
+      if (!raw) return [];
+      try {
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch {
+        return [];
+      }
+    }
+
+function getDemoResults() {
+      return [
+        {
+          contestId: "contest_21",
+          contestName: "JEE Full Mock #21",
+          user: "PrepCoder",
+          submittedAt: "2026-06-15T08:10:00.000Z",
+          totalQuestions: 10,
+          correct: 7,
+          wrong: 2,
+          unattempted: 1,
+          attempted: 9,
+          score: 26,
+          maxScore: 40,
+          accuracy: "77.78"
+        },
+        {
+          contestId: "contest_21",
+          contestName: "JEE Full Mock #21",
+          user: "Aarav",
+          submittedAt: "2026-06-15T08:09:00.000Z",
+          totalQuestions: 10,
+          correct: 8,
+          wrong: 2,
+          unattempted: 0,
+          attempted: 10,
+          score: 30,
+          maxScore: 40,
+          accuracy: "80.00"
+        },
+        {
+          contestId: "contest_21",
+          contestName: "JEE Full Mock #21",
+          user: "Riya",
+          submittedAt: "2026-06-15T08:12:00.000Z",
+          totalQuestions: 10,
+          correct: 6,
+          wrong: 3,
+          unattempted: 1,
+          attempted: 9,
+          score: 21,
+          maxScore: 40,
+          accuracy: "66.67"
+        },
+        {
+          contestId: "contest_77",
+          contestName: "Physics Sprint #12",
+          user: "PrepCoder",
+          submittedAt: "2026-06-14T09:20:00.000Z",
+          totalQuestions: 12,
+          correct: 8,
+          wrong: 3,
+          unattempted: 1,
+          attempted: 11,
+          score: 29,
+          maxScore: 48,
+          accuracy: "72.73"
+        },
+        {
+          contestId: "contest_77",
+          contestName: "Physics Sprint #12",
+          user: "Kabir",
+          submittedAt: "2026-06-14T09:19:00.000Z",
+          totalQuestions: 12,
+          correct: 9,
+          wrong: 2,
+          unattempted: 1,
+          attempted: 11,
+          score: 34,
+          maxScore: 48,
+          accuracy: "81.82"
+        }
+      ];
+    }
+
+let allResults = loadResults();
+    if (!allResults.length) {
+      allResults = getDemoResults();
+    }
+
+const contestSelect = document.getElementById("contestSelect");
+    const exportBtn = document.getElementById("exportBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+const scoreVal = document.getElementById("scoreVal");
+    const rankVal = document.getElementById("rankVal");
+    const accVal = document.getElementById("accVal");
+    const attemptVal = document.getElementById("attemptVal");
+
+const contestName = document.getElementById("contestName");
+    const submittedAt = document.getElementById("submittedAt");
+    const correctVal = document.getElementById("correctVal");
+    const wrongVal = document.getElementById("wrongVal");
+    const unattemptVal = document.getElementById("unattemptVal");
+    const maxVal = document.getElementById("maxVal");
+
+const subjectBars = document.getElementById("subjectBars");
+    const leaderboardWrap = document.getElementById("leaderboardWrap");
+
+function formatDate(iso) {
+      if (!iso) return "-";
+      const d = new Date(iso);
+      return d.toLocaleString([], {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+function uniqueContests(results) {
+      const map = new Map();
+      results.forEach(r => {
+        const key = `${r.contestId}__${r.contestName}`;
+        if (!map.has(key)) map.set(key, { contestId: r.contestId, contestName: r.contestName });
+      });
+      return [...map.values()];
+    }
+
+function getContestResults(contestId) {
+      return allResults.filter(r => r.contestId === contestId);
+    }
+
+function sortLeaderboard(rows) {
+      return rows.slice().sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return new Date(a.submittedAt) - new Date(b.submittedAt);
+      });
+    }
+
+function addRanks(sortedRows) {
+      return sortedRows.map((row, i) => ({ ...row, rank: i + 1 }));
+    }
+
+function getYouRow(rankedRows) {
+      const mine = rankedRows.filter(r => r.user === YOU);
+      if (!mine.length) return null;
+      return mine.sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt))[0];
+    }
+
+function subjectBreakdown(result) {
+      const totalPct = result.maxScore ? (result.score / result.maxScore) * 100 : 0;
+      const name = (result.contestName || "").toLowerCase();
+
+let phy = totalPct, chem = totalPct, math = totalPct, mixed = totalPct;
+
+if (name.includes("physics")) {
+        phy = totalPct;
+        chem = Math.max(0, totalPct - 12);
+        math = Math.max(0, totalPct - 10);
+        mixed = Math.max(0, totalPct - 8);
+      } else if (name.includes("chem")) {
+        chem = totalPct;
+        phy = Math.max(0, totalPct - 10);
+        math = Math.max(0, totalPct - 12);
+        mixed = Math.max(0, totalPct - 8);
+      } else if (name.includes("math")) {
+        math = totalPct;
+        phy = Math.max(0, totalPct - 10);
+        chem = Math.max(0, totalPct - 12);
+        mixed = Math.max(0, totalPct - 8);
+      } else {
+        phy = Math.max(0, Math.min(100, totalPct + 2));
+        chem = Math.max(0, Math.min(100, totalPct - 1));
+        math = Math.max(0, Math.min(100, totalPct + 1));
+        mixed = totalPct;
+      }
+
+return [
+        { key: "Physics", val: Math.round(phy), cls: "b-phy" },
+        { key: "Chemistry", val: Math.round(chem), cls: "b-chem" },
+        { key: "Mathematics", val: Math.round(math), cls: "b-math" },
+        { key: "Mixed", val: Math.round(mixed), cls: "b-mixed" }
+      ];
+    }
+
+let selectedContestId = localStorage.getItem(SELECTED_CONTEST_KEY) || null;
+
+function renderContestOptions() {
+      const contests = uniqueContests(allResults);
+      if (!contests.length) {
+        contestSelect.innerHTML = `<option value="">No contests found</option>`;
+        selectedContestId = null;
+        return;
+      }
+
+contestSelect.innerHTML = contests
+        .map(c => `<option value="${c.contestId}">${c.contestName} (${c.contestId})</option>`)
+        .join("");
+
+if (!selectedContestId || !contests.some(c => c.contestId === selectedContestId)) {
+        selectedContestId = contests[0].contestId;
+      }
+
+contestSelect.value = selectedContestId;
+      localStorage.setItem(SELECTED_CONTEST_KEY, selectedContestId);
+    }
+
+function renderPage() {
+      if (!selectedContestId) {
+        leaderboardWrap.innerHTML = `<div class="empty">No data available.</div>`;
+        return;
+      }
+
+const rows = getContestResults(selectedContestId);
+      if (!rows.length) {
+        leaderboardWrap.innerHTML = `<div class="empty">No results for this contest.</div>`;
+        return;
+      }
+
+const ranked = addRanks(sortLeaderboard(rows));
+      const me = getYouRow(ranked);
+
+const table = `
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>User</th>
+              <th>Score</th>
+              <th>Accuracy</th>
+              <th>Attempted</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ranked.map(r => {
+              const rankClass = r.rank === 1 ? "rank-1" : r.rank === 2 ? "rank-2" : r.rank === 3 ? "rank-3" : "";
+              const isYou = r.user === YOU ? "you" : "";
+              return `
+                <tr>
+                  <td><span class="rank-chip ${rankClass}">#${r.rank}</span></td>
+                  <td class="${isYou}">${r.user}${r.user === YOU ? " (You)" : ""}</td>
+                  <td>${r.score}</td>
+                  <td>${r.accuracy}%</td>
+                  <td>${r.attempted}/${r.totalQuestions}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
+      leaderboardWrap.innerHTML = table;
+
+if (!me) {
+        scoreVal.textContent = "-";
+        rankVal.textContent = "-";
+        accVal.textContent = "-";
+        attemptVal.textContent = "-";
+        contestName.textContent = rows[0].contestName || "-";
+        submittedAt.textContent = "-";
+        correctVal.textContent = "-";
+        wrongVal.textContent = "-";
+        unattemptVal.textContent = "-";
+        maxVal.textContent = "-";
+        subjectBars.innerHTML = `<div class="empty">No result for user "${YOU}" in this contest.</div>`;
+        return;
+      }
+
+scoreVal.textContent = `${me.score}`;
+      rankVal.textContent = `#${me.rank}`;
+      accVal.textContent = `${me.accuracy}%`;
+      attemptVal.textContent = `${me.attempted}/${me.totalQuestions}`;
+
+contestName.textContent = me.contestName || "-";
+      submittedAt.textContent = formatDate(me.submittedAt);
+      correctVal.textContent = me.correct;
+      wrongVal.textContent = me.wrong;
+      unattemptVal.textContent = me.unattempted;
+      maxVal.textContent = me.maxScore;
+
+const bars = subjectBreakdown(me);
+      subjectBars.innerHTML = bars.map(b => `
+        <div class="bar-row">
+          <span>${b.key}</span>
+          <div class="bar"><span class="${b.cls}" style="width:${Math.max(0, Math.min(100,b.val))}%"></span></div>
+          <strong>${b.val}%</strong>
+        </div>
+      `).join("");
+    }
+
+contestSelect.addEventListener("change", e => {
+      selectedContestId = e.target.value;
+      localStorage.setItem(SELECTED_CONTEST_KEY, selectedContestId);
+      renderPage();
+    });
+
+exportBtn.addEventListener("click", () => {
+      if (!selectedContestId) return;
+      const data = getContestResults(selectedContestId);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+const a = document.createElement("a");
+      a.href = url;
+      a.download = `${selectedContestId}_results.json`;
+      a.click();
+
+URL.revokeObjectURL(url);
+    });
+
+clearBtn.addEventListener("click", () => {
+      const ok = confirm("Clear all contest results from localStorage?");
+      if (!ok) return;
+
+localStorage.removeItem(RESULT_KEY);
+      localStorage.removeItem(SELECTED_CONTEST_KEY);
+
+allResults = [];
+      renderContestOptions();
+      leaderboardWrap.innerHTML = `<div class="empty">Results cleared.</div>`;
+      scoreVal.textContent = "0";
+      rankVal.textContent = "-";
+      accVal.textContent = "0%";
+      attemptVal.textContent = "0/0";
+      contestName.textContent = "-";
+      submittedAt.textContent = "-";
+      correctVal.textContent = "0";
+      wrongVal.textContent = "0";
+      unattemptVal.textContent = "0";
+      maxVal.textContent = "0";
+      subjectBars.innerHTML = `<div class="empty">No data.</div>`;
+    });
+
+renderContestOptions();
+    renderPage();
+  </script>
+</body>
+</html>
