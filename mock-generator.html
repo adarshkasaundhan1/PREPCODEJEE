@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode - Mock Test Generator</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#0f1a2f;
+      --line:#233354;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --blue:#3b82f6;
+      --danger:#ef4444;
+    }
+
+*{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% -10%, #193562 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1f2f55 0%, transparent 30%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      min-height:100vh;
+      padding:24px;
+    }
+
+.wrap{max-width:980px;margin:0 auto}
+    .top{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;
+    }
+
+.title h1{font-size:30px;margin-bottom:4px}
+    .title p{color:var(--muted)}
+    .btn{
+      border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;
+      background:#16a34a;color:#fff;
+    }
+    .btn-outline{
+      background:transparent;border:1px solid var(--line);color:var(--text);
+    }
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+
+.panel{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      padding:18px;
+      margin-bottom:14px;
+    }
+
+.grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+    @media (max-width:840px){ .grid{grid-template-columns:1fr} }
+
+label{display:block;font-weight:700;margin-bottom:8px}
+    .muted{color:var(--muted);font-size:13px}
+    .input, select{
+      width:100%;
+      background:var(--panel);
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 12px;
+      outline:none;
+    }
+    .input:focus, select:focus{
+      border-color:rgba(34,197,94,.5);
+      box-shadow:0 0 0 3px rgba(34,197,94,.15);
+    }
+
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+    .chip{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 12px;
+      background:rgba(255,255,255,.02);
+      cursor:pointer;
+      user-select:none;
+      font-size:14px;
+    }
+    .chip input{display:none}
+    .chip.active{
+      border-color:rgba(34,197,94,.45);
+      background:rgba(34,197,94,.1);
+      color:#b7ffd2;
+    }
+
+.topics-wrap{
+      max-height:260px;
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px;
+      background:rgba(255,255,255,.02);
+    }
+
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .danger{color:#ffc8c8;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.35);padding:10px;border-radius:10px;display:none}
+    .ok{color:#b7ffd2;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.35);padding:10px;border-radius:10px;display:none}
+    .footer{color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="title">
+        <h1>🧪 Mock Test Generator</h1>
+        <p>Create your own test by subjects, topics, question count, and timer.</p>
+      </div>
+      <div class="row">
+        <button id="backBtn" class="btn btn-outline">← Back</button>
+        <button id="logoutBtn" class="btn btn-outline">Logout</button>
+      </div>
+    </div>
+
+<div class="panel">
+      <div class="grid">
+        <div>
+          <label>Subjects</label>
+          <div id="subjectChips" class="chips">
+            <label class="chip"><input type="checkbox" value="Physics" />Physics</label>
+            <label class="chip"><input type="checkbox" value="Chemistry" />Chemistry</label>
+            <label class="chip"><input type="checkbox" value="Mathematics" />Mathematics</label>
+          </div>
+          <p class="muted" style="margin-top:8px;">Select at least one subject.</p>
+        </div>
+
+<div>
+          <label for="timerMin">Timer (minutes)</label>
+          <select id="timerMin">
+            <option value="15">15 min</option>
+            <option value="30">30 min</option>
+            <option value="45">45 min</option>
+            <option value="60" selected>60 min</option>
+            <option value="90">90 min</option>
+            <option value="120">120 min</option>
+            <option value="180">180 min</option>
+          </select>
+          <p class="muted" style="margin-top:8px;">Timer starts when test page opens.</p>
+        </div>
+      </div>
+    </div>
+
+<div class="panel">
+      <div class="grid">
+        <div>
+          <label for="questionCount">Number of Questions</label>
+          <input id="questionCount" class="input" type="number" min="5" max="200" value="30" />
+          <p class="muted" style="margin-top:8px;">Allowed range: 5 to 200.</p>
+        </div>
+        <div>
+          <label>Topic Mode</label>
+          <select id="topicMode">
+            <option value="all" selected>All topics from selected subjects</option>
+            <option value="custom">Choose specific topics</option>
+          </select>
+        </div>
+      </div>
+
+<div id="topicsBlock" style="margin-top:14px;display:none;">
+        <label>Topics (multi-select)</label>
+        <div id="topicsWrap" class="topics-wrap">
+          <p class="muted">Select subjects first to load topics.</p>
+        </div>
+      </div>
+    </div>
+
+<div class="panel">
+      <div id="errorBox" class="danger"></div>
+      <div id="okBox" class="ok"></div>
+
+<div class="row" style="margin-top:10px;">
+        <button id="previewBtn" class="btn btn-outline">Check available questions</button>
+        <button id="generateBtn" class="btn">Generate Mock Test</button>
+      </div>
+
+<p class="footer" style="margin-top:12px;">
+        Test questions are randomly selected from active DB questions based on your filters.
+      </p>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    const subjectChips = document.getElementById("subjectChips");
+    const topicMode = document.getElementById("topicMode");
+    const topicsBlock = document.getElementById("topicsBlock");
+    const topicsWrap = document.getElementById("topicsWrap");
+    const timerMin = document.getElementById("timerMin");
+    const questionCount = document.getElementById("questionCount");
+    const errorBox = document.getElementById("errorBox");
+    const okBox = document.getElementById("okBox");
+    const previewBtn = document.getElementById("previewBtn");
+    const generateBtn = document.getElementById("generateBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const backBtn = document.getElementById("backBtn");
+
+let allTopicsBySubject = new Map();
+
+function getSb() {
+      return window.PC?.supabase || window.sb || null;
+    }
+
+function normalizeSubject(s = "") {
+      const v = String(s).trim().toLowerCase();
+      if (v.includes("phys")) return "Physics";
+      if (v.includes("chem")) return "Chemistry";
+      if (v === "math" || v === "maths" || v.includes("mathemat")) return "Mathematics";
+      return "";
+    }
+
+function selectedSubjects() {
+      return [...subjectChips.querySelectorAll("input[type='checkbox']:checked")].map(i => i.value);
+    }
+
+function selectedTopics() {
+      return [...topicsWrap.querySelectorAll("input[type='checkbox']:checked")].map(i => i.value);
+    }
+
+function showError(msg) {
+      errorBox.style.display = "block";
+      errorBox.textContent = msg;
+    }
+
+function hideError() {
+      errorBox.style.display = "none";
+      errorBox.textContent = "";
+    }
+
+function showOk(msg) {
+      okBox.style.display = "block";
+      okBox.textContent = msg;
+    }
+
+function hideOk() {
+      okBox.style.display = "none";
+      okBox.textContent = "";
+    }
+
+function setChipActiveState() {
+      subjectChips.querySelectorAll(".chip").forEach(chip => {
+        const input = chip.querySelector("input");
+        chip.classList.toggle("active", input.checked);
+      });
+    }
+
+async function requireLogin() {
+      const getUser = window.PC?.getUser;
+      if (!getUser) {
+        showError("Auth client is not ready (supabase-client.js).");
+        return false;
+      }
+      const user = await getUser();
+      if (!user) {
+        alert("Please login first to generate mock tests.");
+        window.location.href = "index.html";
+        return false;
+      }
+      return true;
+    }
+
+async function loadTopicsForSubjects(subjects) {
+      topicsWrap.innerHTML = '<p class="muted">Loading topics...</p>';
+
+const sb = getSb();
+      if (!sb) {
+        topicsWrap.innerHTML = '<p class="muted">DB connection not available.</p>';
+        return;
+      }
+
+if (!subjects.length) {
+        topicsWrap.innerHTML = '<p class="muted">Select subjects first to load topics.</p>';
+        return;
+      }
+
+const { data, error } = await sb
+        .from("questions")
+        .select("subject, topic")
+        .eq("is_active", true)
+        .in("subject", subjects)
+        .limit(5000);
+
+if (error) {
+        topicsWrap.innerHTML = '<p class="muted">Failed to load topics.</p>';
+        return;
+      }
+
+const set = new Set();
+      (data || []).forEach(row => {
+        const sub = normalizeSubject(row.subject || "");
+        const topic = String(row.topic || "").trim();
+        if (subjects.includes(sub) && topic) set.add(topic);
+      });
+
+const list = [...set].sort((a, b) => a.localeCompare(b));
+      if (!list.length) {
+        topicsWrap.innerHTML = '<p class="muted">No topics found for selected subject(s).</p>';
+        return;
+      }
+
+topicsWrap.innerHTML = list.map(t => `
+        <label class="chip" style="margin:0 8px 8px 0;display:inline-block;">
+          <input type="checkbox" value="${escapeHtml(t)}" />
+          ${escapeHtml(t)}
+        </label>
+      `).join("");
+
+topicsWrap.querySelectorAll(".chip").forEach(chip => {
+        const input = chip.querySelector("input");
+        chip.addEventListener("click", () => {
+          setTimeout(() => chip.classList.toggle("active", input.checked), 0);
+        });
+      });
+    }
+
+function escapeHtml(str = "") {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+async function countAvailableQuestions({ subjects, topics, useCustomTopics }) {
+      const sb = getSb();
+      if (!sb) throw new Error("DB not connected.");
+
+let query = sb.from("questions").select("id,subject,topic", { count: "exact" }).eq("is_active", true);
+
+if (subjects.length) query = query.in("subject", subjects);
+      if (useCustomTopics && topics.length) query = query.in("topic", topics);
+
+const { count, error } = await query.limit(1);
+      if (error) throw new Error(error.message || "Count failed.");
+      return count || 0;
+    }
+
+async function fetchQuestions({ subjects, topics, useCustomTopics }) {
+      const sb = getSb();
+      if (!sb) throw new Error("DB not connected.");
+
+let query = sb.from("questions").select("*").eq("is_active", true);
+
+if (subjects.length) query = query.in("subject", subjects);
+      if (useCustomTopics && topics.length) query = query.in("topic", topics);
+
+const { data, error } = await query.limit(5000);
+      if (error) throw new Error(error.message || "Fetch failed.");
+      return data || [];
+    }
+
+function shuffle(arr = []) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+function validateForm() {
+      const subjects = selectedSubjects();
+      const useCustomTopics = topicMode.value === "custom";
+      const topics = selectedTopics();
+      const count = Number(questionCount.value || 0);
+      const timer = Number(timerMin.value || 0);
+
+if (!subjects.length) return { ok:false, msg:"Please select at least one subject." };
+      if (!Number.isFinite(count) || count < 5 || count > 200) {
+        return { ok:false, msg:"Question count must be between 5 and 200." };
+      }
+      if (!Number.isFinite(timer) || timer < 5 || timer > 300) {
+        return { ok:false, msg:"Timer must be between 5 and 300 minutes." };
+      }
+      if (useCustomTopics && !topics.length) {
+        return { ok:false, msg:"Please select at least one topic (or switch to All topics)." };
+      }
+
+return { ok:true, subjects, topics, useCustomTopics, count, timer };
+    }
+
+async function handlePreview() {
+      hideError(); hideOk();
+
+const v = validateForm();
+      if (!v.ok) return showError(v.msg);
+
+try {
+        previewBtn.disabled = true;
+        previewBtn.textContent = "Checking...";
+
+const available = await countAvailableQuestions(v);
+        if (available === 0) {
+          showError("No active questions found for your selected filters.");
+        } else {
+          showOk(`✅ ${available} questions available for selected filters.`);
+        }
+      } catch (e) {
+        showError(e.message || "Failed to check available questions.");
+      } finally {
+        previewBtn.disabled = false;
+        previewBtn.textContent = "Check available questions";
+      }
+    }
+
+async function handleGenerate() {
+      hideError(); hideOk();
+
+const v = validateForm();
+      if (!v.ok) return showError(v.msg);
+
+try {
+        generateBtn.disabled = true;
+        generateBtn.textContent = "Generating...";
+
+const pool = await fetchQuestions(v);
+        if (!pool.length) return showError("No active questions found for selected filters.");
+        if (pool.length < v.count) {
+          return showError(`Only ${pool.length} questions available. Reduce question count or broaden filters.`);
+        }
+
+const selected = shuffle(pool).slice(0, v.count);
+
+// Save current mock in sessionStorage for mock-test.html
+        sessionStorage.setItem("pc_mock_current", JSON.stringify({
+          config: {
+            subjects: v.subjects,
+            topics: v.useCustomTopics ? v.topics : [],
+            topicMode: v.useCustomTopics ? "custom" : "all",
+            count: v.count,
+            timerMin: v.timer
+          },
+          startedAt: Date.now(),
+          questions: selected
+        }));
+
+window.location.href = "mock-test.html";
+      } catch (e) {
+        showError(e.message || "Failed to generate mock test.");
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = "Generate Mock Test";
+      }
+    }
+
+topicMode.addEventListener("change", async () => {
+      const show = topicMode.value === "custom";
+      topicsBlock.style.display = show ? "block" : "none";
+      if (show) {
+        await loadTopicsForSubjects(selectedSubjects());
+      }
+    });
+
+subjectChips.querySelectorAll("input[type='checkbox']").forEach(inp => {
+      inp.addEventListener("change", async () => {
+        setChipActiveState();
+        if (topicMode.value === "custom") {
+          await loadTopicsForSubjects(selectedSubjects());
+        }
+      });
+    });
+
+previewBtn.addEventListener("click", handlePreview);
+    generateBtn.addEventListener("click", handleGenerate);
+
+logoutBtn.addEventListener("click", async () => {
+      try { await window.PC?.signOut?.(); } catch {}
+      window.location.href = "index.html";
+    });
+
+backBtn.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+
+(async function init() {
+      setChipActiveState();
+      const ok = await requireLogin();
+      if (!ok) return;
+    })();
+  </script>
+</body>
+</html>
