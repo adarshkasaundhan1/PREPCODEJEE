@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode - Mock Test</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#0f1a2f;
+      --line:#233354;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --blue:#3b82f6;
+      --yellow:#f59e0b;
+      --danger:#ef4444;
+      --ok:#16a34a;
+    }
+
+*{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% -10%, #193562 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1f2f55 0%, transparent 30%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      min-height:100vh;
+    }
+
+.app{max-width:1250px;margin:0 auto;padding:18px}
+    .top{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .title h1{font-size:28px;margin-bottom:4px}
+    .muted{color:var(--muted);font-size:13px}
+
+.timer{
+      border:1px solid rgba(245,158,11,.35);
+      background:rgba(245,158,11,.12);
+      color:#ffd58a;
+      border-radius:10px;
+      padding:8px 12px;
+      font-weight:800;
+      font-size:18px;
+      min-width:130px;
+      text-align:center;
+    }
+
+.layout{
+      display:grid;
+      grid-template-columns:1fr 320px;
+      gap:14px;
+    }
+    @media (max-width:980px){
+      .layout{grid-template-columns:1fr}
+    }
+
+.panel{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      padding:16px;
+    }
+
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .badge{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      border-radius:999px;
+      padding:4px 8px;
+      font-size:12px;
+    }
+
+.question{
+      font-size:26px;
+      line-height:1.4;
+      margin:8px 0 14px;
+    }
+
+.opt{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:12px;
+      margin-bottom:10px;
+      background:rgba(255,255,255,.02);
+      display:flex;gap:10px;align-items:flex-start;
+      cursor:pointer;
+    }
+    .opt input{margin-top:3px;accent-color:var(--green)}
+    .opt.active{
+      border-color:rgba(34,197,94,.55);
+      background:rgba(34,197,94,.08);
+    }
+
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .btn{
+      border:none;border-radius:9px;padding:10px 13px;font-weight:700;cursor:pointer;color:#fff;background:#16a34a;
+    }
+    .btn-outline{
+      border:1px solid var(--line);
+      background:transparent;
+      color:var(--text);
+    }
+    .btn-danger{background:var(--danger)}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+
+.side h3{margin-bottom:10px}
+    .palette{
+      display:grid;
+      grid-template-columns:repeat(6, 1fr);
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .qbtn{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      border-radius:8px;
+      height:34px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .qbtn.current{
+      border-color:#60a5fa;
+      box-shadow:0 0 0 2px rgba(59,130,246,.18) inset;
+    }
+    .qbtn.answered{
+      border-color:rgba(34,197,94,.5);
+      background:rgba(34,197,94,.15);
+      color:#b7ffd2;
+    }
+
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    .dot{
+      width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;
+    }
+
+.status{
+      margin-top:10px;padding:10px;border-radius:10px;display:none;
+    }
+    .ok{
+      border:1px solid rgba(34,197,94,.35);
+      background:rgba(34,197,94,.08);
+      color:#b7ffd2;
+    }
+    .err{
+      border:1px solid rgba(239,68,68,.35);
+      background:rgba(239,68,68,.08);
+      color:#ffc8c8;
+    }
+
+.result{
+      display:none;
+      margin-top:12px;
+      border:1px solid rgba(34,197,94,.35);
+      background:rgba(34,197,94,.08);
+      border-radius:12px;
+      padding:12px;
+    }
+    .result h4{margin-bottom:8px}
+    .result-grid{
+      display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:8px;
+    }
+    .result-card{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px;
+      background:rgba(255,255,255,.03);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="top">
+      <div class="title">
+        <h1>📝 Mock Test</h1>
+        <p id="testMeta" class="muted">Loading test...</p>
+      </div>
+      <div class="timer" id="timer">00:00</div>
+    </div>
+
+<div class="layout">
+      <section class="panel">
+        <div class="meta">
+          <span class="badge" id="metaQNo">Q 1</span>
+          <span class="badge" id="metaSubject">Subject</span>
+          <span class="badge" id="metaTopic">Topic</span>
+          <span class="badge" id="metaDifficulty">Difficulty</span>
+          <span class="badge" id="metaMarks">+4</span>
+        </div>
+
+<p class="question" id="questionText">Loading question...</p>
+
+<div id="optionsWrap"></div>
+
+<div class="actions">
+          <button id="prevBtn" class="btn btn-outline">← Previous</button>
+          <button id="nextBtn" class="btn btn-outline">Next →</button>
+          <button id="clearBtn" class="btn btn-outline">Clear Answer</button>
+          <button id="submitBtn" class="btn btn-danger">Submit Test</button>
+        </div>
+
+<div id="okMsg" class="status ok"></div>
+        <div id="errMsg" class="status err"></div>
+
+<div id="resultBox" class="result">
+          <h4>✅ Test Submitted</h4>
+          <div class="result-grid">
+            <div class="result-card"><strong id="rScore">0</strong><div class="muted">Score</div></div>
+            <div class="result-card"><strong id="rCorrect">0</strong><div class="muted">Correct</div></div>
+            <div class="result-card"><strong id="rWrong">0</strong><div class="muted">Wrong</div></div>
+            <div class="result-card"><strong id="rUnanswered">0</strong><div class="muted">Unanswered</div></div>
+          </div>
+          <div class="actions" style="margin-top:10px;">
+            <button id="goHomeBtn" class="btn">Back to Home</button>
+            <button id="newMockBtn" class="btn btn-outline">Generate New Mock</button>
+          </div>
+        </div>
+      </section>
+
+<aside class="panel side">
+        <h3>Question Palette</h3>
+        <div class="legend">
+          <span><span class="dot" style="background:#60a5fa;"></span>Current</span>
+          <span><span class="dot" style="background:#22c55e;"></span>Answered</span>
+          <span><span class="dot" style="background:#64748b;"></span>Not answered</span>
+        </div>
+        <div id="palette" class="palette"></div>
+
+<div class="actions">
+          <button id="saveBtn" class="btn btn-outline">Save Progress</button>
+          <button id="quitBtn" class="btn btn-outline">Quit</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    const STORAGE_KEY = "pc_mock_current";
+    const ANSWERS_KEY = "pc_mock_answers";
+
+const testMeta = document.getElementById("testMeta");
+    const timerEl = document.getElementById("timer");
+
+const metaQNo = document.getElementById("metaQNo");
+    const metaSubject = document.getElementById("metaSubject");
+    const metaTopic = document.getElementById("metaTopic");
+    const metaDifficulty = document.getElementById("metaDifficulty");
+    const metaMarks = document.getElementById("metaMarks");
+
+const questionText = document.getElementById("questionText");
+    const optionsWrap = document.getElementById("optionsWrap");
+    const palette = document.getElementById("palette");
+
+const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const quitBtn = document.getElementById("quitBtn");
+
+const okMsg = document.getElementById("okMsg");
+    const errMsg = document.getElementById("errMsg");
+
+const resultBox = document.getElementById("resultBox");
+    const rScore = document.getElementById("rScore");
+    const rCorrect = document.getElementById("rCorrect");
+    const rWrong = document.getElementById("rWrong");
+    const rUnanswered = document.getElementById("rUnanswered");
+    const goHomeBtn = document.getElementById("goHomeBtn");
+    const newMockBtn = document.getElementById("newMockBtn");
+
+let test = null;
+    let questions = [];
+    let answers = {}; // { qid: "A"/"B"/"C"/"D" }
+    let idx = 0;
+    let timer = null;
+    let endAt = 0;
+    let submitted = false;
+
+function showOk(msg){
+      okMsg.style.display = "block";
+      okMsg.textContent = msg;
+      setTimeout(() => okMsg.style.display = "none", 1800);
+    }
+
+function showErr(msg){
+      errMsg.style.display = "block";
+      errMsg.textContent = msg;
+      setTimeout(() => errMsg.style.display = "none", 2200);
+    }
+
+function escapeHtml(str = "") {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+function normalizeSubject(s = "") {
+      const v = String(s).toLowerCase().trim();
+      if (v.includes("phys")) return "Physics";
+      if (v.includes("chem")) return "Chemistry";
+      if (v === "math" || v === "maths" || v.includes("mathemat")) return "Mathematics";
+      return s || "General";
+    }
+
+function optionMap(q){
+      return {
+        A: q.option_a ?? q.a ?? "",
+        B: q.option_b ?? q.b ?? "",
+        C: q.option_c ?? q.c ?? "",
+        D: q.option_d ?? q.d ?? ""
+      };
+    }
+
+function qidOf(q, i){
+      return String(q.id || `q_${i}`);
+    }
+
+function persistAnswers(){
+      sessionStorage.setItem(ANSWERS_KEY, JSON.stringify(answers));
+    }
+
+function loadSavedAnswers(){
+      try {
+        answers = JSON.parse(sessionStorage.getItem(ANSWERS_KEY) || "{}");
+      } catch {
+        answers = {};
+      }
+    }
+
+function renderPalette(){
+      palette.innerHTML = questions.map((q, i) => {
+        const qid = qidOf(q, i);
+        const answered = !!answers[qid];
+        const cls = [
+          "qbtn",
+          i === idx ? "current" : "",
+          answered ? "answered" : ""
+        ].join(" ");
+        return `<button class="${cls}" data-i="${i}">${i + 1}</button>`;
+      }).join("");
+
+palette.querySelectorAll(".qbtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          idx = Number(btn.dataset.i);
+          renderQuestion();
+        });
+      });
+    }
+
+function renderQuestion(){
+      const q = questions[idx];
+      if (!q) return;
+
+const qid = qidOf(q, idx);
+      const opts = optionMap(q);
+      const selected = answers[qid] || "";
+
+metaQNo.textContent = `Q ${idx + 1} / ${questions.length}`;
+      metaSubject.textContent = normalizeSubject(q.subject || "");
+      metaTopic.textContent = q.topic || "Topic";
+      metaDifficulty.textContent = q.difficulty || "Easy";
+      metaMarks.textContent = `+${q.marks ?? 4}`;
+
+questionText.textContent = q.text || q.title || "Question";
+
+optionsWrap.innerHTML = ["A","B","C","D"].map(k => `
+        <label class="opt ${selected === k ? "active" : ""}">
+          <input type="radio" name="ans" value="${k}" ${selected === k ? "checked" : ""} ${submitted ? "disabled" : ""} />
+          <span>${k}. ${escapeHtml(opts[k])}</span>
+        </label>
+      `).join("");
+
+optionsWrap.querySelectorAll(".opt").forEach(opt => {
+        opt.addEventListener("click", () => {
+          if (submitted) return;
+          optionsWrap.querySelectorAll(".opt").forEach(o => o.classList.remove("active"));
+          opt.classList.add("active");
+          const val = opt.querySelector("input").value;
+          answers[qid] = val;
+          persistAnswers();
+          renderPalette();
+        });
+      });
+
+prevBtn.disabled = idx === 0 || submitted;
+      nextBtn.disabled = idx === questions.length - 1 || submitted;
+      clearBtn.disabled = submitted;
+
+renderPalette();
+    }
+
+function formatTime(sec){
+      const s = Math.max(0, sec);
+      const mm = String(Math.floor(s / 60)).padStart(2, "0");
+      const ss = String(s % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
+    }
+
+function startTimer(totalSec){
+      endAt = Date.now() + totalSec * 1000;
+      timerEl.textContent = formatTime(totalSec);
+
+timer = setInterval(() => {
+        const left = Math.ceil((endAt - Date.now()) / 1000);
+        timerEl.textContent = formatTime(left);
+
+if (left <= 60) {
+          timerEl.style.borderColor = "rgba(239,68,68,.45)";
+          timerEl.style.background = "rgba(239,68,68,.12)";
+          timerEl.style.color = "#fecaca";
+        }
+
+if (left <= 0) {
+          clearInterval(timer);
+          timer = null;
+          autoSubmitDueToTime();
+        }
+      }, 250);
+    }
+
+function stopTimer(){
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+function autoSubmitDueToTime(){
+      if (submitted) return;
+      showErr("⏱ Time is over. Auto-submitting your test...");
+      setTimeout(() => submitTest(true), 350);
+    }
+
+async function saveResultToDb(result){
+      try {
+        const user = await window.PC?.getUser?.();
+        if (!user) return; // silently skip if logged out
+        const sb = window.PC?.supabase || window.sb;
+        if (!sb) return;
+
+// Optional table: mock_tests
+        // This is safe: if table not present, catch silently.
+        await sb.from("mock_tests").insert({
+          user_id: user.id,
+          config: test.config || {},
+          question_ids: questions.map((q, i) => qidOf(q, i)),
+          started_at: new Date(test.startedAt || Date.now()).toISOString(),
+          submitted_at: new Date().toISOString(),
+          score: result.score,
+          total: result.total,
+          duration_sec: result.durationSec,
+          status: "submitted"
+        });
+      } catch (e) {
+        // no hard fail
+        console.warn("mock_tests save skipped:", e?.message || e);
+      }
+    }
+
+async function submitTest(isAuto = false){
+      if (submitted) return;
+      submitted = true;
+      stopTimer();
+
+const perQMark = 4; // change if needed
+      let correct = 0, wrong = 0, unans = 0;
+
+questions.forEach((q, i) => {
+        const qid = qidOf(q, i);
+        const userAns = String(answers[qid] || "").toUpperCase();
+        const corr = String(q.correct || "A").toUpperCase();
+
+if (!userAns) unans++;
+        else if (userAns === corr) correct++;
+        else wrong++;
+      });
+
+const score = correct * perQMark; // no negative marking
+      const total = questions.length * perQMark;
+      const durationSec = Math.max(
+        0,
+        Math.round((Date.now() - Number(test.startedAt || Date.now())) / 1000)
+      );
+
+rScore.textContent = `${score} / ${total}`;
+      rCorrect.textContent = String(correct);
+      rWrong.textContent = String(wrong);
+      rUnanswered.textContent = String(unans);
+      resultBox.style.display = "block";
+
+prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      clearBtn.disabled = true;
+      submitBtn.disabled = true;
+      saveBtn.disabled = true;
+
+renderQuestion();
+
+// Save last result locally
+      localStorage.setItem("pc_mock_last_result", JSON.stringify({
+        score, total, correct, wrong, unanswered: unans,
+        submittedAt: new Date().toISOString(),
+        config: test.config || {}
+      }));
+
+await saveResultToDb({ score, total, durationSec });
+
+if (!isAuto) showOk("✅ Test submitted successfully.");
+    }
+
+function clearCurrentAnswer(){
+      if (submitted) return;
+      const q = questions[idx];
+      const qid = qidOf(q, idx);
+      delete answers[qid];
+      persistAnswers();
+      renderQuestion();
+    }
+
+async function requireLogin(){
+      const user = await window.PC?.getUser?.();
+      if (!user) {
+        alert("Please login first.");
+        window.location.href = "index.html";
+        return false;
+      }
+      return true;
+    }
+
+function initFromSession(){
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        alert("No mock test found. Please generate a test first.");
+        window.location.href = "mock-generator.html";
+        return false;
+      }
+
+try {
+        test = JSON.parse(raw);
+      } catch {
+        alert("Invalid mock test data.");
+        window.location.href = "mock-generator.html";
+        return false;
+      }
+
+questions = Array.isArray(test.questions) ? test.questions : [];
+      if (!questions.length) {
+        alert("Mock test has no questions.");
+        window.location.href = "mock-generator.html";
+        return false;
+      }
+
+loadSavedAnswers();
+
+const cfg = test.config || {};
+      const subjects = (cfg.subjects || []).join(", ") || "Mixed";
+      testMeta.textContent = `${questions.length} Questions • ${cfg.timerMin || 60} min • ${subjects}`;
+
+return true;
+    }
+
+// Events
+    prevBtn.addEventListener("click", () => {
+      if (idx > 0) { idx--; renderQuestion(); }
+    });
+
+nextBtn.addEventListener("click", () => {
+      if (idx < questions.length - 1) { idx++; renderQuestion(); }
+    });
+
+clearBtn.addEventListener("click", clearCurrentAnswer);
+
+submitBtn.addEventListener("click", () => {
+      if (submitted) return;
+      const ok = confirm("Are you sure you want to submit the test?");
+      if (!ok) return;
+      submitTest(false);
+    });
+
+saveBtn.addEventListener("click", () => {
+      persistAnswers();
+      showOk("💾 Progress saved in this browser session.");
+    });
+
+quitBtn.addEventListener("click", () => {
+      const ok = confirm("Quit current test? Your progress will be lost.");
+      if (!ok) return;
+      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(ANSWERS_KEY);
+      window.location.href = "mock-generator.html";
+    });
+
+goHomeBtn.addEventListener("click", () => {
+      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(ANSWERS_KEY);
+      window.location.href = "index.html";
+    });
+
+newMockBtn.addEventListener("click", () => {
+      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(ANSWERS_KEY);
+      window.location.href = "mock-generator.html";
+    });
+
+// Init
+    (async function init(){
+      const loggedIn = await requireLogin();
+      if (!loggedIn) return;
+      const ok = initFromSession();
+      if (!ok) return;
+
+renderQuestion();
+
+const totalSec = Number(test?.config?.timerMin || 60) * 60;
+      startTimer(totalSec);
+    })();
+  </script>
+</body>
+</html>
