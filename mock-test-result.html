@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock Test Result</title>
+  <style>
+    :root{
+      --bg:#0b1426;
+      --card:#121f39;
+      --line:#233354;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --ok:#22c55e;
+      --bad:#ef4444;
+      --btn:#16a34a;
+    }
+
+*{box-sizing:border-box}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      margin:0;
+      padding:24px;
+    }
+    .container{max-width:1100px;margin:0 auto}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:16px;
+      margin-bottom:14px;
+    }
+    .muted{color:var(--muted)}
+    .ok{color:var(--ok);font-weight:700}
+    .bad{color:var(--bad);font-weight:700}
+
+.head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+.btn{
+      border:none;
+      background:var(--btn);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn-outline{
+      border:1px solid var(--line);
+      background:transparent;
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+.stats{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(120px,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    @media (max-width:900px){
+      .stats{grid-template-columns:repeat(2,minmax(120px,1fr))}
+    }
+
+.stat{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px;
+      background:rgba(255,255,255,.02);
+    }
+    .stat strong{font-size:20px;display:block;margin-bottom:4px}
+
+.pill{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      border:1px solid var(--line);
+      margin-right:6px;
+      margin-bottom:6px;
+    }
+
+.question-title{
+      margin:0 0 10px;
+      line-height:1.4;
+    }
+    .opt{
+      margin:6px 0;
+      padding:8px 10px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:rgba(255,255,255,.02);
+    }
+    .opt.correct{
+      border-color:rgba(34,197,94,.55);
+      background:rgba(34,197,94,.10);
+    }
+    .opt.selected-wrong{
+      border-color:rgba(239,68,68,.55);
+      background:rgba(239,68,68,.10);
+    }
+    .explain{
+      margin-top:10px;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:rgba(255,255,255,.02);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card head">
+      <div>
+        <h2 style="margin:0 0 8px;">Mock Test Result</h2>
+        <p id="summary" class="muted" style="margin:0;">Loading...</p>
+
+<div class="stats" id="statsBox" style="display:none;">
+          <div class="stat"><strong id="sScore">0</strong><span class="muted">Score</span></div>
+          <div class="stat"><strong id="sCorrect">0</strong><span class="muted">Correct</span></div>
+          <div class="stat"><strong id="sWrong">0</strong><span class="muted">Wrong</span></div>
+          <div class="stat"><strong id="sUnans">0</strong><span class="muted">Unanswered</span></div>
+          <div class="stat"><strong id="sPct">0%</strong><span class="muted">Percentage</span></div>
+        </div>
+      </div>
+
+<div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-outline" onclick="window.location.href='index.html'">Home</button>
+        <button class="btn" onclick="window.location.href='mock-generator.html'">Retake Mock</button>
+      </div>
+    </div>
+
+<div id="resultList"></div>
+  </div>
+
+<script>
+    function escapeHtml(str = "") {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+function formatDuration(sec = 0) {
+      const s = Math.max(0, Number(sec) || 0);
+      const mm = String(Math.floor(s / 60)).padStart(2, "0");
+      const ss = String(s % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
+    }
+
+// Supports both old and new schemas
+    function normalizeResult(data) {
+      const totalQuestions = Number(data.totalQuestions ?? data.total ?? 0);
+      const correct = Number(data.correct ?? 0);
+      const wrong = Number(data.wrong ?? 0);
+      const unanswered = Number(data.unanswered ?? Math.max(0, totalQuestions - correct - wrong));
+      const totalMarks = Number(data.totalMarks ?? data.total ?? 0);
+      const obtainedMarks = Number(data.obtainedMarks ?? data.score ?? correct * 4);
+      const percentage = Number(data.percentage ?? (totalMarks ? (obtainedMarks / totalMarks) * 100 : 0)).toFixed(2);
+      const durationSec = Number(data.durationSec ?? 0);
+
+return {
+        submittedAt: data.submittedAt || null,
+        totalQuestions,
+        correct,
+        wrong,
+        unanswered,
+        totalMarks,
+        obtainedMarks,
+        percentage,
+        durationSec,
+        detailed: Array.isArray(data.detailed) ? data.detailed : []
+      };
+    }
+
+const raw = localStorage.getItem("mock_test_result_v1") || localStorage.getItem("pc_mock_last_result");
+    const summaryEl = document.getElementById("summary");
+    const listEl = document.getElementById("resultList");
+    const statsBox = document.getElementById("statsBox");
+
+if (!raw) {
+      summaryEl.textContent = "No result found. Please attempt a mock test first.";
+      listEl.innerHTML = `
+        <div class="card">
+          <p class="muted">Go to mock test page and submit a test to view results.</p>
+          <button class="btn" onclick="window.location.href='mock-generator.html'">Go to Mock Test</button>
+        </div>
+      `;
+    } else {
+      const normalized = normalizeResult(JSON.parse(raw));
+
+document.getElementById("sScore").textContent = `${normalized.obtainedMarks} / ${normalized.totalMarks || (normalized.totalQuestions * 4)}`;
+      document.getElementById("sCorrect").textContent = String(normalized.correct);
+      document.getElementById("sWrong").textContent = String(normalized.wrong);
+      document.getElementById("sUnans").textContent = String(normalized.unanswered);
+      document.getElementById("sPct").textContent = `${normalized.percentage}%`;
+      statsBox.style.display = "grid";
+
+const submittedText = normalized.submittedAt
+        ? ` • Submitted: ${new Date(normalized.submittedAt).toLocaleString()}`
+        : "";
+
+const durationText = normalized.durationSec
+        ? ` • Duration: ${formatDuration(normalized.durationSec)}`
+        : "";
+
+summaryEl.textContent =
+        `Questions: ${normalized.totalQuestions} • Correct: ${normalized.correct} • Wrong: ${normalized.wrong} • Unanswered: ${normalized.unanswered}${durationText}${submittedText}`;
+
+listEl.innerHTML = (normalized.detailed || []).map(item => {
+        const selected = item.selected || null;
+        const correct = String(item.correct || "").toUpperCase();
+        const opts = item.options || {};
+
+const optRow = (key, text) => {
+          const isCorrectOpt = key === correct;
+          const isSelectedWrong = selected === key && selected !== correct;
+
+const cls = [
+            "opt",
+            isCorrectOpt ? "correct" : "",
+            isSelectedWrong ? "selected-wrong" : ""
+          ].join(" ").trim();
+
+return `<div class="${cls}"><strong>${key}:</strong> ${escapeHtml(text || "")}</div>`;
+        };
+
+return `
+          <div class="card">
+            <h3 class="question-title">Q${item.index}. ${escapeHtml(item.question || "")}</h3>
+
+<div class="muted" style="margin-bottom:8px;">
+              <span class="pill">Your Answer: ${selected ? escapeHtml(selected) : "Not Attempted"}</span>
+              <span class="pill">Correct: ${escapeHtml(correct || "-")}</span>
+              <span class="pill">${escapeHtml(item.subject || "General")} • ${escapeHtml(item.topic || "Topic")}</span>
+              <span class="${item.isCorrect ? "ok" : "bad"}">${item.isCorrect ? "Correct" : "Wrong"}</span>
+            </div>
+
+${optRow("A", opts.A)}
+            ${optRow("B", opts.B)}
+            ${optRow("C", opts.C)}
+            ${optRow("D", opts.D)}
+
+<div class="explain">
+              <strong>Explanation:</strong>
+              <p class="muted" style="margin:6px 0 0;">${escapeHtml(item.explanation || "No explanation available.")}</p>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+if (!normalized.detailed.length) {
+        listEl.innerHTML = `
+          <div class="card">
+            <p class="muted">Detailed question breakdown is not available for this result.</p>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>
