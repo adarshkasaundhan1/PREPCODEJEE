@@ -490,11 +490,9 @@ const cfg = test?.config || {};
 
 function redirectToResultPage(resultPayload) {
       localStorage.setItem(RESULT_KEY, JSON.stringify(resultPayload));
-      // keep old key too if other pages rely on it
       localStorage.setItem("pc_mock_last_result", JSON.stringify(resultPayload));
 
-// clear current attempt data
-      sessionStorage.removeItem(ANSWERS_KEY);
+sessionStorage.removeItem(ANSWERS_KEY);
       sessionStorage.removeItem(STORAGE_KEY);
 
 window.location.href = "mock-test-result.html";
@@ -507,19 +505,27 @@ async function saveResultToDb(result){
         const sb = window.PC?.supabase || window.sb;
         if (!sb) return;
 
-await sb.from("mock_tests").insert({
+const payload = {
           user_id: user.id,
-          config: test.config || {},
-          question_ids: questions.map((q, i) => qidOf(q, i)),
-          started_at: new Date(test.startedAt || Date.now()).toISOString(),
           submitted_at: new Date().toISOString(),
-          score: result.obtainedMarks,
-          total: result.totalMarks,
-          duration_sec: result.durationSec,
-          status: "submitted"
-        });
+          test_meta: result.testMeta || {},
+          total_questions: Number(result.totalQuestions || 0),
+          total_marks: Number(result.totalMarks || 0),
+          obtained_marks: Number(result.obtainedMarks || 0),
+          correct: Number(result.correct || 0),
+          wrong: Number(result.wrong || 0),
+          unanswered: Number(result.unanswered || 0),
+          percentage: Number(result.percentage || 0),
+          duration_sec: Number(result.durationSec || 0),
+          detailed: result.detailed || []
+        };
+
+const { error } = await sb.from("mock_test_results").insert(payload);
+        if (error) {
+          console.warn("mock_test_results save failed:", error.message);
+        }
       } catch (e) {
-        console.warn("mock_tests save skipped:", e?.message || e);
+        console.warn("mock_test_results save skipped:", e?.message || e);
       }
     }
 
@@ -552,6 +558,7 @@ rScore.textContent = `${score} / ${total}`;
       rCorrect.textContent = String(correct);
       rWrong.textContent = String(wrong);
       rUnanswered.textContent = String(unans);
+      resultBox.style.display = "block";
 
 prevBtn.disabled = true;
       nextBtn.disabled = true;
@@ -566,7 +573,7 @@ const resultPayload = buildDetailedResult(correct, wrong, unans, score, total, d
 await saveResultToDb(resultPayload);
 
 if (!isAuto) showOk("✅ Test submitted. Redirecting to result...");
-      setTimeout(() => redirectToResultPage(resultPayload), isAuto ? 400 : 600);
+      setTimeout(() => redirectToResultPage(resultPayload), isAuto ? 400 : 650);
     }
 
 function clearCurrentAnswer(){
