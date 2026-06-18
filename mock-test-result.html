@@ -136,6 +136,8 @@
       </div>
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="downloadPdfBtn" class="btn-outline">Download PDF</button>
+        <button class="btn-outline" onclick="window.location.href='mock-history.html'">Mock History</button>
         <button class="btn-outline" onclick="window.location.href='index.html'">Home</button>
         <button class="btn" onclick="window.location.href='mock-generator.html'">Retake Mock</button>
       </div>
@@ -144,6 +146,7 @@
 <div id="resultList"></div>
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script>
     function escapeHtml(str = "") {
       return String(str)
@@ -186,10 +189,73 @@ return {
       };
     }
 
+function buildPdfLines(result){
+      const lines = [];
+      lines.push("PrepCode - Mock Test Result");
+      lines.push("");
+      lines.push(`Score: ${result.obtainedMarks}/${result.totalMarks || (result.totalQuestions * 4)}`);
+      lines.push(`Correct: ${result.correct} | Wrong: ${result.wrong} | Unanswered: ${result.unanswered}`);
+      lines.push(`Percentage: ${result.percentage}%`);
+      if (result.durationSec) lines.push(`Duration: ${formatDuration(result.durationSec)}`);
+      if (result.submittedAt) lines.push(`Submitted: ${new Date(result.submittedAt).toLocaleString()}`);
+      lines.push("");
+
+(result.detailed || []).forEach((q) => {
+        lines.push(`Q${q.index}. ${q.question || ""}`);
+        lines.push(`Your Answer: ${q.selected || "Not Attempted"} | Correct: ${q.correct || "-"}`);
+        lines.push(`A) ${q.options?.A || ""}`);
+        lines.push(`B) ${q.options?.B || ""}`);
+        lines.push(`C) ${q.options?.C || ""}`);
+        lines.push(`D) ${q.options?.D || ""}`);
+        lines.push(`Explanation: ${q.explanation || "No explanation available."}`);
+        lines.push("");
+      });
+
+return lines;
+    }
+
+function downloadResultPdf(result){
+      if (!window.jspdf?.jsPDF) {
+        alert("PDF library failed to load.");
+        return;
+      }
+
+const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+
+const marginX = 40;
+      let y = 40;
+      const lineHeight = 16;
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const maxWidth = doc.internal.pageSize.getWidth() - marginX * 2;
+
+doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+
+const lines = buildPdfLines(result);
+      lines.forEach((line) => {
+        const wrapped = doc.splitTextToSize(String(line), maxWidth);
+        wrapped.forEach((wline) => {
+          if (y > pageHeight - 40) {
+            doc.addPage();
+            y = 40;
+          }
+          doc.text(String(wline), marginX, y);
+          y += lineHeight;
+        });
+      });
+
+const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+      doc.save(`mock-test-result-${stamp}.pdf`);
+    }
+
 const raw = localStorage.getItem("mock_test_result_v1") || localStorage.getItem("pc_mock_last_result");
     const summaryEl = document.getElementById("summary");
     const listEl = document.getElementById("resultList");
     const statsBox = document.getElementById("statsBox");
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+
+let normalizedForPdf = null;
 
 if (!raw) {
       summaryEl.textContent = "No result found. Please attempt a mock test first.";
@@ -199,8 +265,10 @@ if (!raw) {
           <button class="btn" onclick="window.location.href='mock-generator.html'">Go to Mock Test</button>
         </div>
       `;
+      downloadPdfBtn.disabled = true;
     } else {
       const normalized = normalizeResult(JSON.parse(raw));
+      normalizedForPdf = normalized;
 
 document.getElementById("sScore").textContent = `${normalized.obtainedMarks} / ${normalized.totalMarks || (normalized.totalQuestions * 4)}`;
       document.getElementById("sCorrect").textContent = String(normalized.correct);
@@ -270,6 +338,14 @@ if (!normalized.detailed.length) {
         `;
       }
     }
+
+downloadPdfBtn.addEventListener("click", () => {
+      if (!normalizedForPdf) {
+        alert("No result data available.");
+        return;
+      }
+      downloadResultPdf(normalizedForPdf);
+    });
   </script>
 </body>
 </html>
