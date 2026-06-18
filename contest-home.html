@@ -203,7 +203,8 @@
       selectedContest: "prepcode_selected_contest",
       selectedContestMeta: "prepcode_selected_contest_meta",
       lastSubmittedContest: "prepcode_last_submitted_contest",
-      ratingProfile: "prepcode_contest_rating_profile_v1"
+      ratingProfile: "prepcode_contest_rating_profile_v1",
+      resultArray: "prepcode_contest_results"
     };
 
 const BASE_RATING = 1200;
@@ -514,9 +515,61 @@ let delta = Math.round((0.5 - (r - 1) / (p - 1)) * 50);
 return Math.max(-30, Math.min(60, delta));
     }
 
+function computeRankRowsFromSubmissions(rows, userId) {
+      const grouped = new Map();
+      for (const r of rows) {
+        const cid = String(r.contest_id || "");
+        if (!cid) continue;
+        if (!grouped.has(cid)) grouped.set(cid, []);
+        grouped.get(cid).push({
+          contestId: cid,
+          userId: String(r.user_id || ""),
+          score: Number(r.score || 0),
+          submittedAt: r.submitted_at ? new Date(r.submitted_at).getTime() : 0
+        });
+      }
+
+const out = [];
+      for (const [contestId, arr] of grouped.entries()) {
+        arr.sort((a, b) => (b.score - a.score) || (a.submittedAt - b.submittedAt));
+        const idx = arr.findIndex(x => x.userId === String(userId));
+        if (idx >= 0) {
+          out.push({
+            contestId,
+            rank: idx + 1,
+            participants: arr.length
+          });
+        }
+      }
+      return out;
+    }
+
 async function getRankRecordsFromDb(user){
       const sb = getSupabaseClient();
       if (!sb || !user?.id) return [];
+
+try {
+        const { data: mine, error: mineErr } = await sb
+          .from("contest_submissions")
+          .select("contest_id")
+          .eq("user_id", user.id)
+          .limit(2000);
+
+if (!mineErr && Array.isArray(mine) && mine.length) {
+          const contestIds = [...new Set(mine.map(x => x.contest_id).filter(Boolean))];
+          if (contestIds.length) {
+            const { data: allRows, error: allErr } = await sb
+              .from("contest_submissions")
+              .select("contest_id,user_id,score,submitted_at")
+              .in("contest_id", contestIds)
+              .limit(50000);
+
+if (!allErr && Array.isArray(allRows) && allRows.length) {
+              return computeRankRowsFromSubmissions(allRows, user.id).filter(x => isUuid(x.contestId) && x.rank > 0);
+            }
+          }
+        }
+      } catch {}
 
 const tableTries = [
         { table: "contest_participants", contest: "contest_id", rank: "rank", participants: "participants_count" },
@@ -533,16 +586,17 @@ for (const t of tableTries) {
             .not(t.rank, "is", null)
             .limit(500);
 
-if (!error && Array.isArray(data)) {
+if (!error && Array.isArray(data) && data.length) {
             return data.map(row => ({
               contestId: String(row[t.contest] || ""),
               rank: Number(row[t.rank] || 0),
               participants: Number(row[t.participants] || 0)
-            })).filter(x => x.contestId && x.rank > 0);
+            })).filter(x => isUuid(x.contestId) && x.rank > 0);
           }
         } catch {}
       }
-      return [];
+
+return [];
     }
 
 function getRankRecordsFromLocal(user){
@@ -563,7 +617,8 @@ for (const key of keys) {
 
 try {
             const obj = JSON.parse(raw);
-            if (obj && Number(obj.rank) > 0) {
+
+if (obj && Number(obj.rank) > 0) {
               records.push({
                 contestId: c.id,
                 rank: Number(obj.rank),
@@ -590,7 +645,48 @@ const lb = Array.isArray(obj?.leaderboard) ? obj.leaderboard : (Array.isArray(ob
           } catch {}
         }
       }
-      return records;
+
+try {
+        const raw = localStorage.getItem(LS.resultArray);
+        const arr = JSON.parse(raw || "[]");
+        if (Array.isArray(arr) && arr.length) {
+          const mineRows = arr.filter(r =>
+            String(r.userId || "") === String(user?.id || "") ||
+            String(r.user || "").toLowerCase() === displayName
+          );
+
+const latestByContest = new Map();
+          for (const r of mineRows) {
+            const cid = String(r.contestId || "");
+            if (!cid) continue;
+            const ts = new Date(r.submittedAt || 0).getTime();
+            const prev = latestByContest.get(cid);
+            if (!prev || ts > prev.ts) latestByContest.set(cid, { row: r, ts });
+          }
+
+for (const [contestId, { row }] of latestByContest.entries()) {
+            const sameContest = arr
+              .filter(x => String(x.contestId || "") === contestId)
+              .map(x => ({
+                userId: String(x.userId || ""),
+                score: Number(x.score || 0),
+                submittedAt: new Date(x.submittedAt || 0).getTime()
+              }))
+              .sort((a,b) => (b.score - a.score) || (a.submittedAt - b.submittedAt));
+
+const idx = sameContest.findIndex(x => x.userId === String(row.userId || ""));
+            if (idx >= 0) {
+              records.push({
+                contestId: String(contestId),
+                rank: idx + 1,
+                participants: sameContest.length
+              });
+            }
+          }
+        }
+      } catch {}
+
+return records;
     }
 
 async function refreshRating(){
@@ -603,7 +699,14 @@ const dbRecords = await getRankRecordsFromDb(currentUser);
 const byContest = new Map();
       for (const r of all) {
         if (!isUuid(r.contestId) || r.rank <= 0) continue;
-        const prev = byContest.get(r.contestId);
+
+const contest = getContestById(r.contestId);
+        if (!contest) continue;
+
+// final rating only after contest ends
+        if (getStatus(contest) !== "ended") continue;
+
+const prev = byContest.get(r.contestId);
         if (!prev || r.rank < prev.rank) byContest.set(r.contestId, r);
       }
 
@@ -611,7 +714,11 @@ let rating = BASE_RATING;
       let rankedContests = 0;
 
 [...byContest.values()]
-        .sort((a,b) => new Date(getContestById(a.contestId)?.endsAt || 0) - new Date(getContestById(b.contestId)?.endsAt || 0))
+        .sort((a,b) => {
+          const aEnd = new Date(getContestById(a.contestId)?.endsAt || 0).getTime();
+          const bEnd = new Date(getContestById(b.contestId)?.endsAt || 0).getTime();
+          return aEnd - bEnd;
+        })
         .forEach(r => {
           const c = getContestById(r.contestId);
           const participants = Number(r.participants || c?.participants || 0) || 100;
@@ -675,6 +782,7 @@ resetHome.addEventListener("click", ()=>{
     });
 
 setInterval(render, 1000);
+    setInterval(() => { refreshRating().catch(() => {}); }, 30000);
 
 (async function init() {
       const user = await guardAuthAndHydrateUser();
@@ -690,6 +798,11 @@ await loadContestsFromDb();
       await refreshRating();
       subscribeContestRealtime();
     })();
+
+window.addEventListener("focus", () => { refreshRating().catch(() => {}); });
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) refreshRating().catch(() => {});
+    });
 
 window.addEventListener("beforeunload", () => {
       const sb = getSupabaseClient();
