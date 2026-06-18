@@ -27,12 +27,27 @@
     .brand .icon{color:var(--green);font-size:22px;font-weight:800}
     .brand h1{font-size:24px;line-height:1}
     .brand p{font-size:12px;color:var(--muted);margin-top:2px}
-    .user{
+
+.top-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .rating-pill{
+      display:flex;align-items:center;gap:8px;
+      border:1px solid var(--line);border-radius:999px;padding:6px 10px;
+      background:rgba(255,255,255,.03);font-size:13px;color:#dbe8ff;
+    }
+    .rating-pill .dot{
+      width:8px;height:8px;border-radius:50%;background:var(--yellow);
+      box-shadow:0 0 10px rgba(245,158,11,.7);
+    }
+    .rating-pill strong{font-size:14px}
+    .rating-pill .small{color:var(--muted);font-size:12px}
+
+.user{
       display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;
       padding:6px 10px 6px 6px;background:rgba(255,255,255,.03);font-size:14px;
     }
     .avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--blue);font-weight:700}
-    .hero{
+
+.hero{
       border:1px solid var(--line);border-radius:14px;padding:16px;
       background:linear-gradient(180deg, rgba(59,130,246,.12), rgba(255,255,255,.02));margin-bottom:14px;
     }
@@ -44,7 +59,8 @@
     .btn-blue{background:#1d4ed8}
     .btn-purple{background:#6d28d9}
     .btn-outline{background:transparent;border:1px solid var(--line);color:var(--text)}
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
     .card{
       border:1px solid var(--line);border-radius:14px;padding:14px;
       background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
@@ -52,7 +68,8 @@
     .label{font-size:12px;color:var(--muted)}
     .value{font-size:28px;font-weight:800;margin-top:6px}
     .ok{color:#b9ffd0}.warn{color:#ffdca3}.bad{color:#ffc5c5}
-    .controls{display:grid;grid-template-columns:1.3fr .7fr .7fr;gap:10px;margin-bottom:14px}
+
+.controls{display:grid;grid-template-columns:1.3fr .7fr .7fr;gap:10px;margin-bottom:14px}
     .input,.select{
       width:100%;border:1px solid var(--line);border-radius:10px;background:var(--panel);
       color:var(--text);padding:11px 12px;outline:none;
@@ -114,9 +131,17 @@
           <p>LeetCode for JEE</p>
         </div>
       </div>
-      <div class="user">
-        <span class="avatar" id="avatarLetter">P</span>
-        <span id="userName">PrepCoder ▾</span>
+
+<div class="top-right">
+        <div class="rating-pill">
+          <span class="dot"></span>
+          <span>Rating <strong id="myRating">1200</strong></span>
+          <span class="small" id="myTier">Newbie • 0 ranked</span>
+        </div>
+        <div class="user">
+          <span class="avatar" id="avatarLetter">P</span>
+          <span id="userName">PrepCoder ▾</span>
+        </div>
       </div>
     </header>
 
@@ -177,8 +202,11 @@
       sort: "prepcode_home_sort",
       selectedContest: "prepcode_selected_contest",
       selectedContestMeta: "prepcode_selected_contest_meta",
-      lastSubmittedContest: "prepcode_last_submitted_contest"
+      lastSubmittedContest: "prepcode_last_submitted_contest",
+      ratingProfile: "prepcode_contest_rating_profile_v1"
     };
+
+const BASE_RATING = 1200;
 
 const contestGrid = document.getElementById("contestGrid");
     const searchInput = document.getElementById("searchInput");
@@ -190,6 +218,8 @@ const totalCount = document.getElementById("totalCount");
     const liveCount = document.getElementById("liveCount");
     const joinedCount = document.getElementById("joinedCount");
     const endedCount = document.getElementById("endedCount");
+    const myRating = document.getElementById("myRating");
+    const myTier = document.getElementById("myTier");
 
 const goList = document.getElementById("goList");
     const goAttempt = document.getElementById("goAttempt");
@@ -206,6 +236,7 @@ let contests = [];
     let subject = localStorage.getItem(LS.subject) || "all";
     let sortBy = localStorage.getItem(LS.sort) || "nearest";
     let contestsChannel = null;
+    let currentUser = null;
 
 searchInput.value = searchText;
     subjectSelect.value = subject;
@@ -233,6 +264,7 @@ async function guardAuthAndHydrateUser() {
       const display = user.email ? user.email.split("@")[0] : "PrepCoder";
       userName.textContent = `${display} ▾`;
       avatarLetter.textContent = display.charAt(0).toUpperCase();
+      currentUser = user;
       return user;
     }
 
@@ -258,21 +290,8 @@ async function loadContestsFromDb() {
       if (!sb) { contests = []; render(); return; }
 
 let data = null, error = null;
-
-// First try with is_active filter
-      ({ data, error } = await sb
-        .from("contests")
-        .select("*")
-        .eq("is_active", true)
-        .order("starts_at", { ascending: true }));
-
-// If column missing or query fails, retry without filter
-      if (error) {
-        ({ data, error } = await sb
-          .from("contests")
-          .select("*")
-          .order("starts_at", { ascending: true }));
-      }
+      ({ data, error } = await sb.from("contests").select("*").eq("is_active", true).order("starts_at", { ascending: true }));
+      if (error) ({ data, error } = await sb.from("contests").select("*").order("starts_at", { ascending: true }));
 
 if (error) {
         console.error("loadContestsFromDb error:", error.message);
@@ -284,32 +303,26 @@ if (error) {
 const valid = new Set(contests.map(c => c.id));
       joined = [...new Set(joined)].filter(id => valid.has(id));
       localStorage.setItem(LS.joined, JSON.stringify(joined));
-
-render();
+      render();
     }
 
 function subscribeContestRealtime() {
       const sb = getSupabaseClient();
       if (!sb) return;
-
-if (contestsChannel) {
-        try { sb.removeChannel(contestsChannel); } catch {}
-      }
+      if (contestsChannel) try { sb.removeChannel(contestsChannel); } catch {}
 
 contestsChannel = sb
         .channel("contests-live-public")
         .on("postgres_changes", { event: "*", schema: "public", table: "contests" }, async () => {
           await loadContestsFromDb();
+          await refreshRating();
         })
         .subscribe();
     }
 
 function nowMs(){ return Date.now(); }
-
-function getStatus(c){
-      const now = nowMs();
-      const s = new Date(c.startsAt).getTime();
-      const e = new Date(c.endsAt).getTime();
+    function getStatus(c){
+      const now = nowMs(), s = new Date(c.startsAt).getTime(), e = new Date(c.endsAt).getTime();
       if(now >= s && now <= e) return "live";
       if(now < s) return "upcoming";
       return "ended";
@@ -322,17 +335,12 @@ function formatDate(iso){
 
 function formatCountdown(ms){
       if(ms <= 0) return "00:00:00";
-      const sec = Math.floor(ms/1000);
-      const h = Math.floor(sec/3600);
-      const m = Math.floor((sec%3600)/60);
-      const s = sec%60;
+      const sec = Math.floor(ms/1000), h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
       return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
     }
 
 function timerText(c, status){
-      const now = nowMs();
-      const s = new Date(c.startsAt).getTime();
-      const e = new Date(c.endsAt).getTime();
+      const now = nowMs(), s = new Date(c.startsAt).getTime(), e = new Date(c.endsAt).getTime();
       if(status === "live") return `Ends in ${formatCountdown(e-now)}`;
       if(status === "upcoming") return `Starts in ${formatCountdown(s-now)}`;
       return `Ended on ${formatDate(c.endsAt)}`;
@@ -346,9 +354,7 @@ function setSelectedContest(contest){
       if (!contest || !isUuid(contest.id)) return;
       localStorage.setItem(LS.selectedContest, contest.id);
       localStorage.setItem(LS.selectedContestMeta, JSON.stringify({
-        id: contest.id,
-        title: contest.title || "",
-        duration_min: Number(contest.duration || 0)
+        id: contest.id, title: contest.title || "", duration_min: Number(contest.duration || 0)
       }));
     }
 
@@ -380,22 +386,18 @@ totalCount.textContent = withStatus.length;
 
 function getFiltered(){
       let data = contests.map(c=>({...c,status:getStatus(c)}));
-
-if(searchText.trim()){
+      if(searchText.trim()){
         const q = searchText.toLowerCase();
         data = data.filter(c => c.title.toLowerCase().includes(q) || c.subject.toLowerCase().includes(q));
       }
-
-if(subject !== "all") data = data.filter(c => c.subject === subject);
-
-if(activeStatus === "joined") data = data.filter(c => joined.includes(c.id));
+      if(subject !== "all") data = data.filter(c => c.subject === subject);
+      if(activeStatus === "joined") data = data.filter(c => joined.includes(c.id));
       else if(activeStatus !== "all") data = data.filter(c => c.status === activeStatus);
 
 if(sortBy === "prize") data.sort((a,b)=>b.prize-a.prize);
       else if(sortBy === "participants") data.sort((a,b)=>b.participants-a.participants);
       else data.sort((a,b)=>Math.abs(new Date(a.startsAt)-nowMs()) - Math.abs(new Date(b.startsAt)-nowMs()));
-
-return data;
+      return data;
     }
 
 function cardHTML(c){
@@ -451,8 +453,7 @@ if(!data.length){
       }
 
 contestGrid.innerHTML = data.map(cardHTML).join("");
-
-contestGrid.querySelectorAll("button[data-action]").forEach(btn=>{
+      contestGrid.querySelectorAll("button[data-action]").forEach(btn=>{
         btn.addEventListener("click", ()=>{
           const action = btn.dataset.action;
           const id = String(btn.dataset.id || "");
@@ -488,6 +489,145 @@ if(action === "result"){
           }
         });
       });
+    }
+
+function getTier(rating){
+      if (rating >= 2100) return "Grandmaster";
+      if (rating >= 1800) return "Expert";
+      if (rating >= 1600) return "Specialist";
+      if (rating >= 1400) return "Pupil";
+      return "Newbie";
+    }
+
+function ratingDeltaFromRank(rank, participants){
+      const r = Number(rank || 0);
+      const p = Math.max(2, Number(participants || 0) || 100);
+      if (!Number.isFinite(r) || r <= 0) return 0;
+
+let delta = Math.round((0.5 - (r - 1) / (p - 1)) * 50);
+      if (r === 1) delta += 15;
+      else if (r === 2) delta += 10;
+      else if (r === 3) delta += 6;
+      if (r <= Math.ceil(p * 0.10)) delta += 6;
+      if (r > Math.floor(p * 0.80)) delta -= 4;
+
+return Math.max(-30, Math.min(60, delta));
+    }
+
+async function getRankRecordsFromDb(user){
+      const sb = getSupabaseClient();
+      if (!sb || !user?.id) return [];
+
+const tableTries = [
+        { table: "contest_participants", contest: "contest_id", rank: "rank", participants: "participants_count" },
+        { table: "contest_results", contest: "contest_id", rank: "rank", participants: "total_participants" },
+        { table: "contest_leaderboard", contest: "contest_id", rank: "rank", participants: "participants_count" }
+      ];
+
+for (const t of tableTries) {
+        try {
+          const { data, error } = await sb
+            .from(t.table)
+            .select(`${t.contest}, ${t.rank}, ${t.participants}, user_id`)
+            .eq("user_id", user.id)
+            .not(t.rank, "is", null)
+            .limit(500);
+
+if (!error && Array.isArray(data)) {
+            return data.map(row => ({
+              contestId: String(row[t.contest] || ""),
+              rank: Number(row[t.rank] || 0),
+              participants: Number(row[t.participants] || 0)
+            })).filter(x => x.contestId && x.rank > 0);
+          }
+        } catch {}
+      }
+      return [];
+    }
+
+function getRankRecordsFromLocal(user){
+      const records = [];
+      const displayName = user?.email ? user.email.split("@")[0].toLowerCase() : "";
+
+for (const c of contests) {
+        const keys = [
+          `prepcode_contest_result_${c.id}`,
+          `contest_result_${c.id}`,
+          `prepcode_leaderboard_${c.id}`,
+          `contest_leaderboard_${c.id}`
+        ];
+
+for (const key of keys) {
+          const raw = localStorage.getItem(key);
+          if (!raw) continue;
+
+try {
+            const obj = JSON.parse(raw);
+            if (obj && Number(obj.rank) > 0) {
+              records.push({
+                contestId: c.id,
+                rank: Number(obj.rank),
+                participants: Number(obj.totalParticipants || obj.participants || c.participants || 0)
+              });
+              continue;
+            }
+
+const lb = Array.isArray(obj?.leaderboard) ? obj.leaderboard : (Array.isArray(obj?.rows) ? obj.rows : null);
+            if (lb) {
+              const mine = lb.find(x =>
+                String(x.user_id || x.userId || "") === String(user?.id || "") ||
+                String(x.email || "").toLowerCase() === String(user?.email || "").toLowerCase() ||
+                String(x.name || x.user_name || "").toLowerCase() === displayName
+              );
+              if (mine && Number(mine.rank) > 0) {
+                records.push({
+                  contestId: c.id,
+                  rank: Number(mine.rank),
+                  participants: Number(obj.totalParticipants || lb.length || c.participants || 0)
+                });
+              }
+            }
+          } catch {}
+        }
+      }
+      return records;
+    }
+
+async function refreshRating(){
+      if (!currentUser) return;
+
+const dbRecords = await getRankRecordsFromDb(currentUser);
+      const localRecords = getRankRecordsFromLocal(currentUser);
+      const all = [...dbRecords, ...localRecords];
+
+const byContest = new Map();
+      for (const r of all) {
+        if (!isUuid(r.contestId) || r.rank <= 0) continue;
+        const prev = byContest.get(r.contestId);
+        if (!prev || r.rank < prev.rank) byContest.set(r.contestId, r);
+      }
+
+let rating = BASE_RATING;
+      let rankedContests = 0;
+
+[...byContest.values()]
+        .sort((a,b) => new Date(getContestById(a.contestId)?.endsAt || 0) - new Date(getContestById(b.contestId)?.endsAt || 0))
+        .forEach(r => {
+          const c = getContestById(r.contestId);
+          const participants = Number(r.participants || c?.participants || 0) || 100;
+          rating += ratingDeltaFromRank(r.rank, participants);
+          rankedContests += 1;
+        });
+
+rating = Math.max(0, Math.round(rating));
+      const tier = getTier(rating);
+
+myRating.textContent = String(rating);
+      myTier.textContent = `${tier} • ${rankedContests} ranked`;
+
+localStorage.setItem(LS.ratingProfile, JSON.stringify({
+        rating, tier, rankedContests, updatedAt: new Date().toISOString()
+      }));
     }
 
 searchInput.addEventListener("input", e => { searchText = e.target.value; localStorage.setItem(LS.search, searchText); render(); });
@@ -539,7 +679,15 @@ setInterval(render, 1000);
 (async function init() {
       const user = await guardAuthAndHydrateUser();
       if (!user) return;
-      await loadContestsFromDb();
+
+const cached = JSON.parse(localStorage.getItem(LS.ratingProfile) || "null");
+      if (cached?.rating != null) {
+        myRating.textContent = String(cached.rating);
+        myTier.textContent = `${cached.tier || "Newbie"} • ${cached.rankedContests || 0} ranked`;
+      }
+
+await loadContestsFromDb();
+      await refreshRating();
       subscribeContestRealtime();
     })();
 
