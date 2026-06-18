@@ -245,6 +245,7 @@
   <script>
     const STORAGE_KEY = "pc_mock_current";
     const ANSWERS_KEY = "pc_mock_answers";
+    const RESULT_KEY = "mock_test_result_v1";
 
 const testMeta = document.getElementById("testMeta");
     const timerEl = document.getElementById("timer");
@@ -443,28 +444,81 @@ function autoSubmitDueToTime(){
       setTimeout(() => submitTest(true), 350);
     }
 
+function buildDetailedResult(correct, wrong, unans, score, total, durationSec) {
+      const detailed = questions.map((q, i) => {
+        const qid = qidOf(q, i);
+        const selected = String(answers[qid] || "").toUpperCase() || null;
+        const corr = String(q.correct || "A").toUpperCase();
+        const opts = optionMap(q);
+
+return {
+          index: i + 1,
+          id: qid,
+          subject: normalizeSubject(q.subject || ""),
+          topic: q.topic || "Topic",
+          difficulty: q.difficulty || "Easy",
+          marks: Number(q.marks ?? 4),
+          question: q.text || q.title || "",
+          options: opts,
+          selected,
+          correct: corr,
+          isCorrect: !!selected && selected === corr,
+          explanation: q.explanation || q.explain || "No explanation available."
+        };
+      });
+
+const cfg = test?.config || {};
+      return {
+        submittedAt: new Date().toISOString(),
+        testMeta: {
+          title: "Mock Test",
+          timerMin: Number(cfg.timerMin || 60),
+          subjects: cfg.subjects || [],
+          difficulty: cfg.difficulty || "Mixed"
+        },
+        totalQuestions: questions.length,
+        totalMarks: total,
+        obtainedMarks: score,
+        correct,
+        wrong,
+        unanswered: unans,
+        percentage: total ? Number(((score / total) * 100).toFixed(2)) : 0,
+        durationSec,
+        detailed
+      };
+    }
+
+function redirectToResultPage(resultPayload) {
+      localStorage.setItem(RESULT_KEY, JSON.stringify(resultPayload));
+      // keep old key too if other pages rely on it
+      localStorage.setItem("pc_mock_last_result", JSON.stringify(resultPayload));
+
+// clear current attempt data
+      sessionStorage.removeItem(ANSWERS_KEY);
+      sessionStorage.removeItem(STORAGE_KEY);
+
+window.location.href = "mock-test-result.html";
+    }
+
 async function saveResultToDb(result){
       try {
         const user = await window.PC?.getUser?.();
-        if (!user) return; // silently skip if logged out
+        if (!user) return;
         const sb = window.PC?.supabase || window.sb;
         if (!sb) return;
 
-// Optional table: mock_tests
-        // This is safe: if table not present, catch silently.
-        await sb.from("mock_tests").insert({
+await sb.from("mock_tests").insert({
           user_id: user.id,
           config: test.config || {},
           question_ids: questions.map((q, i) => qidOf(q, i)),
           started_at: new Date(test.startedAt || Date.now()).toISOString(),
           submitted_at: new Date().toISOString(),
-          score: result.score,
-          total: result.total,
+          score: result.obtainedMarks,
+          total: result.totalMarks,
           duration_sec: result.durationSec,
           status: "submitted"
         });
       } catch (e) {
-        // no hard fail
         console.warn("mock_tests save skipped:", e?.message || e);
       }
     }
@@ -474,7 +528,7 @@ async function submitTest(isAuto = false){
       submitted = true;
       stopTimer();
 
-const perQMark = 4; // change if needed
+const perQMark = 4;
       let correct = 0, wrong = 0, unans = 0;
 
 questions.forEach((q, i) => {
@@ -487,7 +541,7 @@ if (!userAns) unans++;
         else wrong++;
       });
 
-const score = correct * perQMark; // no negative marking
+const score = correct * perQMark;
       const total = questions.length * perQMark;
       const durationSec = Math.max(
         0,
@@ -498,7 +552,6 @@ rScore.textContent = `${score} / ${total}`;
       rCorrect.textContent = String(correct);
       rWrong.textContent = String(wrong);
       rUnanswered.textContent = String(unans);
-      resultBox.style.display = "block";
 
 prevBtn.disabled = true;
       nextBtn.disabled = true;
@@ -508,16 +561,12 @@ prevBtn.disabled = true;
 
 renderQuestion();
 
-// Save last result locally
-      localStorage.setItem("pc_mock_last_result", JSON.stringify({
-        score, total, correct, wrong, unanswered: unans,
-        submittedAt: new Date().toISOString(),
-        config: test.config || {}
-      }));
+const resultPayload = buildDetailedResult(correct, wrong, unans, score, total, durationSec);
 
-await saveResultToDb({ score, total, durationSec });
+await saveResultToDb(resultPayload);
 
-if (!isAuto) showOk("✅ Test submitted successfully.");
+if (!isAuto) showOk("✅ Test submitted. Redirecting to result...");
+      setTimeout(() => redirectToResultPage(resultPayload), isAuto ? 400 : 600);
     }
 
 function clearCurrentAnswer(){
