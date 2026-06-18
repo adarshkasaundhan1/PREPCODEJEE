@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode - Mock History</title>
+  <style>
+    :root{
+      --bg:#0b1426;
+      --card:#121f39;
+      --line:#233354;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --ok:#22c55e;
+      --bad:#ef4444;
+      --btn:#16a34a;
+      --btn2:#1f2f55;
+    }
+
+*{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% -10%, #193562 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1f2f55 0%, transparent 30%),
+        linear-gradient(180deg, #0b1426, #070d1a);
+      min-height:100vh;
+      padding:24px;
+    }
+
+.container{max-width:1100px;margin:0 auto}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:16px;
+      margin-bottom:14px;
+    }
+
+.top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+.muted{color:var(--muted)}
+    .ok{color:var(--ok);font-weight:700}
+    .bad{color:var(--bad);font-weight:700}
+
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{
+      border:none;
+      background:var(--btn);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn-outline{
+      border:1px solid var(--line);
+      background:transparent;
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn-soft{
+      border:1px solid #2a426d;
+      background:var(--btn2);
+      color:#dbe9ff;
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+.row{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+      align-items:center;
+    }
+    @media (max-width:700px){
+      .row{grid-template-columns:1fr}
+    }
+
+.stats{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(100px,1fr));
+      gap:8px;
+      margin-top:10px;
+    }
+    @media (max-width:900px){
+      .stats{grid-template-columns:repeat(2,minmax(120px,1fr))}
+    }
+    .stat{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:8px 10px;
+      background:rgba(255,255,255,.02);
+    }
+    .stat strong{display:block;font-size:18px;margin-bottom:2px}
+
+.pill{
+      display:inline-block;
+      margin-top:8px;
+      margin-right:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      border:1px solid var(--line);
+      color:#cfe0ff;
+      background:rgba(255,255,255,.02);
+    }
+
+.empty{
+      text-align:center;
+      padding:24px;
+    }
+
+.loading{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--muted);
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:#7aa2ff;display:inline-block;
+      animation:blink 1.1s infinite ease-in-out;
+    }
+    .dot:nth-child(2){animation-delay:.15s}
+    .dot:nth-child(3){animation-delay:.3s}
+    @keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card top">
+      <div>
+        <h2 style="margin:0 0 8px;">📚 Mock Test History</h2>
+        <p id="subText" class="muted" style="margin:0;">Your previously submitted mock tests.</p>
+      </div>
+      <div class="actions">
+        <button class="btn-outline" onclick="window.location.href='index.html'">Home</button>
+        <button class="btn-outline" onclick="window.location.href='mock-generator.html'">New Mock</button>
+      </div>
+    </div>
+
+<div id="historyWrap" class="card">
+      <div class="loading">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span>Loading history...</span>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    const RESULT_KEY = "mock_test_result_v1";
+    const historyWrap = document.getElementById("historyWrap");
+    const subText = document.getElementById("subText");
+
+function escapeHtml(str = "") {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+function formatDuration(sec = 0){
+      const s = Math.max(0, Number(sec) || 0);
+      const mm = String(Math.floor(s / 60)).padStart(2, "0");
+      const ss = String(s % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
+    }
+
+function mapDbRowToResultPayload(row){
+      return {
+        submittedAt: row.submitted_at,
+        testMeta: row.test_meta || {},
+        totalQuestions: Number(row.total_questions || 0),
+        totalMarks: Number(row.total_marks || 0),
+        obtainedMarks: Number(row.obtained_marks || 0),
+        correct: Number(row.correct || 0),
+        wrong: Number(row.wrong || 0),
+        unanswered: Number(row.unanswered || 0),
+        percentage: Number(row.percentage || 0),
+        durationSec: Number(row.duration_sec || 0),
+        detailed: Array.isArray(row.detailed) ? row.detailed : []
+      };
+    }
+
+function openResult(row){
+      const payload = mapDbRowToResultPayload(row);
+      localStorage.setItem(RESULT_KEY, JSON.stringify(payload));
+      localStorage.setItem("pc_mock_last_result", JSON.stringify(payload));
+      window.location.href = "mock-test-result.html";
+    }
+
+function renderEmpty(){
+      historyWrap.innerHTML = `
+        <div class="empty">
+          <h3 style="margin:0 0 8px;">No mock tests found</h3>
+          <p class="muted" style="margin:0 0 12px;">Attempt and submit your first mock test to see it here.</p>
+          <button class="btn" onclick="window.location.href='mock-generator.html'">Start Mock Test</button>
+        </div>
+      `;
+    }
+
+function renderError(msg){
+      historyWrap.innerHTML = `
+        <div class="empty">
+          <h3 style="margin:0 0 8px;" class="bad">Could not load history</h3>
+          <p class="muted" style="margin:0 0 12px;">${escapeHtml(msg || "Something went wrong.")}</p>
+          <button class="btn-soft" onclick="loadHistory()">Retry</button>
+        </div>
+      `;
+    }
+
+function renderHistory(rows){
+      if (!rows.length) {
+        renderEmpty();
+        return;
+      }
+
+subText.textContent = `Showing ${rows.length} recent mock test result(s).`;
+
+historyWrap.innerHTML = rows.map((r, i) => {
+        const dt = r.submitted_at ? new Date(r.submitted_at).toLocaleString() : "-";
+        const score = `${Number(r.obtained_marks || 0)} / ${Number(r.total_marks || 0)}`;
+        const pct = Number(r.percentage || 0).toFixed(2);
+        const subjects = Array.isArray(r.test_meta?.subjects) && r.test_meta.subjects.length
+          ? r.test_meta.subjects.join(", ")
+          : "Mixed";
+        const timerMin = Number(r.test_meta?.timerMin || 0);
+        const qcount = Number(r.total_questions || 0);
+
+return `
+          <div class="card" style="margin-bottom:12px;">
+            <div class="row">
+              <div>
+                <h3 style="margin:0 0 6px;">#${i + 1} • ${dt}</h3>
+                <div class="muted">Subjects: ${escapeHtml(subjects)}</div>
+
+<div class="stats">
+                  <div class="stat"><strong>${score}</strong><span class="muted">Score</span></div>
+                  <div class="stat"><strong>${Number(r.correct || 0)}</strong><span class="muted">Correct</span></div>
+                  <div class="stat"><strong>${Number(r.wrong || 0)}</strong><span class="muted">Wrong</span></div>
+                  <div class="stat"><strong>${Number(r.unanswered || 0)}</strong><span class="muted">Unanswered</span></div>
+                  <div class="stat"><strong>${pct}%</strong><span class="muted">Percentage</span></div>
+                </div>
+
+<span class="pill">${qcount} Questions</span>
+                ${timerMin ? `<span class="pill">${timerMin} min</span>` : ""}
+                ${Number(r.duration_sec || 0) ? `<span class="pill">Duration: ${formatDuration(r.duration_sec)}</span>` : ""}
+              </div>
+
+<div class="actions">
+                <button class="btn-soft" data-view="${r.id}">View Result</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+const byId = new Map(rows.map(r => [String(r.id), r]));
+      historyWrap.querySelectorAll("[data-view]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const row = byId.get(btn.getAttribute("data-view"));
+          if (row) openResult(row);
+        });
+      });
+    }
+
+async function loadHistory(){
+      try {
+        const sb = window.PC?.supabase || window.sb;
+        if (!sb) {
+          renderError("Supabase client is not available.");
+          return;
+        }
+
+const user = await window.PC?.getUser?.();
+        if (!user) {
+          alert("Please login first.");
+          window.location.href = "index.html";
+          return;
+        }
+
+const { data, error } = await sb
+          .from("mock_test_results")
+          .select("id, submitted_at, test_meta, total_questions, total_marks, obtained_marks, correct, wrong, unanswered, percentage, duration_sec, detailed")
+          .eq("user_id", user.id)
+          .order("submitted_at", { ascending: false })
+          .limit(100);
+
+if (error) {
+          renderError(error.message || "Failed to fetch history.");
+          return;
+        }
+
+renderHistory(data || []);
+      } catch (e) {
+        renderError(e?.message || "Unexpected error while loading history.");
+      }
+    }
+
+loadHistory();
+  </script>
+</body>
+</html>
