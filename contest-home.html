@@ -41,6 +41,83 @@
     .rating-pill strong{font-size:14px}
     .rating-pill .small{color:var(--muted);font-size:12px}
 
+/* BIG icon before badge name box */
+    .rank-icon{
+      width:28px;
+      height:28px;
+      object-fit:contain;
+      display:block;
+      filter:drop-shadow(0 0 8px rgba(255,255,255,.18));
+    }
+
+/* Only badge name inside box */
+    .rank-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:0;
+      margin-left:2px;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.05);
+      font-size:11px;
+      font-weight:800;
+      line-height:1;
+      letter-spacing:.2px;
+      text-transform:uppercase;
+      min-width:90px;
+    }
+    .rank-badge.beginner{border-color:rgba(148,163,184,.45); color:#d1d5db}
+    .rank-badge.apprentice{border-color:rgba(20,184,166,.45); color:#99f6e4}
+    .rank-badge.specialist{border-color:rgba(59,130,246,.45); color:#bfdbfe}
+    .rank-badge.expert{border-color:rgba(168,85,247,.45); color:#e9d5ff}
+    .rank-badge.legend{border-color:rgba(249,115,22,.45); color:#fed7aa}
+    .rank-badge.master{border-color:rgba(236,72,153,.45); color:#fbcfe8}
+    .rank-badge.grandmaster{border-color:rgba(245,158,11,.5); color:#fde68a}
+
+/* Smooth glow animation for top tiers */
+    @keyframes badgePulse {
+      0% {
+        box-shadow:
+          0 0 0 rgba(255,255,255,0),
+          0 0 8px rgba(255,255,255,.06);
+      }
+      50% {
+        box-shadow:
+          0 0 14px rgba(255,255,255,.16),
+          0 0 26px rgba(255,255,255,.12);
+      }
+      100% {
+        box-shadow:
+          0 0 0 rgba(255,255,255,0),
+          0 0 8px rgba(255,255,255,.06);
+      }
+    }
+
+.rank-badge.legend,
+    .rank-badge.master,
+    .rank-badge.grandmaster{
+      animation: badgePulse 2.4s ease-in-out infinite;
+      will-change: box-shadow;
+    }
+
+.rank-icon.legend,
+    .rank-icon.master,
+    .rank-icon.grandmaster{
+      animation: badgePulse 2.4s ease-in-out infinite;
+    }
+
+.rank-badge.legend{
+      box-shadow: 0 0 10px rgba(249,115,22,.22);
+    }
+    .rank-badge.master{
+      box-shadow: 0 0 10px rgba(236,72,153,.22);
+    }
+    .rank-badge.grandmaster{
+      box-shadow: 0 0 12px rgba(245,158,11,.28);
+    }
+
 .user{
       display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;
       padding:6px 10px 6px 6px;background:rgba(255,255,255,.03);font-size:14px;
@@ -118,6 +195,8 @@
     }
     @media(max-width:680px){
       .grid{grid-template-columns:1fr} .hero h2{font-size:25px} .stats{grid-template-columns:1fr}
+      .rank-icon{width:24px;height:24px}
+      .rank-badge{min-width:auto}
     }
   </style>
 </head>
@@ -136,7 +215,13 @@
         <div class="rating-pill">
           <span class="dot"></span>
           <span>Rating <strong id="myRating">1200</strong></span>
-          <span class="small" id="myTier">Newbie • 0 ranked</span>
+          <span class="small" id="myTier">0 ranked</span>
+
+<img id="rankBadgeIcon" class="rank-icon" src="assets/badges/beginner.png" alt="Beginner badge" />
+
+<span class="rank-badge beginner" id="rankBadgeWrap" title="Beginner">
+            <span id="rankBadgeText">Beginner</span>
+          </span>
         </div>
         <div class="user">
           <span class="avatar" id="avatarLetter">P</span>
@@ -492,12 +577,43 @@ if(action === "result"){
       });
     }
 
-function getTier(rating){
-      if (rating >= 2100) return "Grandmaster";
-      if (rating >= 1800) return "Expert";
-      if (rating >= 1600) return "Specialist";
-      if (rating >= 1400) return "Pupil";
-      return "Newbie";
+// ORDER: ... Expert -> Legend -> Master -> Grandmaster
+    function getTier(rating){
+      if (rating >= 2300) return "Grandmaster";
+      if (rating >= 2050) return "Master";
+      if (rating >= 1850) return "Legend";
+      if (rating >= 1650) return "Expert";
+      if (rating >= 1450) return "Specialist";
+      if (rating >= 1300) return "Apprentice";
+      return "Beginner";
+    }
+
+function getBadgeMeta(tier){
+      const label = String(tier || "Beginner");
+      const key = label.toLowerCase();
+      return {
+        label,
+        className: key,
+        icon: `assets/badges/${key}.png`
+      };
+    }
+
+function paintRankBadge(tier){
+      const wrap = document.getElementById("rankBadgeWrap");
+      const icon = document.getElementById("rankBadgeIcon");
+      const text = document.getElementById("rankBadgeText");
+      if (!wrap || !icon || !text) return;
+
+const meta = getBadgeMeta(tier);
+      wrap.className = `rank-badge ${meta.className}`;
+      wrap.title = meta.label;
+      text.textContent = meta.label;
+
+/* important: apply tier class to icon for glow animation */
+      icon.className = `rank-icon ${meta.className}`;
+      icon.src = meta.icon;
+      icon.alt = `${meta.label} badge`;
+      icon.onerror = () => { icon.src = "assets/badges/beginner.png"; };
     }
 
 function ratingDeltaFromRank(rank, participants){
@@ -703,8 +819,7 @@ const byContest = new Map();
 const contest = getContestById(r.contestId);
         if (!contest) continue;
 
-// final rating only after contest ends
-        if (getStatus(contest) !== "ended") continue;
+if (getStatus(contest) !== "ended") continue; // only ended contests
 
 const prev = byContest.get(r.contestId);
         if (!prev || r.rank < prev.rank) byContest.set(r.contestId, r);
@@ -730,7 +845,8 @@ rating = Math.max(0, Math.round(rating));
       const tier = getTier(rating);
 
 myRating.textContent = String(rating);
-      myTier.textContent = `${tier} • ${rankedContests} ranked`;
+      myTier.textContent = `${rankedContests} ranked`; // no duplicate tier label
+      paintRankBadge(tier);
 
 localStorage.setItem(LS.ratingProfile, JSON.stringify({
         rating, tier, rankedContests, updatedAt: new Date().toISOString()
@@ -791,7 +907,11 @@ setInterval(render, 1000);
 const cached = JSON.parse(localStorage.getItem(LS.ratingProfile) || "null");
       if (cached?.rating != null) {
         myRating.textContent = String(cached.rating);
-        myTier.textContent = `${cached.tier || "Newbie"} • ${cached.rankedContests || 0} ranked`;
+        myTier.textContent = `${cached.rankedContests || 0} ranked`;
+        paintRankBadge(cached.tier || "Beginner");
+      } else {
+        myTier.textContent = "0 ranked";
+        paintRankBadge("Beginner");
       }
 
 await loadContestsFromDb();
