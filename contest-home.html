@@ -41,8 +41,7 @@
     .rating-pill strong{font-size:14px}
     .rating-pill .small{color:var(--muted);font-size:12px}
 
-/* BIG icon before badge name box */
-    .rank-icon{
+.rank-icon{
       width:28px;
       height:28px;
       object-fit:contain;
@@ -50,8 +49,7 @@
       filter:drop-shadow(0 0 8px rgba(255,255,255,.18));
     }
 
-/* Only badge name inside box */
-    .rank-badge{
+.rank-badge{
       display:inline-flex;
       align-items:center;
       justify-content:center;
@@ -76,8 +74,7 @@
     .rank-badge.master{border-color:rgba(236,72,153,.45); color:#fbcfe8}
     .rank-badge.grandmaster{border-color:rgba(245,158,11,.5); color:#fde68a}
 
-/* Smooth glow animation for top tiers */
-    @keyframes badgePulse {
+@keyframes badgePulse {
       0% {
         box-shadow:
           0 0 0 rgba(255,255,255,0),
@@ -108,15 +105,9 @@
       animation: badgePulse 2.4s ease-in-out infinite;
     }
 
-.rank-badge.legend{
-      box-shadow: 0 0 10px rgba(249,115,22,.22);
-    }
-    .rank-badge.master{
-      box-shadow: 0 0 10px rgba(236,72,153,.22);
-    }
-    .rank-badge.grandmaster{
-      box-shadow: 0 0 12px rgba(245,158,11,.28);
-    }
+.rank-badge.legend{ box-shadow: 0 0 10px rgba(249,115,22,.22); }
+    .rank-badge.master{ box-shadow: 0 0 10px rgba(236,72,153,.22); }
+    .rank-badge.grandmaster{ box-shadow: 0 0 12px rgba(245,158,11,.28); }
 
 .user{
       display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;
@@ -215,7 +206,7 @@
         <div class="rating-pill">
           <span class="dot"></span>
           <span>Rating <strong id="myRating">1200</strong></span>
-          <span class="small" id="myTier">0 ranked</span>
+          <span class="small" id="myTier">0 ranked contests</span>
 
 <img id="rankBadgeIcon" class="rank-icon" src="assets/badges/beginner.png" alt="Beginner badge" />
 
@@ -328,6 +319,8 @@ searchInput.value = searchText;
     subjectSelect.value = subject;
     sortSelect.value = sortBy;
     setActiveTab(activeStatus);
+
+const rankedContestLabel = (n) => `${n} ranked contest${n === 1 ? "" : "s"}`;
 
 function getSupabaseClient() { return window.PC?.supabase || window.sb || null; }
     function isUuid(v) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || "")); }
@@ -577,8 +570,7 @@ if(action === "result"){
       });
     }
 
-// ORDER: ... Expert -> Legend -> Master -> Grandmaster
-    function getTier(rating){
+function getTier(rating){
       if (rating >= 2300) return "Grandmaster";
       if (rating >= 2050) return "Master";
       if (rating >= 1850) return "Legend";
@@ -591,11 +583,7 @@ if(action === "result"){
 function getBadgeMeta(tier){
       const label = String(tier || "Beginner");
       const key = label.toLowerCase();
-      return {
-        label,
-        className: key,
-        icon: `assets/badges/${key}.png`
-      };
+      return { label, className: key, icon: `assets/badges/${key}.png` };
     }
 
 function paintRankBadge(tier){
@@ -609,8 +597,7 @@ const meta = getBadgeMeta(tier);
       wrap.title = meta.label;
       text.textContent = meta.label;
 
-/* important: apply tier class to icon for glow animation */
-      icon.className = `rank-icon ${meta.className}`;
+icon.className = `rank-icon ${meta.className}`;
       icon.src = meta.icon;
       icon.alt = `${meta.label} badge`;
       icon.onerror = () => { icon.src = "assets/badges/beginner.png"; };
@@ -650,11 +637,7 @@ const out = [];
         arr.sort((a, b) => (b.score - a.score) || (a.submittedAt - b.submittedAt));
         const idx = arr.findIndex(x => x.userId === String(userId));
         if (idx >= 0) {
-          out.push({
-            contestId,
-            rank: idx + 1,
-            participants: arr.length
-          });
+          out.push({ contestId, rank: idx + 1, participants: arr.length });
         }
       }
       return out;
@@ -810,7 +793,9 @@ async function refreshRating(){
 
 const dbRecords = await getRankRecordsFromDb(currentUser);
       const localRecords = getRankRecordsFromLocal(currentUser);
-      const all = [...dbRecords, ...localRecords];
+
+// Prevent double counting: prefer DB, fallback to local if DB unavailable
+      const all = dbRecords.length ? dbRecords : localRecords;
 
 const byContest = new Map();
       for (const r of all) {
@@ -819,7 +804,7 @@ const byContest = new Map();
 const contest = getContestById(r.contestId);
         if (!contest) continue;
 
-if (getStatus(contest) !== "ended") continue; // only ended contests
+if (getStatus(contest) !== "ended") continue;
 
 const prev = byContest.get(r.contestId);
         if (!prev || r.rank < prev.rank) byContest.set(r.contestId, r);
@@ -845,7 +830,7 @@ rating = Math.max(0, Math.round(rating));
       const tier = getTier(rating);
 
 myRating.textContent = String(rating);
-      myTier.textContent = `${rankedContests} ranked`; // no duplicate tier label
+      myTier.textContent = rankedContestLabel(rankedContests);
       paintRankBadge(tier);
 
 localStorage.setItem(LS.ratingProfile, JSON.stringify({
@@ -907,10 +892,10 @@ setInterval(render, 1000);
 const cached = JSON.parse(localStorage.getItem(LS.ratingProfile) || "null");
       if (cached?.rating != null) {
         myRating.textContent = String(cached.rating);
-        myTier.textContent = `${cached.rankedContests || 0} ranked`;
+        myTier.textContent = rankedContestLabel(Number(cached.rankedContests || 0));
         paintRankBadge(cached.tier || "Beginner");
       } else {
-        myTier.textContent = "0 ranked";
+        myTier.textContent = rankedContestLabel(0);
         paintRankBadge("Beginner");
       }
 
