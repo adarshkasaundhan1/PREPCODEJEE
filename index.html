@@ -32,25 +32,21 @@
       min-height:100vh;
     }
 
-.app{
-      display:grid;
-      grid-template-columns:260px 1fr;
-      min-height:100vh;
-    }
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
 
 .sidebar{
       border-right:1px solid var(--line);
       background:rgba(8,14,27,.85);
       padding:18px 14px;
-      position:sticky;
-      top:0;
-      height:100vh;
+      position:sticky;top:0;height:100vh;
     }
-    .brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
     .brand .icon{color:var(--green);font-weight:900;font-size:22px}
     .brand h1{font-size:30px;line-height:1}
     .brand p{font-size:12px;color:var(--muted)}
-    .menu{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+
+.menu{display:flex;flex-direction:column;gap:8px;margin-top:14px}
     .menu button{
       background:transparent;border:1px solid transparent;color:var(--text);
       text-align:left;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:600;
@@ -81,11 +77,13 @@
     }
 
 .main{display:flex;flex-direction:column}
-    .topbar{
+
+.topbar{
       height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
       padding:0 20px;background:rgba(9,15,30,.78);backdrop-filter:blur(6px);position:sticky;top:0;z-index:20;
     }
-    .top-links{display:flex;gap:6px;flex-wrap:wrap}
+
+.top-links{display:flex;gap:6px;flex-wrap:wrap}
     .top-links button{
       border:none;background:transparent;color:var(--text);padding:10px 12px;border-radius:9px;cursor:pointer;font-weight:600;position:relative;
     }
@@ -95,38 +93,68 @@
       content:"";position:absolute;left:10px;right:10px;bottom:-10px;height:2px;border-radius:2px;background:var(--green);
       box-shadow:0 0 10px var(--green);
     }
-    .right-actions{display:flex;gap:10px;align-items:center}
+
+.right-actions{display:flex;gap:10px;align-items:center}
 
 .coins-pill{
       border:1px solid rgba(245,158,11,.35);
       background:rgba(245,158,11,.1);
-      padding:8px 10px;
-      border-radius:10px;
-      font-weight:700;
-      color:#ffd58a;
-      font-size:14px;
-      display:flex;
-      align-items:center;
-      gap:6px;
-      cursor:pointer;
+      padding:8px 10px;border-radius:10px;font-weight:700;color:#ffd58a;font-size:14px;
+      display:flex;align-items:center;gap:6px;cursor:pointer;
     }
 
 .streak{
-      border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);padding:8px 10px;border-radius:10px;
+      border:1px solid rgba(245,158,11,.35);
+      background:rgba(245,158,11,.1);
+      padding:8px 10px;border-radius:10px;
       font-weight:700;color:#ffd58a;font-size:14px;
+      display:inline-flex;align-items:center;gap:6px;
     }
-    .profile{
+
+.profile{
       border:1px solid var(--line);border-radius:999px;padding:5px 9px 5px 5px;background:rgba(255,255,255,.03);
       display:flex;align-items:center;gap:8px;
     }
-    .avatar{
+
+.avatar{
       width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--blue);font-weight:700;font-size:12px;
+    }
+
+/* mobile navbar brand */
+    .mobile-brand{
+      display:none;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+    }
+    .mobile-brand-icon{
+      color:var(--green);
+      font-weight:900;
+      font-size:22px;
+      line-height:1;
+    }
+    .mobile-brand-text{
+      display:flex;
+      flex-direction:column;
+      line-height:1.05;
+      min-width:0;
+    }
+    .mobile-brand-text strong{
+      font-size:20px;
+      color:var(--text);
+      white-space:nowrap;
+    }
+    .mobile-brand-text small{
+      font-size:11px;
+      color:var(--muted);
+      white-space:nowrap;
     }
 
 .content{padding:22px;max-width:1200px}
     .section-title{font-size:32px;margin-bottom:14px}
     .muted{color:var(--muted)}
-    .cards{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:14px;margin-bottom:20px}
+
+.cards{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:14px;margin-bottom:20px}
     .subject-card{
       border:1px solid var(--line);border-radius:14px;padding:16px;background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
     }
@@ -151,22 +179,25 @@
     .progress-wrap{display:flex;align-items:center;gap:10px;min-width:260px}
     .bar{width:180px;height:8px;background:#263550;border-radius:999px;overflow:hidden}
     .bar>span{display:block;height:100%;background:var(--green);width:0%}
-    .btn{
+
+.btn{
       border:none;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;background:#16a34a;color:#fff;
     }
+    .btn-outline{background:transparent;color:var(--text);border:1px solid var(--line)}
 
 .recent{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
     .q-meta{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:13px;margin-bottom:10px}
     .badge{padding:4px 8px;border-radius:999px;font-size:12px;border:1px solid rgba(34,197,94,.35);color:#b6ffcf;background:rgba(34,197,94,.08)}
     .question{font-size:28px;line-height:1.4;margin:10px 0 14px}
-    .options .opt{
+
+.options .opt{
       border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer;
       background:rgba(255,255,255,.02);display:flex;align-items:center;gap:10px;
     }
     .options .opt input{accent-color:var(--green)}
     .options .opt.active{border-color:rgba(34,197,94,.55);background:rgba(34,197,94,.09)}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
-    .btn-outline{background:transparent;color:var(--text);border:1px solid var(--line)}
+
+.actions{display:flex;gap:8px;flex-wrap:wrap}
     .success{
       margin-top:10px;padding:10px;border-radius:10px;border:1px solid rgba(34,197,94,.35);
       background:rgba(34,197,94,.08);color:#b7ffce;display:none;
@@ -179,52 +210,36 @@
 .footer{margin-top:14px;color:var(--muted);font-size:13px}
 
 .modal-backdrop{
-      position:fixed; inset:0;
-      background:rgba(0,0,0,.55);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:9999;
-      padding:16px;
+      position:fixed; inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;
     }
     .modal-backdrop.open{ display:flex; }
-    .modal-card{
-      width:min(460px, 100%);
-      background:linear-gradient(180deg, rgba(18,31,57,.98), rgba(12,22,40,.98));
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:18px;
-      position:relative;
-      box-shadow:0 20px 50px rgba(0,0,0,.45);
+
+.modal-card{
+      width:min(460px, 100%);background:linear-gradient(180deg, rgba(18,31,57,.98), rgba(12,22,40,.98));
+      border:1px solid var(--line);border-radius:14px;padding:18px;position:relative;box-shadow:0 20px 50px rgba(0,0,0,.45);
     }
-    .modal-close{
-      position:absolute; top:10px; right:10px;
-      border:1px solid var(--line);
-      background:transparent; color:var(--text);
-      width:30px; height:30px; border-radius:8px; cursor:pointer;
+
+.modal-close{
+      position:absolute; top:10px; right:10px;border:1px solid var(--line);background:transparent;color:var(--text);
+      width:30px;height:30px;border-radius:8px;cursor:pointer;
     }
     .modal-close:hover{ background:rgba(255,255,255,.06); }
     .modal-card h3{ font-size:22px; margin-bottom:6px; }
     .modal-sub{ color:var(--muted); font-size:13px; margin-bottom:12px; }
-    .modal-form{ display:grid; gap:10px; }
+
+.modal-form{ display:grid; gap:10px; }
     .modal-input{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:10px;
-      background:var(--panel);
-      color:var(--text);
-      padding:11px 12px;
-      outline:none;
+      width:100%;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);
+      padding:11px 12px;outline:none;
     }
     .modal-input:focus{
-      border-color:rgba(34,197,94,.5);
-      box-shadow:0 0 0 3px rgba(34,197,94,.15);
+      border-color:rgba(34,197,94,.5);box-shadow:0 0 0 3px rgba(34,197,94,.15);
     }
-    .modal-msg{
-      margin-top:10px;
-      color:var(--muted);
-      min-height:18px;
-      font-size:13px;
+    .modal-msg{margin-top:10px;color:var(--muted);min-height:18px;font-size:13px;}
+
+.mobile-menu-btn{
+      display:none;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);
+      border-radius:10px;padding:8px 10px;font-size:18px;cursor:pointer;
     }
 
 @media (max-width:1050px){
@@ -233,10 +248,114 @@
       .recent{grid-template-columns:1fr}
       .cards{grid-template-columns:1fr}
       .topbar{flex-direction:column;height:auto;padding:12px;gap:10px}
+      .content{padding:16px}
+      .section-title{font-size:24px}
+      .question{font-size:20px;line-height:1.5}
+      .subject-card h3{font-size:22px}
+    }
+
+@media (max-width:768px){
+      .app{display:block;min-height:100vh}
+
+.sidebar{
+        position:fixed;top:0;left:0;width:min(82vw,320px);height:100vh;z-index:2000;
+        transform:translateX(-105%);transition:transform .25s ease;box-shadow:0 20px 50px rgba(0,0,0,.45);overflow:auto;
+      }
+      .sidebar.open{transform:translateX(0)}
+
+body.sidebar-open::before{
+        content:"";position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1500;
+      }
+      body.sidebar-open{ overflow:hidden; }
+
+.main{min-height:100vh}
+
+.topbar{
+        position:sticky;
+        top:0;
+        z-index:1200;
+        display:grid;
+        grid-template-columns:auto 1fr auto;
+        grid-template-areas:
+          "menu brand auth"
+          "nav nav nav";
+        gap:8px;
+        padding:10px 12px;
+        align-items:center;
+        height:auto;
+      }
+
+.mobile-menu-btn{
+        grid-area:menu;display:inline-flex;align-self:center;position:relative;z-index:2100;
+      }
+
+.mobile-brand{
+        grid-area:brand;
+        display:flex;
+      }
+      .mobile-brand-text strong{font-size:18px;}
+      .mobile-brand-text small{font-size:10px;}
+
+.top-links{
+        grid-area:nav;display:flex;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+      }
+      .top-links::-webkit-scrollbar{display:none}
+      .top-links button{flex:0 0 auto;padding:8px 10px;font-size:13px}
+
+.right-actions{
+        grid-area:auth;display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap;width:auto;max-width:68vw;
+      }
+
+.coins-pill, .streak, #loginBtn, #logoutBtn, .profile{
+        display:inline-flex !important;
+        width:auto;font-size:11px;padding:6px 8px;white-space:nowrap;
+      }
+
+.coins-pill{order:1;}
+      .streak{order:2;gap:4px;}
+      #streakNum{margin-right:2px;}
+      #loginBtn, #logoutBtn{order:3;}
+      .profile{order:4;}
+
+/* Auth state overrides for mobile */
+      body.logged-in #loginBtn{display:none !important;}
+      body.logged-in #logoutBtn,
+      body.logged-in .profile{display:inline-flex !important;}
+
+body.logged-out #logoutBtn{display:none !important;}
+      body.logged-out #loginBtn{display:inline-flex !important;}
+
+#adminBtn, #adminContestBtn{display:none !important;}
+
+.avatar{width:22px;height:22px;font-size:10px}
+
+.content{padding:12px}
+      .cards{grid-template-columns:1fr;gap:10px}
+      .recent{grid-template-columns:1fr}
+      .panel{padding:12px}
+      .continue-row{align-items:flex-start}
+      .progress-wrap{min-width:0;width:100%}
+      .bar{width:100%}
+      .question{font-size:18px}
+      .options .opt{padding:10px;font-size:14px}
+      .modal-card{padding:14px}
+    }
+
+@media (max-width:420px){
+      .section-title{font-size:21px}
+      .subject-card h3{font-size:20px}
+      .question{font-size:17px}
+      .topbar{padding:8px}
+      .profile{padding:5px 8px 5px 5px}
+      #loginBtn,#logoutBtn{padding:7px 9px}
+
+.mobile-brand-text strong{font-size:16px}
+      .mobile-brand-text small{display:none}
+      .mobile-brand-icon{font-size:20px}
     }
   </style>
 </head>
-<body>
+<body class="logged-out">
   <div class="app">
     <aside class="sidebar">
       <div class="brand">
@@ -273,7 +392,17 @@
 
 <main class="main">
       <header class="topbar">
-        <nav class="top-links" id="topNav">
+        <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Open menu">☰</button>
+
+<div class="mobile-brand" aria-label="PrepCode">
+          <span class="mobile-brand-icon">&lt;/&gt;</span>
+          <div class="mobile-brand-text">
+            <strong>PrepCode</strong>
+            <small>LeetCode for JEE</small>
+          </div>
+        </div>
+
+<nav class="top-links" id="topNav">
           <button class="active" data-tab="home">Home</button>
           <button data-tab="problems">Problems</button>
           <button data-tab="contests">Contests</button>
@@ -281,7 +410,8 @@
           <button data-tab="mock-test">Mock Test</button>
           <button data-tab="rewards">Rewards</button>
         </nav>
-        <div class="right-actions">
+
+<div class="right-actions">
           <div id="coinsPill" class="coins-pill" title="Open Rewards">🪙 <span id="prepCoinsValue">0</span> Prep Coins</div>
           <div class="streak">🔥 <span id="streakNum">0</span> Day Streak</div>
 
@@ -299,7 +429,8 @@
 
 <section class="content">
         <h2 class="section-title">Choose a Subject</h2>
-        <div class="cards">
+
+<div class="cards">
           <article class="subject-card physics">
             <h3>⚛ Physics</h3>
             <p id="physicsCardStats">0 Topics · 0 Problems</p>
@@ -374,21 +505,14 @@
     </main>
   </div>
 
-<!-- Login Modal -->
-  <div id="loginModal" class="modal-backdrop" aria-hidden="true">
+<div id="loginModal" class="modal-backdrop" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
       <button id="closeLoginModal" class="modal-close" aria-label="Close">✕</button>
       <h3 id="loginTitle">Login to PrepCode</h3>
       <p class="modal-sub">Enter your email to receive a magic sign-in link.</p>
 
 <form id="loginForm" class="modal-form">
-        <input
-          id="loginEmail"
-          type="email"
-          class="modal-input"
-          placeholder="you@example.com"
-          required
-        />
+        <input id="loginEmail" type="email" class="modal-input" placeholder="you@example.com" required />
         <button id="sendMagicBtn" type="submit" class="btn">Send Magic Link</button>
       </form>
 
@@ -451,13 +575,15 @@ const physicsCardStats = document.getElementById("physicsCardStats");
     const chemistryCardStats = document.getElementById("chemistryCardStats");
     const mathCardStats = document.getElementById("mathCardStats");
 
-// Modal refs
-    const loginModal = document.getElementById("loginModal");
+const loginModal = document.getElementById("loginModal");
     const closeLoginModal = document.getElementById("closeLoginModal");
     const loginForm = document.getElementById("loginForm");
     const loginEmail = document.getElementById("loginEmail");
     const loginMsg = document.getElementById("loginMsg");
     const sendMagicBtn = document.getElementById("sendMagicBtn");
+
+const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const sidebar = document.querySelector(".sidebar");
 
 let streak = 0;
     let bookmarked = localStorage.getItem(KEYS.bookmarked) === "true";
@@ -491,38 +617,21 @@ const defaultRecent = {
       explain: "x(t)=3t²−4t+1 ⇒ v(t)=6t−4. At t=2, v=8 m/s."
     };
 
-function goRewardsPage() {
-      window.location.href = "rewards.html";
-    }
-
-function getSupabaseClient() {
-      return window.PC?.supabase || window.sb || null;
-    }
-
-function isUuid(v) {
+function goRewardsPage() { window.location.href = "rewards.html"; }
+    function getSupabaseClient() { return window.PC?.supabase || window.sb || null; }
+    function isUuid(v) {
       return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
     }
 
-/* =========================
-       Prep Coins Engine (Supabase)
-       ========================= */
-    let coinBalanceCache = 0;
-
-function localDateKey() {
+let coinBalanceCache = 0;
+    function localDateKey() {
       const d = new Date();
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      return `${y}-${m}-${day}`;
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     }
 
 function contestCoinsByRank(rank, participants) {
-      const r = Number(rank || 0);
-      const p = Math.max(1, Number(participants || 1));
-      if (r < 1) return 0;
-      if (r === 1) return 100;
-      if (r === 2) return 75;
-      if (r === 3) return 60;
+      const r = Number(rank || 0), p = Math.max(1, Number(participants || 1));
+      if (r < 1) return 0; if (r === 1) return 100; if (r === 2) return 75; if (r === 3) return 60;
       if (r <= Math.ceil(p * 0.10)) return 40;
       if (r <= Math.ceil(p * 0.25)) return 25;
       if (r <= Math.ceil(p * 0.50)) return 15;
@@ -536,34 +645,20 @@ function renderCoinBalance() {
 async function refreshCoinBalance() {
       try {
         const sb = getSupabaseClient();
-        if (!sb || !currentUser?.id) {
-          coinBalanceCache = 0;
-          renderCoinBalance();
-          return 0;
-        }
-
-const { data, error } = await sb.rpc("get_my_coin_balance");
-        if (error) {
-          console.error("get_my_coin_balance error:", error.message);
-          renderCoinBalance();
-          return coinBalanceCache;
-        }
-
-coinBalanceCache = Math.max(0, Number(data || 0));
+        if (!sb || !currentUser?.id) { coinBalanceCache = 0; renderCoinBalance(); return 0; }
+        const { data, error } = await sb.rpc("get_my_coin_balance");
+        if (error) { console.error(error.message); renderCoinBalance(); return coinBalanceCache; }
+        coinBalanceCache = Math.max(0, Number(data || 0));
         renderCoinBalance();
         return coinBalanceCache;
-      } catch (e) {
-        console.error("refreshCoinBalance exception:", e);
-        renderCoinBalance();
-        return coinBalanceCache;
-      }
+      } catch (e) { console.error(e); renderCoinBalance(); return coinBalanceCache; }
     }
 
 async function awardCoinsOnce(uniqueKey, amount, reason, meta = {}) {
       try {
         const sb = getSupabaseClient();
-        if (!sb || !currentUser?.id) return { granted: false, balance: coinBalanceCache, amount: 0 };
-        if (!uniqueKey || !Number.isFinite(amount) || amount <= 0) return { granted: false, balance: coinBalanceCache, amount: 0 };
+        if (!sb || !currentUser?.id) return { granted:false, balance:coinBalanceCache, amount:0 };
+        if (!uniqueKey || !Number.isFinite(amount) || amount <= 0) return { granted:false, balance:coinBalanceCache, amount:0 };
 
 const { data, error } = await sb.rpc("award_coins_once", {
           p_unique_key: String(uniqueKey),
@@ -572,75 +667,40 @@ const { data, error } = await sb.rpc("award_coins_once", {
           p_meta: meta || {}
         });
 
-if (error) {
-          console.error("award_coins_once error:", error.message);
-          await refreshCoinBalance();
-          return { granted: false, balance: coinBalanceCache, amount: Number(amount || 0) };
-        }
+if (error) { console.error(error.message); await refreshCoinBalance(); return { granted:false, balance:coinBalanceCache, amount:Number(amount||0)}; }
 
 const row = Array.isArray(data) ? (data[0] || {}) : (data || {});
         coinBalanceCache = Math.max(0, Number(row.balance ?? coinBalanceCache ?? 0));
         renderCoinBalance();
-
-return {
-          granted: !!row.granted,
-          balance: coinBalanceCache,
-          amount: Number(row.amount ?? amount ?? 0)
-        };
+        return { granted: !!row.granted, balance: coinBalanceCache, amount: Number(row.amount ?? amount ?? 0) };
       } catch (e) {
-        console.error("awardCoinsOnce exception:", e);
+        console.error(e);
         await refreshCoinBalance();
-        return { granted: false, balance: coinBalanceCache, amount: Number(amount || 0) };
+        return { granted:false, balance:coinBalanceCache, amount:Number(amount||0)};
       }
     }
 
 async function grantDailyLoginCoins() {
       if (!currentUser?.id) return false;
       const day = localDateKey();
-      const key = `daily_login_${currentUser.id}_${day}`;
-      const res = await awardCoinsOnce(key, 5, "Daily login", { day, userId: currentUser.id });
+      const res = await awardCoinsOnce(`daily_login_${currentUser.id}_${day}`, 5, "Daily login", { day, userId: currentUser.id });
       return !!res.granted;
     }
 
 async function grantDailyProblemCoins() {
       if (!currentUser?.id) return false;
       const day = localDateKey();
-      const key = `daily_problem_${currentUser.id}_${day}`;
-      const res = await awardCoinsOnce(key, 10, "Daily problem solved", { day, userId: currentUser.id });
+      const res = await awardCoinsOnce(`daily_problem_${currentUser.id}_${day}`, 10, "Daily problem solved", { day, userId: currentUser.id });
       return !!res.granted;
-    }
-
-async function grantContestRankCoins({ contestId, rank, participants, userId }) {
-      const uid = String(userId || currentUser?.id || "");
-      if (!uid || !contestId) return false;
-      if (!currentUser?.id || currentUser.id !== uid) return false;
-
-const amount = contestCoinsByRank(rank, participants);
-      if (amount <= 0) return false;
-
-const key = `contest_rank_${uid}_${contestId}`;
-      const res = await awardCoinsOnce(key, amount, "Contest rank reward", {
-        contestId,
-        rank: Number(rank || 0),
-        participants: Number(participants || 0),
-        amount,
-        userId: uid
-      });
-      return !!res.granted;
-    }
-
-function getCoinBalance() {
-      return Math.max(0, Number(coinBalanceCache || 0));
     }
 
 window.PrepCoins = {
-      getBalance: getCoinBalance,
+      getBalance: () => Math.max(0, Number(coinBalanceCache || 0)),
       render: renderCoinBalance,
       refresh: refreshCoinBalance,
       grantDailyLoginCoins,
       grantDailyProblemCoins,
-      contestCoinsByRank,
-      grantContestRankCoins
+      contestCoinsByRank
     };
 
 function openLoginModal() {
@@ -670,19 +730,11 @@ if (adminBtn) adminBtn.style.display = "none";
     if (adminContestBtn) adminContestBtn.style.display = "none";
 
 coinsPill?.addEventListener("click", goRewardsPage);
-
-loginBtn?.addEventListener("click", openLoginModal);
+    loginBtn?.addEventListener("click", openLoginModal);
     closeLoginModal?.addEventListener("click", closeModal);
 
-loginModal?.addEventListener("click", (e) => {
-      if (e.target === loginModal) closeModal();
-    });
-
-window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && loginModal?.classList.contains("open")) {
-        closeModal();
-      }
-    });
+loginModal?.addEventListener("click", (e) => { if (e.target === loginModal) closeModal(); });
+    window.addEventListener("keydown", (e) => { if (e.key === "Escape" && loginModal?.classList.contains("open")) closeModal(); });
 
 loginForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -693,14 +745,9 @@ try {
         sendMagicBtn.disabled = true;
         sendMagicBtn.textContent = "Sending...";
         loginMsg.textContent = "Sending magic link...";
-
-const { error } = await window.PC.signInWithEmail(email);
-        if (error) {
-          loginMsg.textContent = error.message || "Login failed";
-          return;
-        }
-
-loginMsg.textContent = "✅ Magic link sent. Check your email and come back.";
+        const { error } = await window.PC.signInWithEmail(email);
+        if (error) { loginMsg.textContent = error.message || "Login failed"; return; }
+        loginMsg.textContent = "✅ Magic link sent. Check your email and come back.";
         setTimeout(closeModal, 1200);
       } catch (e) {
         loginMsg.textContent = e.message || "Login failed";
@@ -716,13 +763,8 @@ logoutBtn?.addEventListener("click", async () => {
       location.reload();
     });
 
-adminBtn?.addEventListener("click", () => {
-      window.location.href = "admin.html";
-    });
-
-adminContestBtn?.addEventListener("click", () => {
-      window.location.href = "admin-contests.html";
-    });
+adminBtn?.addEventListener("click", () => { window.location.href = "admin.html"; });
+    adminContestBtn?.addEventListener("click", () => { window.location.href = "admin-contests.html"; });
 
 async function getAuthUser() {
       if (window.PC?.getUser) return await window.PC.getUser();
@@ -747,9 +789,11 @@ async function renderAuthState() {
         renderCoinBalance();
 
 if (user) {
-          await ensureProfileIfMissing(user);
+          document.body.classList.add("logged-in");
+          document.body.classList.remove("logged-out");
 
-const name = user.email ? user.email.split("@")[0] : "PrepCoder";
+await ensureProfileIfMissing(user);
+          const name = user.email ? user.email.split("@")[0] : "PrepCoder";
           profileName.textContent = name + " ▾";
           avatarLetter.textContent = name.charAt(0).toUpperCase();
           loginBtn.style.display = "none";
@@ -772,7 +816,10 @@ let isAdminUser = false;
 adminBtn.style.display = isAdminUser ? "inline-block" : "none";
           adminContestBtn.style.display = isAdminUser ? "inline-block" : "none";
         } else {
-          profileName.textContent = "PrepCoder ▾";
+          document.body.classList.add("logged-out");
+          document.body.classList.remove("logged-in");
+
+profileName.textContent = "PrepCoder ▾";
           avatarLetter.textContent = "P";
           loginBtn.style.display = "inline-block";
           logoutBtn.style.display = "none";
@@ -783,6 +830,8 @@ adminBtn.style.display = isAdminUser ? "inline-block" : "none";
         }
       } catch (e) {
         console.error("Auth state error:", e);
+        document.body.classList.add("logged-out");
+        document.body.classList.remove("logged-in");
         if (adminBtn) adminBtn.style.display = "none";
         if (adminContestBtn) adminContestBtn.style.display = "none";
       }
@@ -796,44 +845,27 @@ async function loadDbStreak() {
           if (res?.ok) streak = Number(res.data?.current_streak || 0);
         }
         renderStreak();
-      } catch (e) {
-        console.error("loadDbStreak error:", e);
-      }
+      } catch (e) { console.error(e); }
     }
 
 async function loadSolvedIdsFromDb() {
       solvedQuestionIds = new Set();
       if (!currentUser) return;
-
-try {
+      try {
         const sb = getSupabaseClient();
         if (!sb) return;
-        const { data, error } = await sb
-          .from("user_solved")
-          .select("question_id")
-          .eq("user_id", currentUser.id);
-
-if (error) return console.error("loadSolvedIds error:", error.message);
+        const { data, error } = await sb.from("user_solved").select("question_id").eq("user_id", currentUser.id);
+        if (error) return console.error(error.message);
         (data || []).forEach(r => solvedQuestionIds.add(String(r.question_id)));
-      } catch (e) {
-        console.error("loadSolvedIds exception:", e);
-      }
+      } catch (e) { console.error(e); }
     }
 
 async function loadSubjectStatsFromDb() {
       const sb = getSupabaseClient();
       if (!sb) return;
-
-try {
-        const { data, error } = await sb
-          .from("questions")
-          .select("subject, topic")
-          .eq("is_active", true);
-
-if (error) {
-          console.error("loadSubjectStatsFromDb error:", error.message);
-          return;
-        }
+      try {
+        const { data, error } = await sb.from("questions").select("subject, topic").eq("is_active", true);
+        if (error) return console.error(error.message);
 
 const tmp = {
           Physics: { problems: 0, topicSet: new Set() },
@@ -858,31 +890,21 @@ subjectStats = {
 renderSubjectCardCounts();
         renderSidebarSubjectCounts();
         if (currentContinueProblem) renderContinuePractice(currentContinueProblem);
-      } catch (e) {
-        console.error("loadSubjectStatsFromDb exception:", e);
-      }
+      } catch (e) { console.error(e); }
     }
 
 function subscribeQuestionStatsRealtime() {
       const sb = getSupabaseClient();
       if (!sb) return;
 
-if (questionStatsChannel) {
-        try { sb.removeChannel(questionStatsChannel); } catch {}
-      }
+if (questionStatsChannel) { try { sb.removeChannel(questionStatsChannel); } catch {} }
 
 questionStatsChannel = sb
         .channel("questions-stats-live")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "questions" },
-          async () => {
-            await loadSubjectStatsFromDb();
-          }
-        )
-        .subscribe((status) => {
-          console.log("Realtime questions channel:", status);
-        });
+        .on("postgres_changes", { event: "*", schema: "public", table: "questions" }, async () => {
+          await loadSubjectStatsFromDb();
+        })
+        .subscribe((status) => console.log("Realtime questions channel:", status));
     }
 
 async function boot() {
@@ -898,9 +920,7 @@ async function boot() {
 
 window.addEventListener("beforeunload", () => {
       const sb = getSupabaseClient();
-      if (sb && questionStatsChannel) {
-        try { sb.removeChannel(questionStatsChannel); } catch {}
-      }
+      if (sb && questionStatsChannel) { try { sb.removeChannel(questionStatsChannel); } catch {} }
     });
 
 explorePhysicsBtn.addEventListener("click", () => window.location.href = "physics-problems.html");
@@ -928,6 +948,11 @@ sideBtns.forEach(btn => {
         if (tab === "rewards") return goRewardsPage();
         setSideTab(tab);
         localStorage.setItem(KEYS.sideTab, tab);
+
+if (window.innerWidth <= 768) {
+          sidebar?.classList.remove("open");
+          document.body.classList.remove("sidebar-open");
+        }
       });
     });
 
@@ -940,12 +965,7 @@ function setTopTab(tab){ topBtns.forEach(b => b.classList.toggle("active", b.dat
     function setSideTab(tab){ sideBtns.forEach(b => b.classList.toggle("active", b.dataset.tab === tab)); }
 
 function escapeHtml(str = "") {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+      return String(str).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
 
 function normalizeSubject(subject = "") {
@@ -1002,32 +1022,21 @@ function uniqueById(arr = []) {
       return Array.from(map.values());
     }
 
-function getUtcDateKey() {
-      return new Date().toISOString().slice(0, 10);
-    }
+function getUtcDateKey() { return new Date().toISOString().slice(0, 10); }
 
 function formatDailyDate(dateKey) {
       const d = new Date(dateKey + "T00:00:00Z");
-      return d.toLocaleDateString(undefined, {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        timeZone: "UTC"
-      });
+      return d.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" });
     }
 
 function hashString(str = "") {
       let h = 0;
-      for (let i = 0; i < str.length; i++) {
-        h = (h * 31 + str.charCodeAt(i)) >>> 0;
-      }
+      for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
       return h;
     }
 
 function pickDailyQuestion(questions = []) {
-      const list = uniqueById(questions).sort((a, b) =>
-        String(a.id || "").localeCompare(String(b.id || ""))
-      );
+      const list = uniqueById(questions).sort((a, b) => String(a.id || "").localeCompare(String(b.id || "")));
       if (!list.length) return null;
       const idx = hashString(getUtcDateKey()) % list.length;
       return list[idx];
@@ -1085,12 +1094,9 @@ document.getElementById("phySolved").textContent = `${Math.min(phySolved, phyTot
 
 function renderContinuePractice(p) {
       const subject = normalizeSubject(p?.subject || "Physics");
-      const topic = p?.topic || "General Practice";
-      const difficulty = p?.difficulty || "Easy";
-      continueTitle.textContent = `${topic} - Practice`;
-      continueMeta.textContent = `${subject} · ${difficulty}`;
-
-const total = Math.max(1, getTotalCountForSubject(subject));
+      continueTitle.textContent = `${p?.topic || "General Practice"} - Practice`;
+      continueMeta.textContent = `${subject} · ${p?.difficulty || "Easy"}`;
+      const total = Math.max(1, getTotalCountForSubject(subject));
       const done = Math.min(total, getSolvedCountForSubject(subject));
       solvedCounter.textContent = `${done} / ${total} solved`;
       solveBar.style.width = `${(done / total) * 100}%`;
@@ -1105,10 +1111,7 @@ function buildSolveUrlFromProblem(p) {
         marks: String(p.marks || 4),
         title: p.title || "Practice Problem",
         text: p.text || "",
-        a: p.a || "",
-        b: p.b || "",
-        c: p.c || "",
-        d: p.d || "",
+        a: p.a || "", b: p.b || "", c: p.c || "", d: p.d || "",
         correct: p.correct || "A",
         explain: p.explain || "",
         back: "index.html"
@@ -1121,8 +1124,7 @@ function bindOptionEvents() {
         opt.addEventListener("click", () => {
           optionsWrap.querySelectorAll(".opt").forEach(o => o.classList.remove("active"));
           opt.classList.add("active");
-          const val = opt.querySelector("input").value;
-          localStorage.setItem(KEYS.selectedOption, val);
+          localStorage.setItem(KEYS.selectedOption, opt.querySelector("input").value);
         });
       });
     }
@@ -1135,15 +1137,10 @@ function renderRecentProblem(p) {
       recentQuestion.textContent = p.text || p.title || "Daily problem";
       recentMeta.textContent = `Difficulty: ${p.difficulty || "Easy"} · Marks: +${p.marks || 4} · From: ${p.source || "DB"}`;
 
-const opts = [
-        { key: "A", text: p.a || "" },
-        { key: "B", text: p.b || "" },
-        { key: "C", text: p.c || "" },
-        { key: "D", text: p.d || "" }
-      ];
+const opts = [{key:"A",text:p.a||""},{key:"B",text:p.b||""},{key:"C",text:p.c||""},{key:"D",text:p.d||""}];
+      localStorage.removeItem(KEYS.selectedOption);
 
-localStorage.removeItem(KEYS.selectedOption);
-      optionsWrap.innerHTML = opts.map(o => `
+optionsWrap.innerHTML = opts.map(o => `
         <label class="opt">
           <input type="radio" name="ans" value="${o.key}">
           ${o.key}. ${escapeHtml(o.text)}
@@ -1179,41 +1176,23 @@ function normalizeQuestionRow(row) {
 async function fetchActiveQuestionsFromDb(limit = 500) {
       const sb = getSupabaseClient();
       if (!sb) return [];
-      const { data, error } = await sb
-        .from("questions")
-        .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(limit);
-
-if (error) {
-        console.error("fetchActiveQuestionsFromDb error:", error.message);
-        return [];
-      }
-
-return (data || []).map(normalizeQuestionRow);
+      const { data, error } = await sb.from("questions").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(limit);
+      if (error) { console.error(error.message); return []; }
+      return (data || []).map(normalizeQuestionRow);
     }
 
 async function loadDailyProblemFromDb() {
       const badge = document.getElementById("dailyDateBadge");
-      if (badge) {
-        badge.textContent = `Daily Challenge · ${formatDailyDate(getUtcDateKey())}`;
-      }
+      if (badge) badge.textContent = `Daily Challenge · ${formatDailyDate(getUtcDateKey())}`;
 
 try {
         const dbQuestions = await fetchActiveQuestionsFromDb(500);
         if (dbQuestions.length) {
           recentPool = uniqueById(dbQuestions);
           const daily = pickDailyQuestion(recentPool);
-          if (daily) {
-            renderRecentProblem(daily);
-            setContinueProblem(daily);
-            return;
-          }
+          if (daily) { renderRecentProblem(daily); setContinueProblem(daily); return; }
         }
-      } catch (e) {
-        console.error("loadDailyProblemFromDb error:", e);
-      }
+      } catch (e) { console.error(e); }
 
 recentPool = [defaultRecent];
       renderRecentProblem(defaultRecent);
@@ -1222,21 +1201,14 @@ recentPool = [defaultRecent];
 
 async function saveSolvedToDb(questionId, isCorrect) {
       if (!currentUser) return;
-      if (!isUuid(questionId)) {
-        console.warn("Skipping saveSolvedToDb: invalid UUID:", questionId);
-        return;
-      }
-      const sb = getSupabaseClient();
+      if (!isUuid(questionId)) return console.warn("Invalid UUID:", questionId);
+
+const sb = getSupabaseClient();
       if (!sb) return;
 
-const payload = {
-        user_id: currentUser.id,
-        question_id: questionId,
-        is_correct: !!isCorrect
-      };
-
-const { error } = await sb.from("user_solved").upsert(payload, { onConflict: "user_id,question_id" });
-      if (error) console.error("saveSolvedToDb error:", error.message);
+const payload = { user_id: currentUser.id, question_id: questionId, is_correct: !!isCorrect };
+      const { error } = await sb.from("user_solved").upsert(payload, { onConflict: "user_id,question_id" });
+      if (error) console.error(error.message);
       else solvedQuestionIds.add(String(questionId));
     }
 
@@ -1262,16 +1234,12 @@ if (currentRecent?.id) {
 
 if (currentUser && window.PC?.updateStreakOnSolve) {
           const sr = await window.PC.updateStreakOnSolve(currentUser.id);
-          if (sr?.ok) {
-            streak = Number(sr.data?.current_streak || 0);
-            renderStreak();
-          }
+          if (sr?.ok) { streak = Number(sr.data?.current_streak || 0); renderStreak(); }
         }
 
 await grantDailyProblemCoins();
         await refreshCoinBalance();
-
-renderContinuePractice(currentRecent);
+        renderContinuePractice(currentRecent);
       } else {
         if (currentRecent?.id) await saveSolvedToDb(currentRecent.id, false);
         const correctInput = optionsWrap.querySelector(`input[value="${correctAns}"]`);
@@ -1301,9 +1269,28 @@ function renderBookmark() {
       bookmarkBtn.style.color = bookmarked ? "#b7ffcf" : "";
     }
 
-function renderStreak() {
-      streakNum.textContent = streak;
-    }
+function renderStreak() { streakNum.textContent = streak; }
+
+mobileMenuBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = sidebar.classList.toggle("open");
+      document.body.classList.toggle("sidebar-open", open);
+    });
+
+document.addEventListener("click", (e) => {
+      if (window.innerWidth > 768) return;
+      if (!e.target.closest(".sidebar") && !e.target.closest("#mobileMenuBtn")) {
+        sidebar?.classList.remove("open");
+        document.body.classList.remove("sidebar-open");
+      }
+    });
+
+window.addEventListener("resize", () => {
+      if (window.innerWidth > 768) {
+        sidebar?.classList.remove("open");
+        document.body.classList.remove("sidebar-open");
+      }
+    });
   </script>
 </body>
 </html>
