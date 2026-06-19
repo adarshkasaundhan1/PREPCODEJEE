@@ -279,7 +279,6 @@
           <button data-tab="mock-test">Mock Test</button>
         </nav>
         <div class="right-actions">
-          <!-- Prep Coins shown before streak -->
           <div class="coins-pill">🪙 <span id="prepCoinsValue">0</span> Prep Coins</div>
           <div class="streak">🔥 <span id="streakNum">0</span> Day Streak</div>
 
@@ -407,9 +406,7 @@
       rotationIdx: "pc_recent_rotation_idx_v1",
       phySolvedIds: "phy_solved_ids",
       chemSolvedIds: "chem_solved_ids",
-      mathSolvedIds: "math_solved_ids",
-      coinWalletPrefix: "prepcode_wallet_v1_",
-      coinLedgerPrefix: "prepcode_coin_ledger_v1_"
+      mathSolvedIds: "math_solved_ids"
     };
 
 const topBtns = document.querySelectorAll("#topNav button");
@@ -499,40 +496,9 @@ function isUuid(v) {
     }
 
 /* =========================
-       Prep Coins Engine
+       Prep Coins Engine (Supabase)
        ========================= */
-    function coinUserId() {
-      return currentUser?.id || "guest";
-    }
-
-function walletKey() {
-      return `${KEYS.coinWalletPrefix}${coinUserId()}`;
-    }
-
-function ledgerKey() {
-      return `${KEYS.coinLedgerPrefix}${coinUserId()}`;
-    }
-
-function readCoinWallet() {
-      try {
-        return JSON.parse(localStorage.getItem(walletKey())) || { coins: 0, updatedAt: null };
-      } catch {
-        return { coins: 0, updatedAt: null };
-      }
-    }
-
-function writeCoinWallet(w) {
-      localStorage.setItem(walletKey(), JSON.stringify(w));
-    }
-
-function readCoinLedger() {
-      try { return JSON.parse(localStorage.getItem(ledgerKey())) || {}; }
-      catch { return {}; }
-    }
-
-function writeCoinLedger(ledger) {
-      localStorage.setItem(ledgerKey(), JSON.stringify(ledger));
-    }
+    let coinBalanceCache = 0;
 
 function localDateKey() {
       const d = new Date();
@@ -542,48 +508,7 @@ function localDateKey() {
       return `${y}-${m}-${day}`;
     }
 
-function addCoinsOnce(uniqueKey, amount, reason, meta = {}) {
-      if (!uniqueKey || !Number.isFinite(amount) || amount <= 0) return false;
-
-const ledger = readCoinLedger();
-      if (ledger[uniqueKey]) return false;
-
-const wallet = readCoinWallet();
-      wallet.coins = Math.max(0, Number(wallet.coins || 0) + amount);
-      wallet.updatedAt = new Date().toISOString();
-      writeCoinWallet(wallet);
-
-ledger[uniqueKey] = { amount, reason, meta, at: new Date().toISOString() };
-      writeCoinLedger(ledger);
-
-renderCoinBalance();
-      return true;
-    }
-
-function getCoinBalance() {
-      return Number(readCoinWallet().coins || 0);
-    }
-
-function renderCoinBalance() {
-      if (prepCoinsValue) prepCoinsValue.textContent = String(getCoinBalance());
-    }
-
-// +5 daily login (once/day, per user)
-    function grantDailyLoginCoins() {
-      if (!currentUser?.id) return false;
-      const day = localDateKey();
-      return addCoinsOnce(`daily_login_${currentUser.id}_${day}`, 5, "Daily login", { day, userId: currentUser.id });
-    }
-
-// +10 daily problem solved (once/day, per user)
-    function grantDailyProblemCoins() {
-      if (!currentUser?.id) return false;
-      const day = localDateKey();
-      return addCoinsOnce(`daily_problem_${currentUser.id}_${day}`, 10, "Daily problem solved", { day, userId: currentUser.id });
-    }
-
-// Contest rank coin rule
-    function contestCoinsByRank(rank, participants) {
+function contestCoinsByRank(rank, participants) {
       const r = Number(rank || 0);
       const p = Math.max(1, Number(participants || 1));
       if (r < 1) return 0;
@@ -596,32 +521,114 @@ function renderCoinBalance() {
       return 8;
     }
 
-// Call from contest-result page (kept global for next step integration)
-    function grantContestRankCoins({ contestId, rank, participants, userId }) {
+function renderCoinBalance() {
+      if (prepCoinsValue) prepCoinsValue.textContent = String(Math.max(0, Number(coinBalanceCache || 0)));
+    }
+
+async function refreshCoinBalance() {
+      try {
+        const sb = getSupabaseClient();
+        if (!sb || !currentUser?.id) {
+          coinBalanceCache = 0;
+          renderCoinBalance();
+          return 0;
+        }
+
+const { data, error } = await sb.rpc("get_my_coin_balance");
+        if (error) {
+          console.error("get_my_coin_balance error:", error.message);
+          renderCoinBalance();
+          return coinBalanceCache;
+        }
+
+coinBalanceCache = Math.max(0, Number(data || 0));
+        renderCoinBalance();
+        return coinBalanceCache;
+      } catch (e) {
+        console.error("refreshCoinBalance exception:", e);
+        renderCoinBalance();
+        return coinBalanceCache;
+      }
+    }
+
+async function awardCoinsOnce(uniqueKey, amount, reason, meta = {}) {
+      try {
+        const sb = getSupabaseClient();
+        if (!sb || !currentUser?.id) return { granted: false, balance: coinBalanceCache, amount: 0 };
+        if (!uniqueKey || !Number.isFinite(amount) || amount <= 0) return { granted: false, balance: coinBalanceCache, amount: 0 };
+
+const { data, error } = await sb.rpc("award_coins_once", {
+          p_unique_key: String(uniqueKey),
+          p_amount: Number(amount),
+          p_reason: String(reason || "Reward"),
+          p_meta: meta || {}
+        });
+
+if (error) {
+          console.error("award_coins_once error:", error.message);
+          await refreshCoinBalance();
+          return { granted: false, balance: coinBalanceCache, amount: Number(amount || 0) };
+        }
+
+const row = Array.isArray(data) ? (data[0] || {}) : (data || {});
+        coinBalanceCache = Math.max(0, Number(row.balance ?? coinBalanceCache ?? 0));
+        renderCoinBalance();
+
+return {
+          granted: !!row.granted,
+          balance: coinBalanceCache,
+          amount: Number(row.amount ?? amount ?? 0)
+        };
+      } catch (e) {
+        console.error("awardCoinsOnce exception:", e);
+        await refreshCoinBalance();
+        return { granted: false, balance: coinBalanceCache, amount: Number(amount || 0) };
+      }
+    }
+
+async function grantDailyLoginCoins() {
+      if (!currentUser?.id) return false;
+      const day = localDateKey();
+      const key = `daily_login_${currentUser.id}_${day}`;
+      const res = await awardCoinsOnce(key, 5, "Daily login", { day, userId: currentUser.id });
+      return !!res.granted;
+    }
+
+async function grantDailyProblemCoins() {
+      if (!currentUser?.id) return false;
+      const day = localDateKey();
+      const key = `daily_problem_${currentUser.id}_${day}`;
+      const res = await awardCoinsOnce(key, 10, "Daily problem solved", { day, userId: currentUser.id });
+      return !!res.granted;
+    }
+
+async function grantContestRankCoins({ contestId, rank, participants, userId }) {
       const uid = String(userId || currentUser?.id || "");
       if (!uid || !contestId) return false;
-      const amount = contestCoinsByRank(rank, participants);
+      if (!currentUser?.id || currentUser.id !== uid) return false;
+
+const amount = contestCoinsByRank(rank, participants);
       if (amount <= 0) return false;
 
-// use explicit user if provided
-      const oldUser = currentUser;
-      if (!currentUser || currentUser.id !== uid) currentUser = { id: uid };
-
-const granted = addCoinsOnce(
-        `contest_rank_${uid}_${contestId}`,
+const key = `contest_rank_${uid}_${contestId}`;
+      const res = await awardCoinsOnce(key, amount, "Contest rank reward", {
+        contestId,
+        rank: Number(rank || 0),
+        participants: Number(participants || 0),
         amount,
-        "Contest rank reward",
-        { contestId, rank, participants, amount, userId: uid }
-      );
+        userId: uid
+      });
+      return !!res.granted;
+    }
 
-currentUser = oldUser;
-      renderCoinBalance();
-      return granted;
+function getCoinBalance() {
+      return Math.max(0, Number(coinBalanceCache || 0));
     }
 
 window.PrepCoins = {
       getBalance: getCoinBalance,
       render: renderCoinBalance,
+      refresh: refreshCoinBalance,
       grantDailyLoginCoins,
       grantDailyProblemCoins,
       contestCoinsByRank,
@@ -739,9 +746,9 @@ const name = user.email ? user.email.split("@")[0] : "PrepCoder";
           logoutBtn.style.display = "inline-block";
           closeModal();
 
-// Daily login coins +5
-          grantDailyLoginCoins();
-          renderCoinBalance();
+await refreshCoinBalance();
+          await grantDailyLoginCoins();
+          await refreshCoinBalance();
 
 let isAdminUser = false;
           if (window.PC?.canCurrentUserAccessAdmin) {
@@ -761,6 +768,7 @@ adminBtn.style.display = isAdminUser ? "inline-block" : "none";
           logoutBtn.style.display = "none";
           adminBtn.style.display = "none";
           adminContestBtn.style.display = "none";
+          coinBalanceCache = 0;
           renderCoinBalance();
         }
       } catch (e) {
@@ -874,7 +882,7 @@ async function boot() {
       await loadSubjectStatsFromDb();
       subscribeQuestionStatsRealtime();
       await loadDailyProblemFromDb();
-      renderCoinBalance();
+      await refreshCoinBalance();
     }
     boot();
 
@@ -1248,9 +1256,8 @@ if (currentUser && window.PC?.updateStreakOnSolve) {
           }
         }
 
-// +10 Prep Coins for daily problem solved (once/day)
-        grantDailyProblemCoins();
-        renderCoinBalance();
+await grantDailyProblemCoins();
+        await refreshCoinBalance();
 
 renderContinuePractice(currentRecent);
       } else {
