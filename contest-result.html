@@ -270,8 +270,7 @@ const RESULT_KEY = "prepcode_contest_results";
       const SELECTED_CONTEST_META_KEY = "prepcode_selected_contest_meta";
       const LAST_SUBMITTED_KEY = "prepcode_last_submitted_contest";
 
-// Prep Coins keys (same family as index page)
-      const COIN_WALLET_PREFIX = "prepcode_wallet_v1_";
+const COIN_WALLET_PREFIX = "prepcode_wallet_v1_";
       const COIN_LEDGER_PREFIX = "prepcode_coin_ledger_v1_";
 
 const contestSelect = document.getElementById("contestSelect");
@@ -300,8 +299,9 @@ let sbClient = null;
       let allResults = [];
       let selectedContestId = null;
       let liveChannel = null;
+      let endCheckTimer = null; // NEW: periodic re-check
       let contestTitleMap = new Map();
-      let contestEndMap = new Map(); // NEW: for end-time gating
+      let contestEndMap = new Map();
       let usingLiveSupabase = true;
 
 function getSupabaseClient() {
@@ -476,7 +476,7 @@ function clearRatingBridge(contestId) {
       }
 
 // =========================
-      // Prep Coins (rank rewards)
+      // Prep Coins
       // =========================
       function getCoinWalletKey(userId) {
         return `${COIN_WALLET_PREFIX}${userId}`;
@@ -549,11 +549,18 @@ ledger[key] = {
 return { granted: true, amount };
       }
 
-// NEW: award only after contest end
-      function isContestEnded(contestId) {
+function isContestEnded(contestId) {
         const endMs = contestEndMap.get(String(contestId || ""));
-        if (!Number.isFinite(endMs)) return false; // unknown => do not award
+        if (!Number.isFinite(endMs)) return false;
         return Date.now() >= endMs;
+      }
+
+// NEW: periodic re-check so reward triggers even without realtime DB events
+      function startEndWatcher() {
+        if (endCheckTimer) clearInterval(endCheckTimer);
+        endCheckTimer = setInterval(() => {
+          renderPage();
+        }, 20000); // 20s
       }
 
 function renderContestOptions() {
@@ -659,11 +666,9 @@ const bars = subjectBreakdown(me);
           </div>
         `).join("");
 
-// Bridge for contest-home rating system
-        persistRatingBridge(selectedContestId, ranked, me, rows[0]?.contestName || "");
+persistRatingBridge(selectedContestId, ranked, me, rows[0]?.contestName || "");
 
-// Award rank-based Prep Coins once per contest ONLY after contest ended
-        if (currentUser?.id && isUuid(selectedContestId)) {
+if (currentUser?.id && isUuid(selectedContestId)) {
           if (isContestEnded(selectedContestId)) {
             const coinRes = awardContestCoinsOnce({
               userId: currentUser.id,
@@ -673,18 +678,20 @@ const bars = subjectBreakdown(me);
             });
 
 if (coinRes.granted) {
-              footerText.innerHTML =
-                `Live source: <strong>contest_submissions</strong> • Final rank reward: <strong>+${coinRes.amount} Prep Coins</strong>`;
+              footerText.innerHTML = `Live source: <strong>contest_submissions</strong> • Final rank reward: <strong>+${coinRes.amount} Prep Coins</strong>`;
+            } else {
+              const alreadyGranted = readLedger(currentUser.id)[`contest_rank_${selectedContestId}`];
+              footerText.innerHTML = alreadyGranted
+                ? `Live source: <strong>contest_submissions</strong> • Final rank reward already credited.`
+                : `Live source: <strong>contest_submissions</strong> • Final rank does not qualify for coin reward.`;
             }
           } else {
-            footerText.innerHTML =
-              `Live source: <strong>contest_submissions</strong> • Coins unlock after contest ends.`;
+            footerText.innerHTML = `Live source: <strong>contest_submissions</strong> • Coins unlock after contest ends.`;
           }
         }
       }
 
-// UPDATED: also fetch end-time related fields
-      async function loadContestTitleMap(contestIds) {
+async function loadContestTitleMap(contestIds) {
         contestTitleMap = new Map();
         contestEndMap = new Map();
         if (!contestIds.length) return;
@@ -794,7 +801,7 @@ async function refreshDataAndRender() {
           usingLiveSupabase = false;
           footerText.innerHTML = `Fallback source: <strong>localStorage (${RESULT_KEY})</strong>`;
           allResults = loadLocalFallbackResults();
-          contestEndMap = new Map(); // unknown in fallback, so no auto coin grant
+          contestEndMap = new Map(); // unknown in fallback => no award
         }
 
 autoFixSelectedContest();
@@ -892,6 +899,7 @@ if (!sbClient) {
           autoFixSelectedContest();
           renderContestOptions();
           renderPage();
+          startEndWatcher(); // still safe
           return;
         }
 
@@ -901,10 +909,14 @@ currentUser = await getAuthUser();
         }
 
 await refreshDataAndRender();
+        startEndWatcher(); // NEW
         subscribeLiveAll();
       }
 
-window.addEventListener("beforeunload", () => unsubscribeLive());
+window.addEventListener("beforeunload", () => {
+        unsubscribeLive();
+        if (endCheckTimer) clearInterval(endCheckTimer); // NEW cleanup
+      });
 
 init().catch(err => {
         console.error("contest-result init error:", err);
@@ -914,6 +926,7 @@ init().catch(err => {
         autoFixSelectedContest();
         renderContestOptions();
         renderPage();
+        startEndWatcher();
       });
     })();
   </script>
