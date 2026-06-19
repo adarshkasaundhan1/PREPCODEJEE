@@ -96,7 +96,21 @@
       box-shadow:0 0 10px var(--green);
     }
     .right-actions{display:flex;gap:10px;align-items:center}
-    .streak{
+
+.coins-pill{
+      border:1px solid rgba(245,158,11,.35);
+      background:rgba(245,158,11,.1);
+      padding:8px 10px;
+      border-radius:10px;
+      font-weight:700;
+      color:#ffd58a;
+      font-size:14px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+.streak{
       border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);padding:8px 10px;border-radius:10px;
       font-weight:700;color:#ffd58a;font-size:14px;
     }
@@ -163,8 +177,7 @@
 
 .footer{margin-top:14px;color:var(--muted);font-size:13px}
 
-/* Login Modal */
-    .modal-backdrop{
+.modal-backdrop{
       position:fixed; inset:0;
       background:rgba(0,0,0,.55);
       display:none;
@@ -266,6 +279,8 @@
           <button data-tab="mock-test">Mock Test</button>
         </nav>
         <div class="right-actions">
+          <!-- Prep Coins shown before streak -->
+          <div class="coins-pill">🪙 <span id="prepCoinsValue">0</span> Prep Coins</div>
           <div class="streak">🔥 <span id="streakNum">0</span> Day Streak</div>
 
 <button id="adminBtn" class="btn btn-outline" style="display:none;">Admin</button>
@@ -392,7 +407,9 @@
       rotationIdx: "pc_recent_rotation_idx_v1",
       phySolvedIds: "phy_solved_ids",
       chemSolvedIds: "chem_solved_ids",
-      mathSolvedIds: "math_solved_ids"
+      mathSolvedIds: "math_solved_ids",
+      coinWalletPrefix: "prepcode_wallet_v1_",
+      coinLedgerPrefix: "prepcode_coin_ledger_v1_"
     };
 
 const topBtns = document.querySelectorAll("#topNav button");
@@ -406,6 +423,7 @@ const topBtns = document.querySelectorAll("#topNav button");
     const successMsg = document.getElementById("successMsg");
     const errorMsg = document.getElementById("errorMsg");
     const bookmarkBtn = document.getElementById("bookmarkBtn");
+    const prepCoinsValue = document.getElementById("prepCoinsValue");
 
 const continueBtn = document.getElementById("continueBtn");
     const continueTitle = document.getElementById("continueTitle");
@@ -480,6 +498,136 @@ function isUuid(v) {
       return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
     }
 
+/* =========================
+       Prep Coins Engine
+       ========================= */
+    function coinUserId() {
+      return currentUser?.id || "guest";
+    }
+
+function walletKey() {
+      return `${KEYS.coinWalletPrefix}${coinUserId()}`;
+    }
+
+function ledgerKey() {
+      return `${KEYS.coinLedgerPrefix}${coinUserId()}`;
+    }
+
+function readCoinWallet() {
+      try {
+        return JSON.parse(localStorage.getItem(walletKey())) || { coins: 0, updatedAt: null };
+      } catch {
+        return { coins: 0, updatedAt: null };
+      }
+    }
+
+function writeCoinWallet(w) {
+      localStorage.setItem(walletKey(), JSON.stringify(w));
+    }
+
+function readCoinLedger() {
+      try { return JSON.parse(localStorage.getItem(ledgerKey())) || {}; }
+      catch { return {}; }
+    }
+
+function writeCoinLedger(ledger) {
+      localStorage.setItem(ledgerKey(), JSON.stringify(ledger));
+    }
+
+function localDateKey() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+function addCoinsOnce(uniqueKey, amount, reason, meta = {}) {
+      if (!uniqueKey || !Number.isFinite(amount) || amount <= 0) return false;
+
+const ledger = readCoinLedger();
+      if (ledger[uniqueKey]) return false;
+
+const wallet = readCoinWallet();
+      wallet.coins = Math.max(0, Number(wallet.coins || 0) + amount);
+      wallet.updatedAt = new Date().toISOString();
+      writeCoinWallet(wallet);
+
+ledger[uniqueKey] = { amount, reason, meta, at: new Date().toISOString() };
+      writeCoinLedger(ledger);
+
+renderCoinBalance();
+      return true;
+    }
+
+function getCoinBalance() {
+      return Number(readCoinWallet().coins || 0);
+    }
+
+function renderCoinBalance() {
+      if (prepCoinsValue) prepCoinsValue.textContent = String(getCoinBalance());
+    }
+
+// +5 daily login (once/day, per user)
+    function grantDailyLoginCoins() {
+      if (!currentUser?.id) return false;
+      const day = localDateKey();
+      return addCoinsOnce(`daily_login_${currentUser.id}_${day}`, 5, "Daily login", { day, userId: currentUser.id });
+    }
+
+// +10 daily problem solved (once/day, per user)
+    function grantDailyProblemCoins() {
+      if (!currentUser?.id) return false;
+      const day = localDateKey();
+      return addCoinsOnce(`daily_problem_${currentUser.id}_${day}`, 10, "Daily problem solved", { day, userId: currentUser.id });
+    }
+
+// Contest rank coin rule
+    function contestCoinsByRank(rank, participants) {
+      const r = Number(rank || 0);
+      const p = Math.max(1, Number(participants || 1));
+      if (r < 1) return 0;
+      if (r === 1) return 100;
+      if (r === 2) return 75;
+      if (r === 3) return 60;
+      if (r <= Math.ceil(p * 0.10)) return 40;
+      if (r <= Math.ceil(p * 0.25)) return 25;
+      if (r <= Math.ceil(p * 0.50)) return 15;
+      return 8;
+    }
+
+// Call from contest-result page (kept global for next step integration)
+    function grantContestRankCoins({ contestId, rank, participants, userId }) {
+      const uid = String(userId || currentUser?.id || "");
+      if (!uid || !contestId) return false;
+      const amount = contestCoinsByRank(rank, participants);
+      if (amount <= 0) return false;
+
+// use explicit user if provided
+      const oldUser = currentUser;
+      if (!currentUser || currentUser.id !== uid) currentUser = { id: uid };
+
+const granted = addCoinsOnce(
+        `contest_rank_${uid}_${contestId}`,
+        amount,
+        "Contest rank reward",
+        { contestId, rank, participants, amount, userId: uid }
+      );
+
+currentUser = oldUser;
+      renderCoinBalance();
+      return granted;
+    }
+
+window.PrepCoins = {
+      getBalance: getCoinBalance,
+      render: renderCoinBalance,
+      grantDailyLoginCoins,
+      grantDailyProblemCoins,
+      contestCoinsByRank,
+      grantContestRankCoins
+    };
+
 function openLoginModal() {
       if (!loginModal) return;
       loginModal.classList.add("open");
@@ -501,6 +649,7 @@ setTopTab(localStorage.getItem(KEYS.topTab) || "home");
     renderBookmark();
     renderSidebarSubjectCounts();
     renderSubjectCardCounts();
+    renderCoinBalance();
 
 if (adminBtn) adminBtn.style.display = "none";
     if (adminContestBtn) adminContestBtn.style.display = "none";
@@ -578,15 +727,21 @@ async function renderAuthState() {
       try {
         const user = await getAuthUser();
         currentUser = user;
+        renderCoinBalance();
 
 if (user) {
           await ensureProfileIfMissing(user);
-          const name = user.email ? user.email.split("@")[0] : "PrepCoder";
+
+const name = user.email ? user.email.split("@")[0] : "PrepCoder";
           profileName.textContent = name + " ▾";
           avatarLetter.textContent = name.charAt(0).toUpperCase();
           loginBtn.style.display = "none";
           logoutBtn.style.display = "inline-block";
           closeModal();
+
+// Daily login coins +5
+          grantDailyLoginCoins();
+          renderCoinBalance();
 
 let isAdminUser = false;
           if (window.PC?.canCurrentUserAccessAdmin) {
@@ -606,6 +761,7 @@ adminBtn.style.display = isAdminUser ? "inline-block" : "none";
           logoutBtn.style.display = "none";
           adminBtn.style.display = "none";
           adminContestBtn.style.display = "none";
+          renderCoinBalance();
         }
       } catch (e) {
         console.error("Auth state error:", e);
@@ -718,6 +874,7 @@ async function boot() {
       await loadSubjectStatsFromDb();
       subscribeQuestionStatsRealtime();
       await loadDailyProblemFromDb();
+      renderCoinBalance();
     }
     boot();
 
@@ -826,7 +983,7 @@ function uniqueById(arr = []) {
     }
 
 function getUtcDateKey() {
-      return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      return new Date().toISOString().slice(0, 10);
     }
 
 function formatDailyDate(dateKey) {
@@ -1091,8 +1248,11 @@ if (currentUser && window.PC?.updateStreakOnSolve) {
           }
         }
 
-// Daily problem stays same for the day (no auto-switch)
-        renderContinuePractice(currentRecent);
+// +10 Prep Coins for daily problem solved (once/day)
+        grantDailyProblemCoins();
+        renderCoinBalance();
+
+renderContinuePractice(currentRecent);
       } else {
         if (currentRecent?.id) await saveSolvedToDb(currentRecent.id, false);
         const correctInput = optionsWrap.querySelector(`input[value="${correctAns}"]`);
