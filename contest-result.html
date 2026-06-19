@@ -270,9 +270,6 @@ const RESULT_KEY = "prepcode_contest_results";
       const SELECTED_CONTEST_META_KEY = "prepcode_selected_contest_meta";
       const LAST_SUBMITTED_KEY = "prepcode_last_submitted_contest";
 
-const COIN_WALLET_PREFIX = "prepcode_wallet_v1_";
-      const COIN_LEDGER_PREFIX = "prepcode_coin_ledger_v1_";
-
 const contestSelect = document.getElementById("contestSelect");
       const exportBtn = document.getElementById("exportBtn");
       const clearBtn = document.getElementById("clearBtn");
@@ -476,41 +473,8 @@ function clearRatingBridge(contestId) {
       }
 
 // =========================
-      // Prep Coins
+      // Prep Coins (Supabase RPC)
       // =========================
-      function getCoinWalletKey(userId) {
-        return `${COIN_WALLET_PREFIX}${userId}`;
-      }
-
-function getCoinLedgerKey(userId) {
-        return `${COIN_LEDGER_PREFIX}${userId}`;
-      }
-
-function readWallet(userId) {
-        try {
-          return JSON.parse(localStorage.getItem(getCoinWalletKey(userId))) || { coins: 0, updatedAt: null };
-        } catch {
-          return { coins: 0, updatedAt: null };
-        }
-      }
-
-function writeWallet(userId, wallet) {
-        localStorage.setItem(getCoinWalletKey(userId), JSON.stringify(wallet));
-      }
-
-function readLedger(userId) {
-        try {
-          return JSON.parse(localStorage.getItem(getCoinLedgerKey(userId))) || {};
-        } catch {
-          return {};
-        }
-      }
-
-function writeLedger(userId, ledger) {
-        localStorage.setItem(getCoinLedgerKey(userId), JSON.stringify(ledger));
-      }
-
-// MATCHED with index.html
       function contestCoinsByRank(rank, participants) {
         const r = Number(rank || 0);
         const p = Math.max(1, Number(participants || 1));
@@ -524,46 +488,89 @@ function writeLedger(userId, ledger) {
         return 8;
       }
 
-// MATCHED key format with index.html: contest_rank_${userId}_${contestId}
-      function awardContestCoinsOnce({ userId, contestId, rank, participants }) {
-        if (!userId || !contestId) return { granted: false, amount: 0 };
+async function awardContestCoinsOnce({ userId, contestId, rank, participants }) {
+        if (!sbClient || !userId || !contestId) return { granted: false, amount: 0, error: "missing-params" };
 
 const amount = contestCoinsByRank(rank, participants);
-        if (amount <= 0) return { granted: false, amount: 0 };
+        if (amount <= 0) return { granted: false, amount: 0, reason: "not-qualified" };
 
-const ledger = readLedger(userId);
-        const key = `contest_rank_${userId}_${contestId}`;
-        if (ledger[key]) return { granted: false, amount };
+const uniqueKey = `contest_rank_${userId}_${contestId}`;
 
-const wallet = readWallet(userId);
-        wallet.coins = Math.max(0, Number(wallet.coins || 0) + amount);
-        wallet.updatedAt = new Date().toISOString();
-        writeWallet(userId, wallet);
+const { data, error } = await sbClient.rpc("award_coins_once", {
+          p_unique_key: uniqueKey,
+          p_amount: amount,
+          p_reason: "Contest rank reward",
+          p_meta: {
+            contestId,
+            rank: Number(rank || 0),
+            participants: Number(participants || 0),
+            userId
+          }
+        });
 
-ledger[key] = {
-          reason: "Contest rank reward",
-          amount,
-          contestId,
-          rank: Number(rank || 0),
-          participants: Number(participants || 0),
-          at: new Date().toISOString()
+if (error) {
+          console.error("award_coins_once error:", error.message);
+          return { granted: false, amount, error: error.message || "rpc-error" };
+        }
+
+const row = Array.isArray(data) ? (data[0] || {}) : (data || {});
+        return {
+          granted: !!row.granted,
+          amount: Number(row.amount ?? amount),
+          balance: Number(row.balance ?? 0)
         };
-        writeLedger(userId, ledger);
-
-return { granted: true, amount };
       }
 
 function isContestEnded(contestId) {
         const endMs = contestEndMap.get(String(contestId || ""));
         if (!Number.isFinite(endMs)) return false;
+        if (endMs === 0) return true;
         return Date.now() >= endMs;
       }
 
-function startEndWatcher() {
+async function ensureSelectedContestEndMeta(contestId) {
+        if (!sbClient || !isUuid(contestId)) return;
+        if (contestEndMap.has(String(contestId))) return;
+
+const { data, error } = await sbClient
+          .from("contests")
+          .select("*")
+          .eq("id", contestId)
+          .single();
+
+if (error || !data) return;
+
+const id = String(data.id || contestId);
+        const startsAt = data.starts_at || data.start_time || data.start_at || null;
+        const directEnd = data.ends_at || data.end_time || data.end_at || null;
+        const durationMin = Number(data.duration_min ?? data.duration ?? 0);
+        const statusTxt = String(data.status || "").toLowerCase();
+
+let endMs = null;
+        if (directEnd) endMs = new Date(directEnd).getTime();
+        else if (startsAt && durationMin > 0) endMs = new Date(startsAt).getTime() + durationMin * 60000;
+        else if (statusTxt === "ended") endMs = 0;
+
+if (Number.isFinite(endMs)) contestEndMap.set(id, endMs);
+      }
+
+// FAST UPDATE: 3s watcher
+      function startEndWatcher() {
         if (endCheckTimer) clearInterval(endCheckTimer);
         endCheckTimer = setInterval(() => {
-          renderPage();
-        }, 20000);
+          void renderPage();
+        }, 3000);
+      }
+
+// FAST UPDATE: after redirect, poll quickly for a few seconds
+      function startFastRefreshWindow() {
+        let tries = 0;
+        const maxTries = 8;
+        const t = setInterval(async () => {
+          tries++;
+          await refreshDataAndRender();
+          if (tries >= maxTries) clearInterval(t);
+        }, 1000);
       }
 
 function renderContestOptions() {
@@ -587,7 +594,7 @@ contestSelect.value = selectedContestId;
         if (selectedMeta) persistSelectedContest(selectedMeta.contestId, selectedMeta.contestName);
       }
 
-function renderPage() {
+async function renderPage() {
         if (!selectedContestId) {
           resetSummaryCards();
           leaderboardWrap.innerHTML = `<div class="empty">No result data available yet.</div>`;
@@ -673,7 +680,13 @@ persistRatingBridge(selectedContestId, ranked, me, rows[0]?.contestName || "");
 
 if (currentUser?.id && isUuid(selectedContestId)) {
           if (isContestEnded(selectedContestId)) {
-            const coinRes = awardContestCoinsOnce({
+            const amount = contestCoinsByRank(Number(me.rank || 0), Number(ranked.length || 0));
+            if (amount <= 0) {
+              footerText.innerHTML = `Live source: <strong>contest_submissions</strong> • Final rank does not qualify for coin reward.`;
+              return;
+            }
+
+const coinRes = await awardContestCoinsOnce({
               userId: currentUser.id,
               contestId: selectedContestId,
               rank: Number(me.rank || 0),
@@ -682,12 +695,10 @@ if (currentUser?.id && isUuid(selectedContestId)) {
 
 if (coinRes.granted) {
               footerText.innerHTML = `Live source: <strong>contest_submissions</strong> • Final rank reward: <strong>+${coinRes.amount} Prep Coins</strong>`;
+            } else if (!coinRes.error) {
+              footerText.innerHTML = `Live source: <strong>contest_submissions</strong> • Final rank reward already credited.`;
             } else {
-              const key = `contest_rank_${currentUser.id}_${selectedContestId}`;
-              const alreadyGranted = readLedger(currentUser.id)[key];
-              footerText.innerHTML = alreadyGranted
-                ? `Live source: <strong>contest_submissions</strong> • Final rank reward already credited.`
-                : `Live source: <strong>contest_submissions</strong> • Final rank does not qualify for coin reward.`;
+              footerText.innerHTML = `Live source: <strong>contest_submissions</strong> • Reward check failed (${coinRes.error}).`;
             }
           } else {
             footerText.innerHTML = `Live source: <strong>contest_submissions</strong> • Coins unlock after contest ends.`;
@@ -702,7 +713,7 @@ async function loadContestTitleMap(contestIds) {
 
 const { data, error } = await sbClient
           .from("contests")
-          .select("id,title,starts_at,start_time,start_at,ends_at,end_time,end_at,duration_min,duration")
+          .select("*")
           .in("id", contestIds);
 
 if (error) return;
@@ -716,15 +727,18 @@ contestTitleMap.set(id, c.title || "Untitled Contest");
 const startsAt = c.starts_at || c.start_time || c.start_at || null;
           const directEnd = c.ends_at || c.end_time || c.end_at || null;
           const durationMin = Number(c.duration_min ?? c.duration ?? 0);
+          const statusTxt = String(c.status || "").toLowerCase();
 
 let endMs = null;
           if (directEnd) {
             endMs = new Date(directEnd).getTime();
           } else if (startsAt && durationMin > 0) {
             endMs = new Date(startsAt).getTime() + durationMin * 60000;
+          } else if (statusTxt === "ended") {
+            endMs = 0;
           }
 
-if (Number.isFinite(endMs) && endMs > 0) {
+if (Number.isFinite(endMs)) {
             contestEndMap.set(id, endMs);
           }
         });
@@ -810,7 +824,12 @@ async function refreshDataAndRender() {
 
 autoFixSelectedContest();
         renderContestOptions();
-        renderPage();
+
+if (selectedContestId && usingLiveSupabase) {
+          await ensureSelectedContestEndMeta(selectedContestId);
+        }
+
+await renderPage();
       }
 
 function unsubscribeLive() {
@@ -831,13 +850,14 @@ liveChannel = sbClient
           .subscribe();
       }
 
-contestSelect.addEventListener("change", e => {
+contestSelect.addEventListener("change", async (e) => {
         selectedContestId = e.target.value || null;
         if (selectedContestId) {
           const selectedName = uniqueContests(allResults).find(c => c.contestId === selectedContestId)?.contestName || "";
           persistSelectedContest(selectedContestId, selectedName);
+          if (usingLiveSupabase) await ensureSelectedContestEndMeta(selectedContestId);
         }
-        renderPage();
+        await renderPage();
       });
 
 exportBtn.addEventListener("click", () => {
@@ -892,6 +912,13 @@ const ok = confirm("Clear local fallback results?");
         leaderboardWrap.innerHTML = `<div class="empty">Results cleared.</div>`;
       });
 
+// FAST UPDATE: refresh immediately when tab becomes visible
+      document.addEventListener("visibilitychange", async () => {
+        if (!document.hidden) {
+          await refreshDataAndRender();
+        }
+      });
+
 async function init() {
         selectedContestId = resolveSelectedContestId();
         sbClient = getSupabaseClient();
@@ -902,7 +929,7 @@ if (!sbClient) {
           allResults = loadLocalFallbackResults();
           autoFixSelectedContest();
           renderContestOptions();
-          renderPage();
+          await renderPage();
           startEndWatcher();
           return;
         }
@@ -913,6 +940,7 @@ currentUser = await getAuthUser();
         }
 
 await refreshDataAndRender();
+        startFastRefreshWindow(); // FAST UPDATE
         startEndWatcher();
         subscribeLiveAll();
       }
@@ -922,14 +950,14 @@ window.addEventListener("beforeunload", () => {
         if (endCheckTimer) clearInterval(endCheckTimer);
       });
 
-init().catch(err => {
+init().catch(async err => {
         console.error("contest-result init error:", err);
         usingLiveSupabase = false;
         footerText.innerHTML = `Fallback source: <strong>localStorage (${RESULT_KEY})</strong>`;
         allResults = loadLocalFallbackResults();
         autoFixSelectedContest();
         renderContestOptions();
-        renderPage();
+        await renderPage();
         startEndWatcher();
       });
     })();
