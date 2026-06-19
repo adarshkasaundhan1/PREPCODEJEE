@@ -299,7 +299,7 @@ let sbClient = null;
       let allResults = [];
       let selectedContestId = null;
       let liveChannel = null;
-      let endCheckTimer = null; // NEW: periodic re-check
+      let endCheckTimer = null;
       let contestTitleMap = new Map();
       let contestEndMap = new Map();
       let usingLiveSupabase = true;
@@ -510,25 +510,29 @@ function writeLedger(userId, ledger) {
         localStorage.setItem(getCoinLedgerKey(userId), JSON.stringify(ledger));
       }
 
-function contestCoinsByRank(rank) {
+// MATCHED with index.html
+      function contestCoinsByRank(rank, participants) {
         const r = Number(rank || 0);
-        if (r === 1) return 90;
-        if (r === 2) return 70;
-        if (r === 3) return 55;
-        if (r >= 4 && r <= 10) return 40;
-        if (r >= 11 && r <= 50) return 30;
-        if (r >= 51 && r <= 100) return 25;
-        return 0;
+        const p = Math.max(1, Number(participants || 1));
+        if (r < 1) return 0;
+        if (r === 1) return 100;
+        if (r === 2) return 75;
+        if (r === 3) return 60;
+        if (r <= Math.ceil(p * 0.10)) return 40;
+        if (r <= Math.ceil(p * 0.25)) return 25;
+        if (r <= Math.ceil(p * 0.50)) return 15;
+        return 8;
       }
 
-function awardContestCoinsOnce({ userId, contestId, rank, participants }) {
+// MATCHED key format with index.html: contest_rank_${userId}_${contestId}
+      function awardContestCoinsOnce({ userId, contestId, rank, participants }) {
         if (!userId || !contestId) return { granted: false, amount: 0 };
 
-const amount = contestCoinsByRank(rank);
+const amount = contestCoinsByRank(rank, participants);
         if (amount <= 0) return { granted: false, amount: 0 };
 
 const ledger = readLedger(userId);
-        const key = `contest_rank_${contestId}`;
+        const key = `contest_rank_${userId}_${contestId}`;
         if (ledger[key]) return { granted: false, amount };
 
 const wallet = readWallet(userId);
@@ -555,12 +559,11 @@ function isContestEnded(contestId) {
         return Date.now() >= endMs;
       }
 
-// NEW: periodic re-check so reward triggers even without realtime DB events
-      function startEndWatcher() {
+function startEndWatcher() {
         if (endCheckTimer) clearInterval(endCheckTimer);
         endCheckTimer = setInterval(() => {
           renderPage();
-        }, 20000); // 20s
+        }, 20000);
       }
 
 function renderContestOptions() {
@@ -680,7 +683,8 @@ if (currentUser?.id && isUuid(selectedContestId)) {
 if (coinRes.granted) {
               footerText.innerHTML = `Live source: <strong>contest_submissions</strong> • Final rank reward: <strong>+${coinRes.amount} Prep Coins</strong>`;
             } else {
-              const alreadyGranted = readLedger(currentUser.id)[`contest_rank_${selectedContestId}`];
+              const key = `contest_rank_${currentUser.id}_${selectedContestId}`;
+              const alreadyGranted = readLedger(currentUser.id)[key];
               footerText.innerHTML = alreadyGranted
                 ? `Live source: <strong>contest_submissions</strong> • Final rank reward already credited.`
                 : `Live source: <strong>contest_submissions</strong> • Final rank does not qualify for coin reward.`;
@@ -801,7 +805,7 @@ async function refreshDataAndRender() {
           usingLiveSupabase = false;
           footerText.innerHTML = `Fallback source: <strong>localStorage (${RESULT_KEY})</strong>`;
           allResults = loadLocalFallbackResults();
-          contestEndMap = new Map(); // unknown in fallback => no award
+          contestEndMap = new Map();
         }
 
 autoFixSelectedContest();
@@ -899,7 +903,7 @@ if (!sbClient) {
           autoFixSelectedContest();
           renderContestOptions();
           renderPage();
-          startEndWatcher(); // still safe
+          startEndWatcher();
           return;
         }
 
@@ -909,13 +913,13 @@ currentUser = await getAuthUser();
         }
 
 await refreshDataAndRender();
-        startEndWatcher(); // NEW
+        startEndWatcher();
         subscribeLiveAll();
       }
 
 window.addEventListener("beforeunload", () => {
         unsubscribeLive();
-        if (endCheckTimer) clearInterval(endCheckTimer); // NEW cleanup
+        if (endCheckTimer) clearInterval(endCheckTimer);
       });
 
 init().catch(err => {
