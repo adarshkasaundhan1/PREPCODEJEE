@@ -270,6 +270,10 @@ const RESULT_KEY = "prepcode_contest_results";
       const SELECTED_CONTEST_META_KEY = "prepcode_selected_contest_meta";
       const LAST_SUBMITTED_KEY = "prepcode_last_submitted_contest";
 
+// Prep Coins keys (same family as index page)
+      const COIN_WALLET_PREFIX = "prepcode_wallet_v1_";
+      const COIN_LEDGER_PREFIX = "prepcode_coin_ledger_v1_";
+
 const contestSelect = document.getElementById("contestSelect");
       const exportBtn = document.getElementById("exportBtn");
       const clearBtn = document.getElementById("clearBtn");
@@ -297,6 +301,7 @@ let sbClient = null;
       let selectedContestId = null;
       let liveChannel = null;
       let contestTitleMap = new Map();
+      let contestEndMap = new Map(); // NEW: for end-time gating
       let usingLiveSupabase = true;
 
 function getSupabaseClient() {
@@ -433,6 +438,124 @@ function persistSelectedContest(id, name = "") {
         localStorage.setItem(SELECTED_CONTEST_META_KEY, JSON.stringify({ id, title: name }));
       }
 
+function persistRatingBridge(contestId, ranked, me, fallbackContestName = "") {
+        if (!isUuid(contestId) || !me) return;
+
+const totalParticipants = Number(ranked?.length || 0);
+
+localStorage.setItem(`prepcode_contest_result_${contestId}`, JSON.stringify({
+          contestId,
+          contestName: me.contestName || fallbackContestName || "Untitled Contest",
+          rank: Number(me.rank || 0),
+          totalParticipants,
+          participants: totalParticipants,
+          score: Number(me.score || 0),
+          submittedAt: me.submittedAt || new Date().toISOString(),
+          userId: me.userId || null
+        }));
+
+localStorage.setItem(`prepcode_leaderboard_${contestId}`, JSON.stringify({
+          contestId,
+          totalParticipants,
+          leaderboard: (ranked || []).map(r => ({
+            rank: Number(r.rank || 0),
+            user_id: r.userId || null,
+            name: r.user || "User",
+            score: Number(r.score || 0),
+            submittedAt: r.submittedAt || null
+          }))
+        }));
+
+localStorage.setItem(LAST_SUBMITTED_KEY, contestId);
+      }
+
+function clearRatingBridge(contestId) {
+        if (!contestId) return;
+        localStorage.removeItem(`prepcode_contest_result_${contestId}`);
+        localStorage.removeItem(`prepcode_leaderboard_${contestId}`);
+      }
+
+// =========================
+      // Prep Coins (rank rewards)
+      // =========================
+      function getCoinWalletKey(userId) {
+        return `${COIN_WALLET_PREFIX}${userId}`;
+      }
+
+function getCoinLedgerKey(userId) {
+        return `${COIN_LEDGER_PREFIX}${userId}`;
+      }
+
+function readWallet(userId) {
+        try {
+          return JSON.parse(localStorage.getItem(getCoinWalletKey(userId))) || { coins: 0, updatedAt: null };
+        } catch {
+          return { coins: 0, updatedAt: null };
+        }
+      }
+
+function writeWallet(userId, wallet) {
+        localStorage.setItem(getCoinWalletKey(userId), JSON.stringify(wallet));
+      }
+
+function readLedger(userId) {
+        try {
+          return JSON.parse(localStorage.getItem(getCoinLedgerKey(userId))) || {};
+        } catch {
+          return {};
+        }
+      }
+
+function writeLedger(userId, ledger) {
+        localStorage.setItem(getCoinLedgerKey(userId), JSON.stringify(ledger));
+      }
+
+function contestCoinsByRank(rank) {
+        const r = Number(rank || 0);
+        if (r === 1) return 90;
+        if (r === 2) return 70;
+        if (r === 3) return 55;
+        if (r >= 4 && r <= 10) return 40;
+        if (r >= 11 && r <= 50) return 30;
+        if (r >= 51 && r <= 100) return 25;
+        return 0;
+      }
+
+function awardContestCoinsOnce({ userId, contestId, rank, participants }) {
+        if (!userId || !contestId) return { granted: false, amount: 0 };
+
+const amount = contestCoinsByRank(rank);
+        if (amount <= 0) return { granted: false, amount: 0 };
+
+const ledger = readLedger(userId);
+        const key = `contest_rank_${contestId}`;
+        if (ledger[key]) return { granted: false, amount };
+
+const wallet = readWallet(userId);
+        wallet.coins = Math.max(0, Number(wallet.coins || 0) + amount);
+        wallet.updatedAt = new Date().toISOString();
+        writeWallet(userId, wallet);
+
+ledger[key] = {
+          reason: "Contest rank reward",
+          amount,
+          contestId,
+          rank: Number(rank || 0),
+          participants: Number(participants || 0),
+          at: new Date().toISOString()
+        };
+        writeLedger(userId, ledger);
+
+return { granted: true, amount };
+      }
+
+// NEW: award only after contest end
+      function isContestEnded(contestId) {
+        const endMs = contestEndMap.get(String(contestId || ""));
+        if (!Number.isFinite(endMs)) return false; // unknown => do not award
+        return Date.now() >= endMs;
+      }
+
 function renderContestOptions() {
         const contests = uniqueContests(allResults);
         if (!contests.length) {
@@ -535,19 +658,65 @@ const bars = subjectBreakdown(me);
             <strong>${b.val}%</strong>
           </div>
         `).join("");
+
+// Bridge for contest-home rating system
+        persistRatingBridge(selectedContestId, ranked, me, rows[0]?.contestName || "");
+
+// Award rank-based Prep Coins once per contest ONLY after contest ended
+        if (currentUser?.id && isUuid(selectedContestId)) {
+          if (isContestEnded(selectedContestId)) {
+            const coinRes = awardContestCoinsOnce({
+              userId: currentUser.id,
+              contestId: selectedContestId,
+              rank: Number(me.rank || 0),
+              participants: Number(ranked.length || 0)
+            });
+
+if (coinRes.granted) {
+              footerText.innerHTML =
+                `Live source: <strong>contest_submissions</strong> • Final rank reward: <strong>+${coinRes.amount} Prep Coins</strong>`;
+            }
+          } else {
+            footerText.innerHTML =
+              `Live source: <strong>contest_submissions</strong> • Coins unlock after contest ends.`;
+          }
+        }
       }
 
-async function loadContestTitleMap(contestIds) {
+// UPDATED: also fetch end-time related fields
+      async function loadContestTitleMap(contestIds) {
         contestTitleMap = new Map();
+        contestEndMap = new Map();
         if (!contestIds.length) return;
 
 const { data, error } = await sbClient
           .from("contests")
-          .select("id,title")
+          .select("id,title,starts_at,start_time,start_at,ends_at,end_time,end_at,duration_min,duration")
           .in("id", contestIds);
 
 if (error) return;
-        (data || []).forEach(c => contestTitleMap.set(c.id, c.title || "Untitled Contest"));
+
+(data || []).forEach(c => {
+          const id = String(c.id || "");
+          if (!id) return;
+
+contestTitleMap.set(id, c.title || "Untitled Contest");
+
+const startsAt = c.starts_at || c.start_time || c.start_at || null;
+          const directEnd = c.ends_at || c.end_time || c.end_at || null;
+          const durationMin = Number(c.duration_min ?? c.duration ?? 0);
+
+let endMs = null;
+          if (directEnd) {
+            endMs = new Date(directEnd).getTime();
+          } else if (startsAt && durationMin > 0) {
+            endMs = new Date(startsAt).getTime() + durationMin * 60000;
+          }
+
+if (Number.isFinite(endMs) && endMs > 0) {
+            contestEndMap.set(id, endMs);
+          }
+        });
       }
 
 async function loadLiveResultsFromSupabase() {
@@ -625,6 +794,7 @@ async function refreshDataAndRender() {
           usingLiveSupabase = false;
           footerText.innerHTML = `Fallback source: <strong>localStorage (${RESULT_KEY})</strong>`;
           allResults = loadLocalFallbackResults();
+          contestEndMap = new Map(); // unknown in fallback, so no auto coin grant
         }
 
 autoFixSelectedContest();
@@ -696,13 +866,15 @@ if (error) {
             return;
           }
 
-await refreshDataAndRender();
+clearRatingBridge(selectedContestId);
+          await refreshDataAndRender();
           return;
         }
 
 const ok = confirm("Clear local fallback results?");
         if (!ok) return;
         localStorage.removeItem(RESULT_KEY);
+        clearRatingBridge(selectedContestId);
         allResults = [];
         renderContestOptions();
         resetSummaryCards();
