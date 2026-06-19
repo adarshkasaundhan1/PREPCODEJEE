@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode - Rewards</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#0f1a2f;
+      --line:#233354;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --blue:#3b82f6;
+      --yellow:#f59e0b;
+      --danger:#ef4444;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% -10%, #193562 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1f2f55 0%, transparent 30%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      min-height:100vh;
+    }
+
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+
+.sidebar{
+      border-right:1px solid var(--line);
+      background:rgba(8,14,27,.85);
+      padding:18px 14px;
+      position:sticky;
+      top:0;
+      height:100vh;
+    }
+    .brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+    .brand .icon{color:var(--green);font-weight:900;font-size:22px}
+    .brand h1{font-size:30px;line-height:1}
+    .brand p{font-size:12px;color:var(--muted)}
+
+.menu{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+    .menu button{
+      background:transparent;border:1px solid transparent;color:var(--text);
+      text-align:left;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:600;
+    }
+    .menu button:hover{background:rgba(255,255,255,.04)}
+    .menu button.active{
+      background:rgba(34,197,94,.13);border-color:rgba(34,197,94,.25);color:#b9ffcf;
+    }
+
+.main{display:flex;flex-direction:column}
+    .topbar{
+      height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+      padding:0 20px;background:rgba(9,15,30,.78);backdrop-filter:blur(6px);position:sticky;top:0;z-index:20;
+    }
+    .top-links{display:flex;gap:6px;flex-wrap:wrap}
+    .top-links button{
+      border:none;background:transparent;color:var(--text);padding:10px 12px;border-radius:9px;cursor:pointer;font-weight:600;position:relative;
+    }
+    .top-links button:hover{background:rgba(255,255,255,.06)}
+    .top-links button.active{color:#b7ffd2}
+    .top-links button.active::after{
+      content:"";position:absolute;left:10px;right:10px;bottom:-10px;height:2px;border-radius:2px;background:var(--green);
+      box-shadow:0 0 10px var(--green);
+    }
+
+.right-actions{display:flex;gap:10px;align-items:center}
+    .coins-pill{
+      border:1px solid rgba(245,158,11,.35);
+      background:rgba(245,158,11,.1);
+      padding:8px 10px;border-radius:10px;
+      font-weight:700;color:#ffd58a;font-size:14px;
+      display:flex;align-items:center;gap:6px;
+    }
+    .profile{
+      border:1px solid var(--line);border-radius:999px;padding:5px 9px 5px 5px;background:rgba(255,255,255,.03);
+      display:flex;align-items:center;gap:8px;
+    }
+    .avatar{
+      width:28px;height:28px;border-radius:50%;
+      display:grid;place-items:center;background:var(--blue);
+      font-weight:700;font-size:12px;
+    }
+
+.content{padding:22px;max-width:1250px}
+    .title{font-size:32px;margin-bottom:14px}
+    .muted{color:var(--muted)}
+
+.coin-summary{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      padding:16px;
+      margin-bottom:16px;
+      display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+    }
+    .coin-big{
+      font-size:32px;font-weight:800;color:#ffd58a;
+    }
+
+.rewards-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:14px;
+    }
+    .reward-card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height:190px;
+    }
+    .reward-cost{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid rgba(245,158,11,.35);
+      background:rgba(245,158,11,.1);
+      color:#ffd58a;
+      font-weight:700;
+      padding:6px 10px;
+      border-radius:999px;
+      width:max-content;
+      font-size:13px;
+    }
+
+.btn{
+      border:none;border-radius:8px;padding:10px 12px;font-weight:700;cursor:pointer;
+      background:#16a34a;color:#fff;
+    }
+    .btn:disabled{
+      background:#334155;color:#94a3b8;cursor:not-allowed;
+    }
+
+.msg{
+      margin-top:14px;
+      padding:10px;
+      border-radius:10px;
+      display:none;
+      font-size:14px;
+    }
+    .msg.ok{
+      display:block;
+      border:1px solid rgba(34,197,94,.35);
+      background:rgba(34,197,94,.08);
+      color:#b7ffce;
+    }
+    .msg.err{
+      display:block;
+      border:1px solid rgba(239,68,68,.35);
+      background:rgba(239,68,68,.08);
+      color:#ffc8c8;
+    }
+
+@media (max-width:1050px){
+      .app{grid-template-columns:1fr}
+      .sidebar{position:relative;height:auto}
+      .topbar{flex-direction:column;height:auto;padding:12px;gap:10px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode</h1>
+          <p>LeetCode for JEE</p>
+        </div>
+      </div>
+
+<div class="menu">
+        <button onclick="go('index.html')">🏠 Dashboard</button>
+        <button onclick="go('problems.html')">☰ Problems</button>
+        <button onclick="go('contest-home.html')">🏆 Contests</button>
+        <button onclick="go('mock-generator.html')">🧪 Mock Test</button>
+        <button onclick="go('index.html')">📈 Progress</button>
+        <button class="active">🎁 Rewards</button>
+      </div>
+    </aside>
+
+<main class="main">
+      <header class="topbar">
+        <nav class="top-links">
+          <button onclick="go('index.html')">Home</button>
+          <button onclick="go('problems.html')">Problems</button>
+          <button onclick="go('contest-home.html')">Contests</button>
+          <button onclick="go('index.html')">Progress</button>
+          <button onclick="go('mock-generator.html')">Mock Test</button>
+          <button class="active">Rewards</button>
+        </nav>
+
+<div class="right-actions">
+          <div class="coins-pill">🪙 <span id="topCoins">0</span> Prep Coins</div>
+          <div class="profile">
+            <div class="avatar" id="avatarLetter">P</div>
+            <div id="profileName">PrepCoder ▾</div>
+          </div>
+        </div>
+      </header>
+
+<section class="content">
+        <h2 class="title">Rewards Store</h2>
+        <p class="muted" style="margin-bottom:14px;">Redeem your Prep Coins for vouchers, premium perks, and goodies.</p>
+
+<div class="coin-summary">
+          <div>
+            <p class="muted">Your Total Coins</p>
+            <div class="coin-big">🪙 <span id="totalCoins">0</span></div>
+          </div>
+          <div class="muted" id="userStatus">Checking login...</div>
+        </div>
+
+<div id="rewardsGrid" class="rewards-grid"></div>
+        <div id="message" class="msg"></div>
+      </section>
+    </main>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    function go(url){ window.location.href = url; }
+
+const rewards = [
+      { id: "amazon_50", title: "Amazon ₹50 Voucher", coins: 500, desc: "Instant digital voucher." },
+      { id: "amazon_100", title: "Amazon ₹100 Voucher", coins: 900, desc: "Better value redemption." },
+      { id: "premium_1m", title: "PrepCode Premium (1 Month)", coins: 1200, desc: "Unlock premium features for 30 days." },
+      { id: "mock_pack", title: "Mock Test Pack Unlock", coins: 700, desc: "Unlock advanced mock set." },
+      { id: "tshirt", title: "PrepCode T-Shirt", coins: 1500, desc: "Official PrepCode merch." }
+    ];
+
+const totalCoinsEl = document.getElementById("totalCoins");
+    const topCoinsEl = document.getElementById("topCoins");
+    const rewardsGrid = document.getElementById("rewardsGrid");
+    const msgEl = document.getElementById("message");
+    const userStatus = document.getElementById("userStatus");
+    const profileName = document.getElementById("profileName");
+    const avatarLetter = document.getElementById("avatarLetter");
+
+let currentUser = null;
+    let coinBalance = 0;
+
+function getSupabaseClient() {
+      return window.PC?.supabase || window.sb || null;
+    }
+
+function setMsg(text, type = "ok") {
+      msgEl.className = `msg ${type}`;
+      msgEl.textContent = text;
+    }
+
+function clearMsg() {
+      msgEl.className = "msg";
+      msgEl.textContent = "";
+    }
+
+function renderCoins() {
+      const v = String(Math.max(0, Number(coinBalance || 0)));
+      totalCoinsEl.textContent = v;
+      topCoinsEl.textContent = v;
+    }
+
+async function getAuthUser() {
+      try {
+        if (window.PC?.getUser) return await window.PC.getUser();
+        const sb = getSupabaseClient();
+        if (!sb) return null;
+        const { data } = await sb.auth.getUser();
+        return data?.user || null;
+      } catch {
+        return null;
+      }
+    }
+
+async function refreshCoinBalance() {
+      const sb = getSupabaseClient();
+      if (!sb || !currentUser?.id) {
+        coinBalance = 0;
+        renderCoins();
+        return;
+      }
+
+const { data, error } = await sb.rpc("get_my_coin_balance");
+      if (error) {
+        console.error("get_my_coin_balance error:", error.message);
+        return;
+      }
+
+coinBalance = Math.max(0, Number(data || 0));
+      renderCoins();
+    }
+
+function canRedeem(cost) {
+      return !!currentUser && coinBalance >= Number(cost || 0);
+    }
+
+function renderRewards() {
+      rewardsGrid.innerHTML = rewards.map(r => {
+        const allowed = canRedeem(r.coins);
+        return `
+          <article class="reward-card">
+            <h3>${r.title}</h3>
+            <p class="muted">${r.desc}</p>
+            <span class="reward-cost">🪙 ${r.coins} coins</span>
+            <div style="margin-top:auto">
+              <button
+                class="btn"
+                ${allowed ? "" : "disabled"}
+                onclick="redeem('${r.id}')"
+              >
+                ${allowed ? "Redeem Now" : (currentUser ? "Not enough coins" : "Login required")}
+              </button>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+async function redeemRewardRpc(reward) {
+      const sb = getSupabaseClient();
+      if (!sb) throw new Error("Supabase client not available.");
+      if (!currentUser?.id) throw new Error("Please login first.");
+      if (coinBalance < reward.coins) throw new Error("Insufficient coins.");
+
+// Recommended RPC:
+      // redeem_reward_once(p_reward_id text, p_cost int, p_title text)
+      // -> returns { success:boolean, message:text, balance:int }
+      const { data, error } = await sb.rpc("redeem_reward_once", {
+        p_reward_id: reward.id,
+        p_cost: Number(reward.coins),
+        p_title: reward.title
+      });
+
+if (error) throw error;
+      const row = Array.isArray(data) ? (data[0] || {}) : (data || {});
+
+if (row.success === false) {
+        throw new Error(row.message || "Redemption failed.");
+      }
+
+if (Number.isFinite(Number(row.balance))) {
+        coinBalance = Math.max(0, Number(row.balance));
+      } else {
+        await refreshCoinBalance();
+      }
+    }
+
+async function redeem(rewardId) {
+      clearMsg();
+      const reward = rewards.find(r => r.id === rewardId);
+      if (!reward) return;
+
+try {
+        await redeemRewardRpc(reward);
+        renderCoins();
+        renderRewards();
+        setMsg(`✅ Redeemed: ${reward.title}.`, "ok");
+      } catch (e) {
+        const m = e?.message || "Redemption failed.";
+        console.error("redeem error:", e);
+        setMsg(`❌ ${m} If RPC is missing, create 'redeem_reward_once' in Supabase.`, "err");
+      }
+    }
+
+async function boot() {
+      currentUser = await getAuthUser();
+
+if (currentUser) {
+        const name = currentUser.email ? currentUser.email.split("@")[0] : "PrepCoder";
+        profileName.textContent = name + " ▾";
+        avatarLetter.textContent = name.charAt(0).toUpperCase();
+        userStatus.textContent = "Logged in";
+      } else {
+        userStatus.textContent = "Not logged in";
+      }
+
+await refreshCoinBalance();
+      renderRewards();
+    }
+
+window.redeem = redeem;
+    boot();
+  </script>
+</body>
+</html>
