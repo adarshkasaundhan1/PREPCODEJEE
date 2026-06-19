@@ -140,6 +140,12 @@
       background:#334155;color:#94a3b8;cursor:not-allowed;
     }
 
+.btn-redeemed{
+      background:#1e293b !important;
+      color:#b7ffce !important;
+      border:1px solid rgba(34,197,94,.45);
+    }
+
 .msg{
       margin-top:14px;
       padding:10px;
@@ -249,6 +255,7 @@ const totalCoinsEl = document.getElementById("totalCoins");
 
 let currentUser = null;
     let coinBalance = 0;
+    let redeemedSet = new Set();
 
 function getSupabaseClient() {
       return window.PC?.supabase || window.sb || null;
@@ -300,26 +307,60 @@ coinBalance = Math.max(0, Number(data || 0));
       renderCoins();
     }
 
+async function loadRedeemedRewards() {
+      const sb = getSupabaseClient();
+      if (!sb || !currentUser?.id) {
+        redeemedSet = new Set();
+        return;
+      }
+
+const { data, error } = await sb
+        .from("reward_redemptions")
+        .select("reward_id")
+        .eq("user_id", currentUser.id);
+
+if (error) {
+        console.error("loadRedeemedRewards error:", error.message);
+        redeemedSet = new Set();
+        return;
+      }
+
+redeemedSet = new Set((data || []).map(r => String(r.reward_id)));
+    }
+
 function canRedeem(cost) {
       return !!currentUser && coinBalance >= Number(cost || 0);
     }
 
+function isRedeemed(rewardId) {
+      return redeemedSet.has(String(rewardId));
+    }
+
+function getButtonHtml(r) {
+      if (!currentUser) {
+        return `<button class="btn" disabled>Login required</button>`;
+      }
+
+if (isRedeemed(r.id)) {
+        return `<button class="btn btn-redeemed" disabled>Redeemed</button>`;
+      }
+
+if (canRedeem(r.coins)) {
+        return `<button class="btn" onclick="redeem('${r.id}')">Redeem Now</button>`;
+      }
+
+return `<button class="btn" disabled>Not enough coins</button>`;
+    }
+
 function renderRewards() {
       rewardsGrid.innerHTML = rewards.map(r => {
-        const allowed = canRedeem(r.coins);
         return `
           <article class="reward-card">
             <h3>${r.title}</h3>
             <p class="muted">${r.desc}</p>
             <span class="reward-cost">🪙 ${r.coins} coins</span>
             <div style="margin-top:auto">
-              <button
-                class="btn"
-                ${allowed ? "" : "disabled"}
-                onclick="redeem('${r.id}')"
-              >
-                ${allowed ? "Redeem Now" : (currentUser ? "Not enough coins" : "Login required")}
-              </button>
+              ${getButtonHtml(r)}
             </div>
           </article>
         `;
@@ -332,19 +373,16 @@ async function redeemRewardRpc(reward) {
       if (!currentUser?.id) throw new Error("Please login first.");
       if (coinBalance < reward.coins) throw new Error("Insufficient coins.");
 
-// Recommended RPC:
-      // redeem_reward_once(p_reward_id text, p_cost int, p_title text)
-      // -> returns { success:boolean, message:text, balance:int }
-      const { data, error } = await sb.rpc("redeem_reward_once", {
+const { data, error } = await sb.rpc("redeem_reward_once", {
         p_reward_id: reward.id,
         p_cost: Number(reward.coins),
         p_title: reward.title
       });
 
 if (error) throw error;
-      const row = Array.isArray(data) ? (data[0] || {}) : (data || {});
 
-if (row.success === false) {
+const row = Array.isArray(data) ? (data[0] || {}) : (data || {});
+      if (row.success === false) {
         throw new Error(row.message || "Redemption failed.");
       }
 
@@ -362,13 +400,27 @@ async function redeem(rewardId) {
 
 try {
         await redeemRewardRpc(reward);
-        renderCoins();
+
+// instant local UI update
+        redeemedSet.add(String(reward.id));
+
+renderCoins();
         renderRewards();
         setMsg(`✅ Redeemed: ${reward.title}.`, "ok");
       } catch (e) {
-        const m = e?.message || "Redemption failed.";
+        const m = String(e?.message || "Redemption failed.");
         console.error("redeem error:", e);
-        setMsg(`❌ ${m} If RPC is missing, create 'redeem_reward_once' in Supabase.`, "err");
+
+// If already redeemed in DB, sync UI gracefully
+        if (m.toLowerCase().includes("already redeemed")) {
+          redeemedSet.add(String(reward.id));
+          await refreshCoinBalance();
+          renderRewards();
+          setMsg(`ℹ️ ${reward.title} is already redeemed.`, "ok");
+          return;
+        }
+
+setMsg(`❌ ${m}`, "err");
       }
     }
 
@@ -385,8 +437,18 @@ if (currentUser) {
       }
 
 await refreshCoinBalance();
+      await loadRedeemedRewards();
       renderRewards();
     }
+
+// refresh if user comes back to tab
+    document.addEventListener("visibilitychange", async () => {
+      if (!document.hidden) {
+        await refreshCoinBalance();
+        await loadRedeemedRewards();
+        renderRewards();
+      }
+    });
 
 window.redeem = redeem;
     boot();
