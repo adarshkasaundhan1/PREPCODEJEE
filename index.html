@@ -303,19 +303,51 @@ body.sidebar-open::before{
       .top-links button{flex:0 0 auto;padding:8px 10px;font-size:13px}
 
 .right-actions{
-        grid-area:auth;display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap;width:auto;max-width:68vw;
+        grid-area:auth;
+        display:flex;
+        align-items:center;
+        justify-content:flex-end;
+        gap:6px;
+        flex-wrap:wrap;
+        width:auto;
+        max-width:52vw;
       }
 
 .coins-pill, .streak, #loginBtn, #logoutBtn, .profile{
         display:inline-flex !important;
-        width:auto;font-size:11px;padding:6px 8px;white-space:nowrap;
+        width:auto;
+        white-space:nowrap;
       }
 
-.coins-pill{order:1;}
-      .streak{order:2;gap:4px;}
+/* first row: profile + login/logout */
+      .profile{
+        order:1;
+        font-size:11px;
+        padding:5px 8px 5px 5px;
+      }
+      #loginBtn, #logoutBtn{
+        order:2;
+        font-size:11px;
+        padding:6px 8px;
+      }
+
+/* second row: coins + streak in SAME row */
+      .coins-pill{
+        order:3;
+        flex-basis:auto;
+        justify-content:center;
+        font-size:10px;
+        padding:5px 7px;
+      }
+      .streak{
+        order:4;
+        flex-basis:auto;
+        justify-content:center;
+        gap:4px;
+        font-size:10px;
+        padding:5px 7px;
+      }
       #streakNum{margin-right:2px;}
-      #loginBtn, #logoutBtn{order:3;}
-      .profile{order:4;}
 
 /* Auth state overrides for mobile */
       body.logged-in #loginBtn{display:none !important;}
