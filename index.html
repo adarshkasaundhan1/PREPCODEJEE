@@ -120,8 +120,7 @@
       width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--blue);font-weight:700;font-size:12px;
     }
 
-/* mobile navbar brand */
-    .mobile-brand{
+.mobile-brand{
       display:none;
       align-items:center;
       gap:8px;
@@ -319,8 +318,7 @@ body.sidebar-open::before{
         white-space:nowrap;
       }
 
-/* first row: profile + login/logout */
-      .profile{
+.profile{
         order:1;
         font-size:11px;
         padding:5px 8px 5px 5px;
@@ -331,8 +329,7 @@ body.sidebar-open::before{
         padding:6px 8px;
       }
 
-/* second row: coins + streak in SAME row */
-      .coins-pill{
+.coins-pill{
         order:3;
         flex-basis:auto;
         justify-content:center;
@@ -349,8 +346,7 @@ body.sidebar-open::before{
       }
       #streakNum{margin-right:2px;}
 
-/* Auth state overrides for mobile */
-      body.logged-in #loginBtn{display:none !important;}
+body.logged-in #loginBtn{display:none !important;}
       body.logged-in #logoutBtn,
       body.logged-in .profile{display:inline-flex !important;}
 
@@ -418,7 +414,7 @@ body.logged-out #logoutBtn{display:none !important;}
 <div class="premium">
         <h5>⭐ Go Premium</h5>
         <p>Unlock AI solutions, analytics, and mock tests.</p>
-        <button>Upgrade Now</button>
+        <button id="upgradePremiumBtn">Upgrade Now</button>
       </div>
     </aside>
 
@@ -602,6 +598,7 @@ const loginBtn = document.getElementById("loginBtn");
     const adminContestBtn = document.getElementById("adminContestBtn");
     const profileName = document.getElementById("profileName");
     const avatarLetter = document.getElementById("avatarLetter");
+    const upgradePremiumBtn = document.getElementById("upgradePremiumBtn");
 
 const physicsCardStats = document.getElementById("physicsCardStats");
     const chemistryCardStats = document.getElementById("chemistryCardStats");
@@ -650,6 +647,7 @@ const defaultRecent = {
     };
 
 function goRewardsPage() { window.location.href = "rewards.html"; }
+    function goPricingPage() { window.location.href = "pricing.html"; }
     function getSupabaseClient() { return window.PC?.supabase || window.sb || null; }
     function isUuid(v) {
       return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
@@ -762,6 +760,7 @@ if (adminBtn) adminBtn.style.display = "none";
     if (adminContestBtn) adminContestBtn.style.display = "none";
 
 coinsPill?.addEventListener("click", goRewardsPage);
+    upgradePremiumBtn?.addEventListener("click", goPricingPage);
     loginBtn?.addEventListener("click", openLoginModal);
     closeLoginModal?.addEventListener("click", closeModal);
 
