@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode Premium Plans</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --line:#233354;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --green-2:#16a34a;
+      --yellow:#f59e0b;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);
+      background:
+        radial-gradient(circle at 20% -10%, #193562 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1f2f55 0%, transparent 30%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      min-height:100vh;
+    }
+
+.container{width:min(1100px,92%);margin:0 auto;padding:22px 0 36px}
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;
+      border:1px solid var(--line);background:rgba(9,15,30,.8);border-radius:14px;padding:12px 14px;
+    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand-icon{color:var(--green);font-weight:900;font-size:22px}
+    .brand h1{font-size:24px;line-height:1}
+    .brand p{font-size:12px;color:var(--muted)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{
+      border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;
+      background:var(--green-2);color:white;
+    }
+    .btn-outline{background:transparent;color:var(--text);border:1px solid var(--line)}
+
+.hero{text-align:center;margin:24px 0 18px}
+    .badge{
+      display:inline-flex;padding:6px 12px;border-radius:999px;border:1px solid rgba(34,197,94,.45);
+      color:#b9ffcf;background:rgba(34,197,94,.09);font-size:12px;font-weight:700;margin-bottom:12px;
+    }
+    .hero h2{font-size:38px;margin-bottom:10px}
+    .hero p{color:var(--muted);font-size:16px;max-width:780px;margin:0 auto}
+
+.toggle-wrap{display:flex;justify-content:center;margin:20px 0 26px}
+    .toggle{
+      display:inline-flex;border:1px solid var(--line);background:rgba(255,255,255,.03);
+      border-radius:999px;padding:4px;gap:4px;
+    }
+    .toggle button{
+      border:none;border-radius:999px;padding:8px 14px;cursor:pointer;background:transparent;
+      color:var(--text);font-weight:700;
+    }
+    .toggle button.active{
+      background:rgba(34,197,94,.18);color:#b9ffcf;border:1px solid rgba(34,197,94,.35);
+    }
+
+.plans{display:grid;grid-template-columns:repeat(3,minmax(230px,1fr));gap:14px;margin-bottom:24px}
+    .plan{
+      border:1px solid var(--line);border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      padding:16px;display:flex;flex-direction:column;min-height:430px;position:relative;
+    }
+    .plan.popular{
+      border-color:rgba(34,197,94,.45);
+      box-shadow:0 0 0 1px rgba(34,197,94,.28), 0 14px 40px rgba(7,13,26,.45);
+    }
+    .popular-tag{
+      position:absolute;top:-10px;right:14px;padding:4px 10px;border-radius:999px;font-size:11px;
+      font-weight:800;background:#14532d;color:#bbf7d0;border:1px solid rgba(34,197,94,.45);
+    }
+    .plan h3{font-size:24px;margin-bottom:4px}
+    .plan .sub{color:var(--muted);font-size:13px;margin-bottom:12px}
+    .price{display:flex;align-items:flex-end;gap:6px;margin-bottom:12px}
+    .price .amt{font-size:40px;font-weight:900;line-height:1}
+    .price .term{color:var(--muted);font-size:13px}
+    .save{
+      display:inline-flex;width:max-content;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;
+      color:#fde68a;border:1px solid rgba(245,158,11,.45);background:rgba(245,158,11,.12);margin-bottom:12px;
+    }
+    .features{
+      list-style:none;display:grid;gap:8px;margin:8px 0 14px;color:#d7e4ff;font-size:14px;flex:1;
+    }
+    .features li::before{content:"✓ ";color:#86efac;font-weight:900}
+    .plan .cta{margin-top:auto;width:100%}
+
+.secure{
+      border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--muted);
+      background:rgba(255,255,255,.02);margin-bottom:18px;font-size:14px;
+    }
+
+.msg{margin-top:12px;min-height:20px;font-size:13px;color:var(--muted);text-align:center}
+    .msg.ok{color:#b9ffcf}
+    .msg.err{color:#fecaca}
+
+@media (max-width:980px){
+      .plans{grid-template-columns:1fr}
+      .hero h2{font-size:30px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode Premium</h1>
+          <p>LeetCode for JEE</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-outline" id="backBtn">← Back</button>
+        <button class="btn btn-outline" id="homeBtn">Home</button>
+      </div>
+    </header>
+
+<section class="hero">
+      <span class="badge">Launch Offer · Limited Time</span>
+      <h2>Crack JEE Faster with Premium</h2>
+      <p>Unlock AI solutions, adaptive practice, full mock analytics, and advanced weak-topic insights.</p>
+    </section>
+
+<div class="toggle-wrap">
+      <div class="toggle" role="tablist" aria-label="Billing Cycle">
+        <button id="monthlyTab" class="active" type="button">Monthly</button>
+        <button id="yearlyTab" type="button">Yearly (Save 44%)</button>
+      </div>
+    </div>
+
+<section class="plans">
+      <article class="plan">
+        <h3>Starter</h3>
+        <p class="sub">For regular practice</p>
+        <div class="price">
+          <span class="amt" data-monthly="149" data-yearly="1199">₹149</span>
+          <span class="term">/ month</span>
+        </div>
+        <span class="save">Good for beginners</span>
+        <ul class="features">
+          <li>AI solutions (limited/day)</li>
+          <li>Basic chapter analytics</li>
+          <li>Daily premium challenge</li>
+          <li>Mistake notebook</li>
+        </ul>
+        <button class="btn cta buyBtn" data-plan="starter">Upgrade Starter</button>
+      </article>
+
+<article class="plan popular">
+        <span class="popular-tag">MOST POPULAR</span>
+        <h3>Pro</h3>
+        <p class="sub">Best for serious aspirants</p>
+        <div class="price">
+          <span class="amt" data-monthly="299" data-yearly="1999">₹299</span>
+          <span class="term">/ month</span>
+        </div>
+        <span class="save">Highest conversion plan</span>
+        <ul class="features">
+          <li>Unlimited AI step-by-step solutions</li>
+          <li>Adaptive weak-topic practice</li>
+          <li>Full mock tests + percentile prediction</li>
+          <li>Contest deep analytics</li>
+          <li>Priority doubt support</li>
+        </ul>
+        <button class="btn cta buyBtn" data-plan="pro">Upgrade Pro</button>
+      </article>
+
+<article class="plan">
+        <h3>Elite</h3>
+        <p class="sub">For top-rank targeting</p>
+        <div class="price">
+          <span class="amt" data-monthly="499" data-yearly="2999">₹499</span>
+          <span class="term">/ month</span>
+        </div>
+        <span class="save">Max support + insights</span>
+        <ul class="features">
+          <li>Everything in Pro</li>
+          <li>Advanced rank trend forecasting</li>
+          <li>High-difficulty curated sets</li>
+          <li>Mentor priority queue (if enabled)</li>
+          <li>Premium profile badge</li>
+        </ul>
+        <button class="btn cta buyBtn" data-plan="elite">Upgrade Elite</button>
+      </article>
+    </section>
+
+<div class="secure">
+      🔒 Secure payments via Razorpay. Access activates automatically after successful payment.
+    </div>
+
+<p id="checkoutMsg" class="msg"></p>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    // Change this if your backend is deployed elsewhere
+    const CHECKOUT_API = "http://localhost:4000/api/create-checkout";
+
+const backBtn = document.getElementById("backBtn");
+    const homeBtn = document.getElementById("homeBtn");
+    const monthlyTab = document.getElementById("monthlyTab");
+    const yearlyTab = document.getElementById("yearlyTab");
+    const buyBtns = document.querySelectorAll(".buyBtn");
+    const amtEls = document.querySelectorAll(".amt");
+    const termEls = document.querySelectorAll(".term");
+    const msgEl = document.getElementById("checkoutMsg");
+
+let billing = "monthly"; // monthly | yearly
+
+backBtn.addEventListener("click", () => history.back());
+    homeBtn.addEventListener("click", () => window.location.href = "index.html");
+
+function setMsg(text, type = "") {
+      msgEl.textContent = text || "";
+      msgEl.className = "msg" + (type ? (" " + type) : "");
+    }
+
+function renderBilling() {
+      monthlyTab.classList.toggle("active", billing === "monthly");
+      yearlyTab.classList.toggle("active", billing === "yearly");
+
+amtEls.forEach(el => {
+        const value = billing === "monthly" ? el.dataset.monthly : el.dataset.yearly;
+        el.textContent = `₹${value}`;
+      });
+
+termEls.forEach(el => {
+        el.textContent = billing === "monthly" ? "/ month" : "/ year";
+      });
+    }
+
+monthlyTab.addEventListener("click", () => { billing = "monthly"; renderBilling(); });
+    yearlyTab.addEventListener("click", () => { billing = "yearly"; renderBilling(); });
+
+function getPlanCode(planBase) {
+      return `${planBase}_${billing}`; // e.g., pro_monthly
+    }
+
+async function getAuthToken() {
+      const sb = window.PC?.supabase || window.sb || null;
+      if (!sb) return null;
+      const { data, error } = await sb.auth.getSession();
+      if (error) return null;
+      return data?.session?.access_token || null;
+    }
+
+async function startCheckout(planBase) {
+      setMsg("");
+      try {
+        const accessToken = await getAuthToken();
+        if (!accessToken) {
+          setMsg("Please login first, then try upgrading.", "err");
+          setTimeout(() => window.location.href = "index.html", 900);
+          return;
+        }
+
+const planCode = getPlanCode(planBase);
+        setMsg("Creating secure checkout...", "ok");
+
+const res = await fetch(CHECKOUT_API, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({ planCode })
+        });
+
+const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data?.message || "Failed to create checkout.");
+        }
+
+if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+          return;
+        }
+
+throw new Error("Checkout URL not returned by server.");
+      } catch (e) {
+        setMsg(e.message || "Payment initialization failed.", "err");
+      }
+    }
+
+buyBtns.forEach(btn => {
+      btn.addEventListener("click", () => startCheckout(btn.dataset.plan));
+    });
+
+renderBilling();
+  </script>
+</body>
+</html>
