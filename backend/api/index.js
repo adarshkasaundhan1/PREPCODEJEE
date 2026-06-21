@@ -15,12 +15,30 @@ const app = express();
  */
 app.use("/api/razorpay/webhook", express.raw({ type: "*/*" }));
 
+/* ------------------ CORS ------------------ */
+const allowedOrigins = String(process.env.APP_ORIGIN || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.APP_ORIGIN || true,
+    origin(origin, callback) {
+      // allow non-browser clients (curl/postman/server)
+      if (!origin) return callback(null, true);
+
+// if APP_ORIGIN not set, allow all
+      if (allowedOrigins.length === 0) return callback(null, true);
+
+// allow configured origins
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+
+return callback(new Error("CORS blocked"));
+    },
     credentials: true,
   })
 );
+
 app.use(express.json());
 
 /* ------------------ ENV ------------------ */
@@ -131,16 +149,57 @@ const paymentLink = await razorpay.paymentLink.create({
       notes: {
         user_id: user.id,
         plan_code: planCode,
-        app: "prepcore",
+        app: "prepcode",
       },
     });
 
 return res.json({
       checkoutUrl: paymentLink.short_url,
+      paymentLinkId: paymentLink.id,
     });
   } catch (e) {
     console.error("create-checkout error:", e);
     return res.status(500).json({ message: "Failed to create checkout" });
+  }
+});
+
+/* ------------------ My Subscription Status ------------------ */
+/**
+ * GET /api/me/subscription
+ * auth: Authorization: Bearer <supabase access_token>
+ */
+app.get("/api/me/subscription", async (req, res) => {
+  try {
+    if (!ensureEnvOrRespond(res)) return;
+
+const user = await getUserFromBearer(req);
+    if (!user) return res.status(401).json({ message: "Unauthorized" });
+
+const { data, error } = await supabaseAdmin
+      .from("profiles")
+      .select("is_premium, premium_plan, premium_until")
+      .eq("id", user.id)
+      .maybeSingle();
+
+if (error) {
+      console.error("me/subscription read error:", error);
+      return res.status(500).json({ message: "Failed to fetch subscription" });
+    }
+
+const now = new Date();
+    const isPremium =
+      !!data?.is_premium &&
+      (!data?.premium_until || new Date(data.premium_until) > now);
+
+return res.json({
+      isPremium,
+      plan: data?.premium_plan || null,
+      premiumUntil: data?.premium_until || null,
+      status: isPremium ? "active" : "inactive",
+    });
+  } catch (e) {
+    console.error("me/subscription error:", e);
+    return res.status(500).json({ message: "Failed to fetch subscription" });
   }
 });
 
@@ -161,16 +220,17 @@ const expected = crypto
       .update(req.body)
       .digest("hex");
 
-const sigBuf = Buffer.from(signature, "utf8");
+const sigBuf = Buffer.from(String(signature), "utf8");
     const expBuf = Buffer.from(expected, "utf8");
-    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+
+if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
       return res.status(400).send("Invalid signature");
     }
 
 const payload = JSON.parse(req.body.toString("utf8"));
-    const event = payload.event;
+    const event = payload?.event;
 
-// We care about successful payment link completion
+// Only process successful payment events
     if (event !== "payment_link.paid" && event !== "payment.captured") {
       return res.status(200).json({ ok: true, ignored: true });
     }
@@ -178,8 +238,7 @@ const payload = JSON.parse(req.body.toString("utf8"));
 const linkEntity = payload?.payload?.payment_link?.entity || null;
     const paymentEntity = payload?.payload?.payment?.entity || null;
 
-// For payment.captured, payment_link may be absent
-    const notes = linkEntity?.notes || paymentEntity?.notes || {};
+const notes = linkEntity?.notes || paymentEntity?.notes || {};
     const userId = notes.user_id;
     const planCode = notes.plan_code;
     const plan = PLAN_CONFIG[planCode];
@@ -189,12 +248,12 @@ if (!userId || !plan) {
       return res.status(200).json({ ok: true, ignored: "missing_notes" });
     }
 
-const providerPaymentId =
-      paymentEntity?.id ||
-      linkEntity?.id ||
-      `evt_${payload?.created_at || Date.now()}`;
+const razorpayPaymentId = paymentEntity?.id || null;
+    const razorpayPaymentLinkId = linkEntity?.id || null;
+    const providerPaymentId =
+      razorpayPaymentId || razorpayPaymentLinkId || `evt_${payload?.created_at || Date.now()}`;
 
-// idempotency: skip if already recorded
+// Idempotency check
     const { data: existing } = await supabaseAdmin
       .from("subscriptions")
       .select("id")
@@ -206,7 +265,7 @@ if (existing?.id) {
       return res.status(200).json({ ok: true, duplicate: true });
     }
 
-// Fetch current premium_until to extend from existing expiry if still active
+// Read current expiry to extend correctly if already active
     const { data: profile, error: profileErr } = await supabaseAdmin
       .from("profiles")
       .select("premium_until")
@@ -222,12 +281,13 @@ const now = new Date();
     const baseDate = currentUntil && currentUntil > now ? currentUntil : now;
     const newPremiumUntil = addDays(baseDate, plan.durationDays);
 
-// Update profile premium state
+// Upsert premium state in profiles
     const { error: upProfileErr } = await supabaseAdmin.from("profiles").upsert(
       {
         id: userId,
         is_premium: true,
         premium_plan: planCode,
+        premium_activated_at: now.toISOString(),
         premium_until: newPremiumUntil.toISOString(),
       },
       { onConflict: "id" }
@@ -243,11 +303,13 @@ if (upProfileErr) {
       user_id: userId,
       provider: "razorpay",
       provider_payment_id: providerPaymentId,
+      provider_link_id: razorpayPaymentLinkId,
       plan_code: planCode,
       amount_inr: plan.amountInr,
       status: "active",
       started_at: now.toISOString(),
       ends_at: newPremiumUntil.toISOString(),
+      raw_payload: payload,
     });
 
 if (subErr) {
@@ -264,7 +326,7 @@ return res.status(200).json({ ok: true });
 
 /* ------------------ Health ------------------ */
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, service: "prepcore-payments" });
+  res.json({ ok: true, service: "prepcode-payments" });
 });
 
 /**
