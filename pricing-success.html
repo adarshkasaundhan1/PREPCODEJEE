@@ -133,7 +133,10 @@ h1{font-size:30px;margin-bottom:8px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script>
-    const statusText = document.getElementById("statusText");
+    // IMPORTANT: set this to your deployed backend base URL
+    const API_BASE = "https://prepcodejee.vercel.app"; // e.g. https://prepcode-payments.vercel.app
+
+const statusText = document.getElementById("statusText");
     const paymentMeta = document.getElementById("paymentMeta");
 
 document.getElementById("goDashboardBtn").addEventListener("click", () => {
@@ -154,7 +157,8 @@ function getSupabaseClient() {
 
 function readPaymentParams() {
       const url = new URL(window.location.href);
-      // Razorpay callback may include these depending on flow:
+
+// Razorpay callback params (can vary by flow)
       const paymentId = url.searchParams.get("razorpay_payment_id")
         || url.searchParams.get("payment_id")
         || "N/A";
@@ -179,25 +183,10 @@ function renderPaymentMeta() {
       `;
     }
 
-async function getAuthUser() {
-      if (window.PC?.getUser) return await window.PC.getUser();
-      const sb = getSupabaseClient();
-      if (!sb) return null;
-      const { data } = await sb.auth.getUser();
-      return data?.user || null;
-    }
-
 async function checkPremiumStatus() {
       try {
         statusText.classList.remove("err");
         statusText.textContent = "Checking premium activation...";
-
-const user = await getAuthUser();
-        if (!user) {
-          statusText.classList.add("err");
-          statusText.textContent = "Please login first to verify premium access.";
-          return;
-        }
 
 const sb = getSupabaseClient();
         if (!sb) {
@@ -206,24 +195,35 @@ const sb = getSupabaseClient();
           return;
         }
 
-const { data, error } = await sb
-          .from("profiles")
-          .select("is_premium, premium_plan, premium_until")
-          .eq("id", user.id)
-          .maybeSingle();
+const { data: sessionData } = await sb.auth.getSession();
+        const token = sessionData?.session?.access_token;
 
-if (error) {
+if (!token) {
           statusText.classList.add("err");
-          statusText.textContent = error.message || "Failed to fetch premium status.";
+          statusText.textContent = "Please login first to verify premium access.";
           return;
         }
 
-const active = !!data?.is_premium && (
-          !data?.premium_until || new Date(data.premium_until) > new Date()
-        );
+const resp = await fetch(`${API_BASE}/api/me/subscription`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
 
-if (active) {
-          statusText.textContent = `✅ Premium is active (${data.premium_plan || "plan set"}).`;
+const json = await resp.json().catch(() => ({}));
+
+if (!resp.ok) {
+          statusText.classList.add("err");
+          statusText.textContent = json?.message || "Failed to fetch subscription status.";
+          return;
+        }
+
+if (json?.isPremium) {
+          statusText.textContent = `✅ Premium is active (${json.plan || "premium"}). Redirecting...`;
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 1200);
         } else {
           statusText.classList.add("err");
           statusText.textContent = "Payment received. Premium activation is in progress. Please refresh in a few seconds.";
@@ -236,9 +236,13 @@ if (active) {
 
 // initial
     renderPaymentMeta();
-    checkPremiumStatus();
 
-// auto-recheck for first 30 sec
+// Clean URL params after first read (prevents repeat callback noise on refresh)
+    history.replaceState({}, "", window.location.pathname);
+
+checkPremiumStatus();
+
+// Auto-recheck for first 30 sec
     let attempts = 0;
     const timer = setInterval(async () => {
       attempts += 1;
