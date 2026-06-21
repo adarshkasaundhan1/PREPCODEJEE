@@ -59,7 +59,7 @@ const supabaseAdmin =
 
 /* ------------------ Plans ------------------ */
 const PLAN_CONFIG = {
-  starter_monthly: { amountInr: 149, durationDays: 30, name: "Starter Monthly" },
+  starter_monthly: { amountInr: 1, durationDays: 30, name: "Starter Monthly" },
   starter_yearly: { amountInr: 1199, durationDays: 365, name: "Starter Yearly" },
   pro_monthly: { amountInr: 299, durationDays: 30, name: "Pro Monthly" },
   pro_yearly: { amountInr: 1999, durationDays: 365, name: "Pro Yearly" },
