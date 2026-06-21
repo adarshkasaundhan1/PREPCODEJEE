@@ -312,7 +312,7 @@ body.sidebar-open::before{
         max-width:52vw;
       }
 
-.coins-pill, .streak, #loginBtn, #logoutBtn, .profile{
+.coins-pill, .streak, #loginBtn, #logoutBtn, .profile, #premiumBadge{
         display:inline-flex !important;
         width:auto;
         white-space:nowrap;
@@ -343,6 +343,11 @@ body.sidebar-open::before{
         gap:4px;
         font-size:10px;
         padding:5px 7px;
+      }
+      #premiumBadge{
+        order:5;
+        font-size:10px;
+        padding:4px 7px;
       }
       #streakNum{margin-right:2px;}
 
@@ -442,6 +447,9 @@ body.logged-out #logoutBtn{display:none !important;}
 <div class="right-actions">
           <div id="coinsPill" class="coins-pill" title="Open Rewards">🪙 <span id="prepCoinsValue">0</span> Prep Coins</div>
           <div class="streak">🔥 <span id="streakNum">0</span> Day Streak</div>
+
+<!-- Premium badge -->
+          <div id="premiumBadge" class="badge" style="display:none;">⭐ PREMIUM</div>
 
 <button id="adminBtn" class="btn btn-outline" style="display:none;">Admin</button>
           <button id="adminContestBtn" class="btn btn-outline" style="display:none;">Admin Contest</button>
@@ -552,7 +560,10 @@ body.logged-out #logoutBtn{display:none !important;}
   <script src="supabase-client.js"></script>
 
 <script>
-    const KEYS = {
+    // IMPORTANT: set your backend URL
+    const API_BASE = "YOUR_VERCEL_API_BASE"; // e.g. https://prepcode-payments.vercel.app
+
+const KEYS = {
       topTab: "jee_top_tab",
       sideTab: "jee_side_tab",
       selectedOption: "jee_selected_option",
@@ -622,6 +633,8 @@ let streak = 0;
     let recentPool = [];
     let solvedQuestionIds = new Set();
     let questionStatsChannel = null;
+
+let premiumState = { isPremium: false, plan: null, premiumUntil: null };
 
 let subjectStats = {
       Physics: { problems: 0, topics: 0 },
@@ -748,6 +761,66 @@ function closeModal() {
       loginModal.setAttribute("aria-hidden", "true");
     }
 
+function applyPremiumState() {
+      const badge = document.getElementById("premiumBadge");
+
+if (premiumState.isPremium) {
+        if (badge) {
+          badge.style.display = "inline-flex";
+          badge.textContent = `⭐ ${String(premiumState.plan || "PREMIUM").toUpperCase()}`;
+        }
+        if (upgradePremiumBtn) {
+          upgradePremiumBtn.textContent = "✅ Premium Active";
+          upgradePremiumBtn.disabled = true;
+          upgradePremiumBtn.style.opacity = "0.75";
+          upgradePremiumBtn.style.cursor = "not-allowed";
+        }
+        document.body.classList.add("is-premium");
+      } else {
+        if (badge) badge.style.display = "none";
+        if (upgradePremiumBtn) {
+          upgradePremiumBtn.textContent = "Upgrade Now";
+          upgradePremiumBtn.disabled = false;
+          upgradePremiumBtn.style.opacity = "";
+          upgradePremiumBtn.style.cursor = "";
+        }
+        document.body.classList.remove("is-premium");
+      }
+    }
+
+async function refreshPremiumState() {
+      try {
+        const sb = getSupabaseClient();
+        if (!sb) return;
+
+const { data: sessionData } = await sb.auth.getSession();
+        const token = sessionData?.session?.access_token;
+
+if (!token) {
+          premiumState = { isPremium: false, plan: null, premiumUntil: null };
+          applyPremiumState();
+          return;
+        }
+
+const resp = await fetch(`${API_BASE}/api/me/subscription`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+const json = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw new Error(json?.message || "subscription check failed");
+
+premiumState = {
+          isPremium: !!json?.isPremium,
+          plan: json?.plan || null,
+          premiumUntil: json?.premiumUntil || null
+        };
+        applyPremiumState();
+      } catch (e) {
+        console.error("premium state error:", e);
+      }
+    }
+
 setTopTab(localStorage.getItem(KEYS.topTab) || "home");
     setSideTab(localStorage.getItem(KEYS.sideTab) || "dashboard");
     renderStreak();
@@ -755,12 +828,16 @@ setTopTab(localStorage.getItem(KEYS.topTab) || "home");
     renderSidebarSubjectCounts();
     renderSubjectCardCounts();
     renderCoinBalance();
+    applyPremiumState();
 
 if (adminBtn) adminBtn.style.display = "none";
     if (adminContestBtn) adminContestBtn.style.display = "none";
 
 coinsPill?.addEventListener("click", goRewardsPage);
-    upgradePremiumBtn?.addEventListener("click", goPricingPage);
+    upgradePremiumBtn?.addEventListener("click", () => {
+      if (premiumState.isPremium) return;
+      goPricingPage();
+    });
     loginBtn?.addEventListener("click", openLoginModal);
     closeLoginModal?.addEventListener("click", closeModal);
 
@@ -858,6 +935,9 @@ profileName.textContent = "PrepCoder ▾";
           adminContestBtn.style.display = "none";
           coinBalanceCache = 0;
           renderCoinBalance();
+
+premiumState = { isPremium: false, plan: null, premiumUntil: null };
+          applyPremiumState();
         }
       } catch (e) {
         console.error("Auth state error:", e);
@@ -940,6 +1020,7 @@ questionStatsChannel = sb
 
 async function boot() {
       await renderAuthState();
+      await refreshPremiumState();
       await loadDbStreak();
       await loadSolvedIdsFromDb();
       await loadSubjectStatsFromDb();
