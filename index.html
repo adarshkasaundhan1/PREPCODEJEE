@@ -767,10 +767,10 @@ function applyPremiumState() {
       if (premiumState.isPremium) {
         if (premiumBadge) premiumBadge.textContent = `⭐ ${String(premiumState.plan || "PREMIUM").toUpperCase()}`;
         if (upgradePremiumBtn) {
-          upgradePremiumBtn.textContent = "✅ Premium Active";
-          upgradePremiumBtn.disabled = true;
-          upgradePremiumBtn.style.opacity = "0.75";
-          upgradePremiumBtn.style.cursor = "not-allowed";
+          upgradePremiumBtn.textContent = "Manage / Upgrade Plan";
+          upgradePremiumBtn.disabled = false;
+          upgradePremiumBtn.style.opacity = "";
+          upgradePremiumBtn.style.cursor = "pointer";
         }
         document.body.classList.add("is-premium");
       } else {
@@ -830,11 +830,13 @@ if (adminBtn) adminBtn.style.display = "none";
     if (adminContestBtn) adminContestBtn.style.display = "none";
 
 coinsPill?.addEventListener("click", goRewardsPage);
+
+/* UPDATED: always allow opening pricing page */
     upgradePremiumBtn?.addEventListener("click", () => {
-      if (premiumState.isPremium) return;
       goPricingPage();
     });
-    loginBtn?.addEventListener("click", openLoginModal);
+
+loginBtn?.addEventListener("click", openLoginModal);
     closeLoginModal?.addEventListener("click", closeModal);
 
 loginModal?.addEventListener("click", (e) => { if (e.target === loginModal) closeModal(); });
