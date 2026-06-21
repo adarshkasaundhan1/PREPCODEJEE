@@ -202,8 +202,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script>
-    // Change this if your backend is deployed elsewhere
-    const CHECKOUT_API = "http://localhost:4000/api/create-checkout";
+    // IMPORTANT: set your deployed backend origin here (no trailing slash)
+    const API_BASE = "https://prepcodjee.vercel.app";
+    const CHECKOUT_API = `${API_BASE}/api/create-checkout`;
 
 const backBtn = document.getElementById("backBtn");
     const homeBtn = document.getElementById("homeBtn");
@@ -217,7 +218,9 @@ const backBtn = document.getElementById("backBtn");
 let billing = "monthly"; // monthly | yearly
 
 backBtn.addEventListener("click", () => history.back());
-    homeBtn.addEventListener("click", () => window.location.href = "index.html");
+    homeBtn.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
 
 function setMsg(text, type = "") {
       msgEl.textContent = text || "";
@@ -228,18 +231,25 @@ function renderBilling() {
       monthlyTab.classList.toggle("active", billing === "monthly");
       yearlyTab.classList.toggle("active", billing === "yearly");
 
-amtEls.forEach(el => {
+amtEls.forEach((el) => {
         const value = billing === "monthly" ? el.dataset.monthly : el.dataset.yearly;
         el.textContent = `₹${value}`;
       });
 
-termEls.forEach(el => {
+termEls.forEach((el) => {
         el.textContent = billing === "monthly" ? "/ month" : "/ year";
       });
     }
 
-monthlyTab.addEventListener("click", () => { billing = "monthly"; renderBilling(); });
-    yearlyTab.addEventListener("click", () => { billing = "yearly"; renderBilling(); });
+monthlyTab.addEventListener("click", () => {
+      billing = "monthly";
+      renderBilling();
+    });
+
+yearlyTab.addEventListener("click", () => {
+      billing = "yearly";
+      renderBilling();
+    });
 
 function getPlanCode(planBase) {
       return `${planBase}_${billing}`; // e.g., pro_monthly
@@ -255,11 +265,14 @@ async function getAuthToken() {
 
 async function startCheckout(planBase) {
       setMsg("");
-      try {
+
+try {
         const accessToken = await getAuthToken();
         if (!accessToken) {
           setMsg("Please login first, then try upgrading.", "err");
-          setTimeout(() => window.location.href = "index.html", 900);
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 900);
           return;
         }
 
@@ -275,23 +288,30 @@ const res = await fetch(CHECKOUT_API, {
           body: JSON.stringify({ planCode })
         });
 
-const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data?.message || "Failed to create checkout.");
+const raw = await res.text();
+        let data = {};
+        try { data = raw ? JSON.parse(raw) : {}; } catch (_) {}
+
+if (!res.ok) {
+          throw new Error(data?.message || `Checkout failed (${res.status})`);
         }
 
-if (data.checkoutUrl) {
-          window.location.href = data.checkoutUrl;
-          return;
+if (!data.checkoutUrl) {
+          throw new Error("Checkout URL not returned by server.");
         }
 
-throw new Error("Checkout URL not returned by server.");
+window.location.href = data.checkoutUrl;
       } catch (e) {
-        setMsg(e.message || "Payment initialization failed.", "err");
+        const isNetwork = e instanceof TypeError && /fetch/i.test(e.message || "");
+        if (isNetwork) {
+          setMsg("Network/CORS error: check backend URL and APP_ORIGIN in Vercel.", "err");
+        } else {
+          setMsg(e.message || "Payment initialization failed.", "err");
+        }
       }
     }
 
-buyBtns.forEach(btn => {
+buyBtns.forEach((btn) => {
       btn.addEventListener("click", () => startCheckout(btn.dataset.plan));
     });
 
