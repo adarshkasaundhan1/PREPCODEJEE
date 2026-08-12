@@ -2,7 +2,7 @@
 
 const SUPABASE_URL = "https://foxxccgiktgrwfdlxkrx.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZveHhjY2dpa3RncndmZGx4a3J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MjgwMTUsImV4cCI6MjA5NzEwNDAxNX0.2ba1TVUvHoCzQfSF0H97V4X-5KoZ6BbgIzzW1zPihHQ"; // keep your real key
-const PROD_REDIRECT_URL = "https://adarshkasaundhan1.github.io/PREPCODEJEE/index.html";
+const PROD_REDIRECT_URL = "https://prepcodejee.vercel.app";
 const LOCAL_REDIRECT_URL = "http://localhost:5500/index.html";
 
 if (!window.supabase) {
