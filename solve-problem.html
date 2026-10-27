@@ -18,7 +18,7 @@
       --amber:#f59e0b;
     }
 
-*{box-sizing:border-box;margin:0;padding:0}
+    *{box-sizing:border-box;margin:0;padding:0}
     body{
       font-family:Inter,Segoe UI,Arial,sans-serif;
       color:var(--text);
@@ -29,7 +29,7 @@
         linear-gradient(180deg,var(--bg2),var(--bg));
     }
 
-.container{max-width:980px;margin:0 auto;padding:16px}
+    .container{max-width:980px;margin:0 auto;padding:16px}
     .topbar{
       border:1px solid var(--line);
       border-radius:14px;
@@ -39,19 +39,19 @@
       margin-bottom:14px;
     }
 
-.brand{display:flex;align-items:center;gap:10px}
+    .brand{display:flex;align-items:center;gap:10px}
     .brand .icon{color:var(--green);font-size:22px;font-weight:800}
     .brand h1{font-size:22px}
     .brand p{font-size:12px;color:var(--muted)}
 
-.btn{
+    .btn{
       border:none;cursor:pointer;border-radius:10px;padding:10px 12px;font-weight:700;color:#fff;
     }
     .btn-back{background:#334155}
     .btn-primary{background:#16a34a}
     .btn-outline{background:transparent;border:1px solid var(--line);color:var(--text)}
 
-.panel{
+    .panel{
       border:1px solid var(--line);
       border-radius:14px;
       background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
@@ -59,7 +59,7 @@
       margin-bottom:14px;
     }
 
-.meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
     .pill{
       border:1px solid rgba(255,255,255,.15);
       border-radius:999px;
@@ -69,10 +69,10 @@
       background:rgba(255,255,255,.03);
     }
 
-.question-title{font-size:28px;line-height:1.35;margin-bottom:10px}
+    .question-title{font-size:28px;line-height:1.35;margin-bottom:10px}
     .question-text{font-size:18px;line-height:1.6;color:#dce8ff;margin-bottom:16px}
 
-.options .opt{
+    .options .opt{
       border:1px solid var(--line);
       border-radius:10px;
       padding:12px;
@@ -91,9 +91,9 @@
       background:rgba(34,197,94,.10);
     }
 
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 
-.success,.error{
+    .success,.error{
       margin-top:12px;padding:10px;border-radius:10px;display:none;font-weight:600;
     }
     .success{
@@ -107,7 +107,7 @@
       color:#ffc8c8;
     }
 
-.explain{
+    .explain{
       margin-top:12px;
       border:1px dashed rgba(255,255,255,.18);
       border-radius:10px;
@@ -117,9 +117,9 @@
       display:none;
     }
 
-.footer{text-align:center;color:var(--muted);font-size:12px;margin-top:6px}
+    .footer{text-align:center;color:var(--muted);font-size:12px;margin-top:6px}
 
-@media(max-width:700px){
+    @media(max-width:700px){
       .question-title{font-size:22px}
       .question-text{font-size:16px}
     }
@@ -138,7 +138,7 @@
       <button class="btn btn-back" id="backBtn">← Back</button>
     </header>
 
-<section class="panel">
+    <section class="panel">
       <div class="meta">
         <span class="pill" id="subjectPill">Subject: Physics</span>
         <span class="pill" id="topicPill">Topic: Kinematics</span>
@@ -146,56 +146,72 @@
         <span class="pill" id="marksPill">Marks: +4</span>
       </div>
 
-<h2 class="question-title" id="problemTitle">Velocity from Position Function</h2>
+      <h2 class="question-title" id="problemTitle">Velocity from Position Function</h2>
       <p class="question-text" id="problemText">
         A particle moves along a straight line with position x(t)=3t²−4t+1. Find velocity at t=2 s.
       </p>
 
-<div class="options" id="optionsWrap"></div>
+      <div class="options" id="optionsWrap"></div>
 
-<div class="actions">
+      <div class="actions">
         <button class="btn btn-primary" id="submitBtn">Submit</button>
         <button class="btn btn-outline" id="resetBtn">Reset</button>
         <button class="btn btn-outline" id="bookmarkBtn">🔖 Bookmark</button>
+        <button class="btn btn-outline" id="discussBtn">💬 Discuss</button>
         <button class="btn btn-outline" id="prevBtn">◀ Previous</button>
         <button class="btn btn-outline" id="nextBtn">Next ▶</button>
       </div>
 
-<div class="success" id="successMsg">✅ Correct! Great work.</div>
+      <div class="success" id="successMsg">✅ Correct! Great work.</div>
       <div class="error" id="errorMsg">❌ Wrong answer.</div>
 
-<div class="explain" id="explainBox">
+      <div class="explain" id="explainBox">
         <strong>Explanation:</strong>
         <span id="explainText">Differentiate x(t) to get v(t), then substitute t = 2.</span>
       </div>
+
+      <!-- NEW DISCUSSION SECTION -->
+      <div id="discussSection" style="display: none; margin-top: 20px; border-top: 1px solid var(--line); padding-top: 16px;">
+        <h3 style="margin-bottom: 12px; font-size: 18px;">Community Discussion</h3>
+        
+        <div id="commentsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px; max-height: 300px; overflow-y: auto; padding-right: 5px;">
+          <!-- Comments inject here -->
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <textarea id="commentInput" placeholder="Share your approach or ask a doubt..." style="width:100%; min-height:80px; border-radius:10px; padding:10px; background:rgba(255,255,255,.03); border:1px solid var(--line); color:var(--text); outline:none; font-family:inherit; resize:vertical;"></textarea>
+          <button id="postCommentBtn" class="btn btn-primary" style="align-self: flex-start;">Post Comment</button>
+        </div>
+      </div>
+      <!-- END NEW DISCUSSION SECTION -->
     </section>
 
-<p class="footer">MVP • shared solver page for Physics/Chemistry/Math</p>
+    <p class="footer">MVP • shared solver page for Physics/Chemistry/Math</p>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
 
-<script>
+  <script>
     const qs = new URLSearchParams(window.location.search);
     const byId = (id) => document.getElementById(id);
 
-function normalizeSubject(subject) {
+    function normalizeSubject(subject) {
       const s = String(subject || "").toLowerCase();
       if (s.includes("phys")) return "Physics";
       if (s.includes("chem")) return "Chemistry";
       return "Mathematics";
     }
 
-function isUuid(v) {
+    function isUuid(v) {
       return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
     }
 
-function getSupabaseClient() {
+    function getSupabaseClient() {
       return window.PC?.supabase || window.sb || null;
     }
 
-async function getCurrentUserOrNull() {
+    async function getCurrentUserOrNull() {
       try {
         if (!window.PC?.getUser) return null;
         return await window.PC.getUser();
@@ -205,7 +221,7 @@ async function getCurrentUserOrNull() {
       }
     }
 
-const defaultProblem = {
+    const defaultProblem = {
       id: "",
       subject: "Physics",
       topic: "Kinematics",
@@ -221,7 +237,7 @@ const defaultProblem = {
       explain: "x(t)=3t²−4t+1 ⇒ v(t)=dx/dt=6t−4. At t=2, v=8 m/s. (Correct option: A)"
     };
 
-const problem = {
+    const problem = {
       id: qs.get("id") || defaultProblem.id,
       subject: qs.get("subject") || defaultProblem.subject,
       topic: qs.get("topic") || defaultProblem.topic,
@@ -238,9 +254,9 @@ const problem = {
       back: qs.get("back") || ""
     };
 
-const subjectNormalized = normalizeSubject(problem.subject);
+    const subjectNormalized = normalizeSubject(problem.subject);
 
-const ATTEMPT_KEY = `pc_attempt_${problem.id || "temp"}`;
+    const ATTEMPT_KEY = `pc_attempt_${problem.id || "temp"}`;
     const BOOKMARK_KEY = `pc_bookmark_${problem.id || "temp"}`;
     const RECENT_LIST_KEY = "pc_recent_list_v2";
     const SUBJECT_SOLVED_KEY_MAP = {
@@ -251,7 +267,7 @@ const ATTEMPT_KEY = `pc_attempt_${problem.id || "temp"}`;
       math: "math_solved_ids"
     };
 
-const backBtn = byId("backBtn");
+    const backBtn = byId("backBtn");
     const subjectPill = byId("subjectPill");
     const topicPill = byId("topicPill");
     const difficultyPill = byId("difficultyPill");
@@ -262,6 +278,7 @@ const backBtn = byId("backBtn");
     const submitBtn = byId("submitBtn");
     const resetBtn = byId("resetBtn");
     const bookmarkBtn = byId("bookmarkBtn");
+    const discussBtn = byId("discussBtn");
     const prevBtn = byId("prevBtn");
     const nextBtn = byId("nextBtn");
     const successMsg = byId("successMsg");
@@ -269,11 +286,16 @@ const backBtn = byId("backBtn");
     const explainBox = byId("explainBox");
     const explainText = byId("explainText");
 
-let selected = localStorage.getItem(ATTEMPT_KEY) || "";
+    const discussSection = byId("discussSection");
+    const commentsList = byId("commentsList");
+    const commentInput = byId("commentInput");
+    const postCommentBtn = byId("postCommentBtn");
+
+    let selected = localStorage.getItem(ATTEMPT_KEY) || "";
     let bookmarked = localStorage.getItem(BOOKMARK_KEY) === "true";
     let topicQuestionsCache = [];
 
-subjectPill.textContent = `Subject: ${subjectNormalized}`;
+    subjectPill.textContent = `Subject: ${subjectNormalized}`;
     topicPill.textContent = `Topic: ${problem.topic}`;
     difficultyPill.textContent = `Difficulty: ${problem.difficulty}`;
     marksPill.textContent = `Marks: +${problem.marks}`;
@@ -282,26 +304,26 @@ subjectPill.textContent = `Subject: ${subjectNormalized}`;
     explainText.textContent = problem.explain;
     explainBox.style.display = "none";
 
-const labels = [
+    const labels = [
       { key: "A", text: problem.a },
       { key: "B", text: problem.b },
       { key: "C", text: problem.c },
       { key: "D", text: problem.d }
     ];
 
-optionsWrap.innerHTML = labels.map(opt => `
+    optionsWrap.innerHTML = labels.map(opt => `
       <label class="opt" data-val="${opt.key}">
         <input type="radio" name="ans" value="${opt.key}" ${selected === opt.key ? "checked" : ""} />
         <span>${opt.key}. ${opt.text}</span>
       </label>
     `).join("");
 
-if (selected) {
+    if (selected) {
       const active = optionsWrap.querySelector(`.opt[data-val="${selected}"]`);
       if (active) active.classList.add("active");
     }
 
-optionsWrap.querySelectorAll(".opt").forEach(opt => {
+    optionsWrap.querySelectorAll(".opt").forEach(opt => {
       opt.addEventListener("click", () => {
         optionsWrap.querySelectorAll(".opt").forEach(x => x.classList.remove("active"));
         opt.classList.add("active");
@@ -310,7 +332,7 @@ optionsWrap.querySelectorAll(".opt").forEach(opt => {
       });
     });
 
-function normalizeDbRowToProblem(row) {
+    function normalizeDbRowToProblem(row) {
       return {
         id: row.id,
         subject: row.subject || subjectNormalized,
@@ -329,7 +351,7 @@ function normalizeDbRowToProblem(row) {
       };
     }
 
-function buildSolveUrlFromProblem(p) {
+    function buildSolveUrlFromProblem(p) {
       const q = new URLSearchParams({
         id: String(p.id || ""),
         subject: p.subject || subjectNormalized,
@@ -349,14 +371,14 @@ function buildSolveUrlFromProblem(p) {
       return `solve-problem.html?${q.toString()}`;
     }
 
-async function loadTopicQuestions() {
+    async function loadTopicQuestions() {
       const sb = getSupabaseClient();
       if (!sb) {
         topicQuestionsCache = [];
         return;
       }
 
-try {
+      try {
         const { data, error } = await sb
           .from("questions")
           .select("*")
@@ -365,44 +387,44 @@ try {
           .eq("topic", problem.topic)
           .order("created_at", { ascending: true });
 
-if (error) {
+        if (error) {
           console.error("loadTopicQuestions error:", error.message);
           topicQuestionsCache = [];
           return;
         }
 
-topicQuestionsCache = (data || []).map(normalizeDbRowToProblem);
+        topicQuestionsCache = (data || []).map(normalizeDbRowToProblem);
       } catch (e) {
         console.error("loadTopicQuestions exception:", e);
         topicQuestionsCache = [];
       }
     }
 
-function goToNextQuestion() {
+    function goToNextQuestion() {
       if (!topicQuestionsCache.length) return alert("No questions found in this topic.");
       if (topicQuestionsCache.length === 1) return alert("Only 1 question exists in this topic right now.");
 
-const currentId = String(problem.id || "");
+      const currentId = String(problem.id || "");
       let idx = topicQuestionsCache.findIndex(q => String(q.id) === currentId);
       if (idx < 0) idx = 0;
 
-const nextIdx = (idx + 1) % topicQuestionsCache.length;
+      const nextIdx = (idx + 1) % topicQuestionsCache.length;
       window.location.href = buildSolveUrlFromProblem(topicQuestionsCache[nextIdx]);
     }
 
-function goToPreviousQuestion() {
+    function goToPreviousQuestion() {
       if (!topicQuestionsCache.length) return alert("No questions found in this topic.");
       if (topicQuestionsCache.length === 1) return alert("Only 1 question exists in this topic right now.");
 
-const currentId = String(problem.id || "");
+      const currentId = String(problem.id || "");
       let idx = topicQuestionsCache.findIndex(q => String(q.id) === currentId);
       if (idx < 0) idx = 0;
 
-const prevIdx = (idx - 1 + topicQuestionsCache.length) % topicQuestionsCache.length;
+      const prevIdx = (idx - 1 + topicQuestionsCache.length) % topicQuestionsCache.length;
       window.location.href = buildSolveUrlFromProblem(topicQuestionsCache[prevIdx]);
     }
 
-function saveRecentProblemLocal(problemObj, selectedAns, isCorrect) {
+    function saveRecentProblemLocal(problemObj, selectedAns, isCorrect) {
       if (!isCorrect) return;
       const item = {
         id: problemObj.id,
@@ -422,30 +444,30 @@ function saveRecentProblemLocal(problemObj, selectedAns, isCorrect) {
         solvedAt: new Date().toISOString()
       };
 
-const list = JSON.parse(localStorage.getItem(RECENT_LIST_KEY) || "[]");
+      const list = JSON.parse(localStorage.getItem(RECENT_LIST_KEY) || "[]");
       const filtered = list.filter(x => String(x.id) !== String(item.id));
       filtered.unshift(item);
       localStorage.setItem(RECENT_LIST_KEY, JSON.stringify(filtered.slice(0, 20)));
     }
 
-function renderBookmark() {
+    function renderBookmark() {
       bookmarkBtn.textContent = bookmarked ? "✅ Bookmarked" : "🔖 Bookmark";
       bookmarkBtn.style.borderColor = bookmarked ? "rgba(34,197,94,.45)" : "";
       bookmarkBtn.style.color = bookmarked ? "#b7ffcf" : "";
     }
     renderBookmark();
 
-bookmarkBtn.addEventListener("click", async () => {
+    bookmarkBtn.addEventListener("click", async () => {
       bookmarked = !bookmarked;
       localStorage.setItem(BOOKMARK_KEY, bookmarked);
       renderBookmark();
 
-const user = await getCurrentUserOrNull();
+      const user = await getCurrentUserOrNull();
       if (!user) return;
       if (!window.PC?.toggleBookmark) return;
       if (!isUuid(problem.id)) return;
 
-try {
+      try {
         const res = await PC.toggleBookmark(user.id, subjectNormalized, problem.id);
         if (res?.ok && typeof res.bookmarked === "boolean") {
           bookmarked = res.bookmarked;
@@ -457,19 +479,19 @@ try {
       }
     });
 
-submitBtn.addEventListener("click", async () => {
+    submitBtn.addEventListener("click", async () => {
       successMsg.style.display = "none";
       errorMsg.style.display = "none";
 
-const checked = document.querySelector('input[name="ans"]:checked');
+      const checked = document.querySelector('input[name="ans"]:checked');
       if (!checked) return alert("Please select an option first.");
 
-const ans = checked.value.toUpperCase();
+      const ans = checked.value.toUpperCase();
       localStorage.setItem(ATTEMPT_KEY, ans);
 
-const isCorrect = ans === problem.correct;
+      const isCorrect = ans === problem.correct;
 
-if (isCorrect) {
+      if (isCorrect) {
         successMsg.style.display = "block";
         errorMsg.style.display = "none";
         markSolvedInSubject(subjectNormalized, problem.id);
@@ -479,12 +501,12 @@ if (isCorrect) {
         errorMsg.style.display = "block";
       }
 
-explainBox.style.display = "block";
+      explainBox.style.display = "block";
 
-const user = await getCurrentUserOrNull();
+      const user = await getCurrentUserOrNull();
       if (!user) return;
 
-try {
+      try {
         if (isUuid(problem.id)) {
           if (window.PC?.saveUserSolved) {
             await PC.saveUserSolved(user.id, problem.id, isCorrect);
@@ -495,12 +517,12 @@ try {
           console.warn("Skipping DB save: invalid/non-UUID question id:", problem.id);
         }
 
-if (isCorrect && window.PC?.updateStreakOnSolve) {
+        if (isCorrect && window.PC?.updateStreakOnSolve) {
           const streakRes = await PC.updateStreakOnSolve(user.id);
           console.log("updateStreakOnSolve:", streakRes);
         }
 
-if (isCorrect && window.PC?.pushRecent) {
+        if (isCorrect && window.PC?.pushRecent) {
           try {
             await PC.pushRecent(user.id, { ...problem, subject: subjectNormalized });
           } catch (e) {
@@ -512,7 +534,7 @@ if (isCorrect && window.PC?.pushRecent) {
       }
     });
 
-resetBtn.addEventListener("click", () => {
+    resetBtn.addEventListener("click", () => {
       document.querySelectorAll('input[name="ans"]').forEach(i => i.checked = false);
       optionsWrap.querySelectorAll(".opt").forEach(x => x.classList.remove("active"));
       selected = "";
@@ -522,16 +544,16 @@ resetBtn.addEventListener("click", () => {
       explainBox.style.display = "none";
     });
 
-prevBtn.addEventListener("click", () => goToPreviousQuestion());
+    prevBtn.addEventListener("click", () => goToPreviousQuestion());
     nextBtn.addEventListener("click", () => goToNextQuestion());
 
-backBtn.addEventListener("click", () => {
+    backBtn.addEventListener("click", () => {
       if (problem.back) return (window.location.href = problem.back);
       if (document.referrer) return history.back();
       window.location.href = "index.html";
     });
 
-function markSolvedInSubject(subject, id) {
+    function markSolvedInSubject(subject, id) {
       const key = SUBJECT_SOLVED_KEY_MAP[String(subject).toLowerCase()];
       if (!key) return;
       const arr = JSON.parse(localStorage.getItem(key) || "[]");
@@ -542,7 +564,92 @@ function markSolvedInSubject(subject, id) {
       }
     }
 
-(async function init() {
+    function escapeHtml(str = "") {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    // Toggle Discussion Panel
+    discussBtn.addEventListener("click", () => {
+      const isHidden = discussSection.style.display === "none";
+      discussSection.style.display = isHidden ? "block" : "none";
+      if (isHidden) loadComments();
+    });
+
+    // Fetch Comments from Supabase
+    async function loadComments() {
+      commentsList.innerHTML = '<div style="color:var(--muted)">Loading discussions...</div>';
+      const sb = getSupabaseClient();
+      
+      if (!sb || !isUuid(problem.id)) {
+        commentsList.innerHTML = '<div style="color:var(--red)">Unable to load discussions (Invalid ID or DB).</div>';
+        return;
+      }
+
+      const { data, error } = await sb
+        .from("discussions")
+        .select("*")
+        .eq("problem_id", problem.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        commentsList.innerHTML = `<div style="color:var(--red)">Error: ${error.message}</div>`;
+        return;
+      }
+
+      if (!data.length) {
+        commentsList.innerHTML = '<div style="color:var(--muted)">No comments yet. Be the first to start the discussion!</div>';
+        return;
+      }
+
+      commentsList.innerHTML = data.map(c => `
+        <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; border:1px solid var(--line);">
+          <div style="font-size:12px; color:var(--muted); margin-bottom:6px; display:flex; justify-content:space-between;">
+            <strong style="color:var(--blue)">${escapeHtml(c.user_name)}</strong> 
+            <span>${new Date(c.created_at).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
+          </div>
+          <div style="font-size:14px; line-height:1.5;">${escapeHtml(c.content)}</div>
+        </div>
+      `).join("");
+    }
+
+    // Post a New Comment
+    postCommentBtn.addEventListener("click", async () => {
+      const content = commentInput.value.trim();
+      if (!content) return alert("Comment cannot be empty!");
+
+      const user = await getCurrentUserOrNull();
+      if (!user) return alert("Please login to post a comment.");
+
+      postCommentBtn.disabled = true;
+      postCommentBtn.textContent = "Posting...";
+
+      const sb = getSupabaseClient();
+      const payload = {
+        problem_id: problem.id,
+        user_id: user.id,
+        user_name: user.email ? user.email.split("@")[0] : "PrepCoder",
+        content: content
+      };
+
+      const { error } = await sb.from("discussions").insert(payload);
+
+      postCommentBtn.disabled = false;
+      postCommentBtn.textContent = "Post Comment";
+
+      if (error) {
+        alert("Error posting comment: " + error.message);
+      } else {
+        commentInput.value = ""; // Clear input
+        loadComments(); // Refresh the list
+      }
+    });
+
+    (async function init() {
       await loadTopicQuestions();
     })();
   </script>
