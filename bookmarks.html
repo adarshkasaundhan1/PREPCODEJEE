@@ -362,6 +362,11 @@
     subjectFilter.addEventListener("change", renderGrid);
     backBtn.addEventListener("click", () => window.location.href = "index.html");
 
+    // NEW: Auto-refresh bookmarks when returning to the page
+    window.addEventListener("focus", () => {
+      loadBookmarks();
+    });
+
     // Init
     loadBookmarks();
   </script>
