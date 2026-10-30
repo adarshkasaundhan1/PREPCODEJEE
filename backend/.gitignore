@@ -1,5 +1,5 @@
-APP_ORIGIN=https://adarshkasaundhan1.github.io
-APP_BASE_URL=https://adarshkasaundhan1.github.io/PREPCODEJEE
+APP_ORIGIN=https://prepcodejee.vercel.app
+APP_BASE_URL=https://prepcodejee.vercel.app
 
 SUPABASE_URL=https://foxxccgiktgrwfdlxkrx.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZveHhjY2dpa3RncndmZGx4a3J4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTUyODAxNSwiZXhwIjoyMDk3MTA0MDE1fQ.FwmN8ZsJH994qhgNgrXtQ07QK9ML6FH8EtWnoOgzi_o
