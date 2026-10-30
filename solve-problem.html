@@ -257,7 +257,11 @@
     const subjectNormalized = normalizeSubject(problem.subject);
 
     const ATTEMPT_KEY = `pc_attempt_${problem.id || "temp"}`;
-    const BOOKMARK_KEY = `pc_bookmark_${problem.id || "temp"}`;
+    // UPDATED: Sync BOOKMARK_KEY with subject pages
+    const BOOKMARK_KEY = subjectNormalized === "Physics" ? "phy_bookmark_ids" :
+                         subjectNormalized === "Chemistry" ? "chem_bookmark_ids" :
+                         "math_bookmark_ids";
+                         
     const RECENT_LIST_KEY = "pc_recent_list_v2";
     const SUBJECT_SOLVED_KEY_MAP = {
       physics: "phy_solved_ids",
@@ -291,8 +295,11 @@
     const commentInput = byId("commentInput");
     const postCommentBtn = byId("postCommentBtn");
 
+    // UPDATED: Array-based check for bookmarks
     let selected = localStorage.getItem(ATTEMPT_KEY) || "";
-    let bookmarked = localStorage.getItem(BOOKMARK_KEY) === "true";
+    let bookmarkArray = JSON.parse(localStorage.getItem(BOOKMARK_KEY) || "[]");
+    let bookmarked = bookmarkArray.includes(String(problem.id));
+    
     let topicQuestionsCache = [];
 
     subjectPill.textContent = `Subject: ${subjectNormalized}`;
@@ -457,11 +464,22 @@
     }
     renderBookmark();
 
+    // UPDATED: Sync logic for arrays
     bookmarkBtn.addEventListener("click", async () => {
       bookmarked = !bookmarked;
-      localStorage.setItem(BOOKMARK_KEY, bookmarked);
+      
+      // 1. Update Local Storage Array
+      let arr = JSON.parse(localStorage.getItem(BOOKMARK_KEY) || "[]");
+      if (bookmarked && !arr.includes(String(problem.id))) {
+        arr.push(String(problem.id));
+      } else if (!bookmarked) {
+        arr = arr.filter(id => id !== String(problem.id));
+      }
+      localStorage.setItem(BOOKMARK_KEY, JSON.stringify(arr));
+      
       renderBookmark();
 
+      // 2. Sync to Supabase Cloud
       const user = await getCurrentUserOrNull();
       if (!user) return;
       if (!window.PC?.toggleBookmark) return;
@@ -470,8 +488,14 @@
       try {
         const res = await PC.toggleBookmark(user.id, subjectNormalized, problem.id);
         if (res?.ok && typeof res.bookmarked === "boolean") {
+          // Keep cloud state in sync if it overrides
           bookmarked = res.bookmarked;
-          localStorage.setItem(BOOKMARK_KEY, bookmarked);
+          
+          let syncArr = JSON.parse(localStorage.getItem(BOOKMARK_KEY) || "[]");
+          if (bookmarked && !syncArr.includes(String(problem.id))) syncArr.push(String(problem.id));
+          else if (!bookmarked) syncArr = syncArr.filter(id => id !== String(problem.id));
+          localStorage.setItem(BOOKMARK_KEY, JSON.stringify(syncArr));
+          
           renderBookmark();
         }
       } catch (e) {
