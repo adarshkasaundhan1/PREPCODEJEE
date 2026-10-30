@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepCode • Bookmarks</title>
+  <style>
+    :root{
+      --bg:#070d1a;
+      --bg2:#0b1426;
+      --panel:#111b31;
+      --line:#25385d;
+      --text:#eaf1ff;
+      --muted:#9db0d6;
+      --green:#22c55e;
+      --blue:#3b82f6;
+      --amber:#f59e0b;
+      --red:#ef4444;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 10% -10%, #1d3b67 0%, transparent 35%),
+        radial-gradient(circle at 100% 0%, #1e2f56 0%, transparent 30%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+    }
+
+    .container{max-width:1200px;margin:0 auto;padding:16px}
+    .topbar{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand .icon{color:var(--green);font-size:22px;font-weight:800}
+    .brand h1{font-size:24px;line-height:1}
+    .brand p{font-size:12px;color:var(--muted);margin-top:2px}
+
+    .btn{
+      border:none;cursor:pointer;border-radius:10px;padding:10px 12px;font-weight:700;color:#fff;
+    }
+    .btn-back{background:#334155}
+    .btn-primary{background:#16a34a}
+    .btn-outline{background:transparent;border:1px solid var(--line);color:var(--text)}
+    .btn-danger{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#ffc5c5;}
+
+    .hero{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      background:linear-gradient(180deg, rgba(59,130,246,.14), rgba(255,255,255,.02));
+      margin-bottom:14px;
+    }
+    .hero h2{font-size:30px;margin-bottom:6px}
+    .hero p{color:var(--muted)}
+
+    .controls{
+      display:flex;
+      gap:10px;
+      margin-bottom:14px;
+      flex-wrap:wrap;
+    }
+    .select, .input{
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--panel);
+      color:var(--text);
+      padding:11px 12px;
+      outline:none;
+      min-width: 200px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(250px,1fr));
+      gap:12px;
+    }
+    .card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      display:flex;flex-direction:column;gap:10px;
+    }
+    .head{
+      display:flex;justify-content:space-between;gap:8px;align-items:flex-start;
+    }
+    .title{font-size:18px;font-weight:700;line-height:1.3}
+    .meta{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;
+      font-size:12px;color:var(--muted);
+    }
+    .meta div{
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:9px;padding:8px;background:rgba(255,255,255,.02);
+    }
+    .meta strong{display:block;color:var(--text);font-size:13px;margin-top:3px}
+
+    .badge{
+      font-size:11px;padding:5px 9px;border-radius:999px;border:1px solid transparent;font-weight:700;
+      white-space:nowrap;
+    }
+    .easy{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4);color:#baffcf}
+    .medium{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#ffdca3}
+    .hard{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#ffc7c7}
+
+    .actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap;}
+
+    .empty{
+      grid-column:1/-1;
+      border:1px dashed var(--line);
+      border-radius:12px;
+      padding:30px;
+      text-align:center;
+      color:var(--muted);
+    }
+
+    .footer{
+      margin-top:14px;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    @media(max-width:1020px){
+      .grid{grid-template-columns:repeat(2,minmax(220px,1fr))}
+    }
+    @media(max-width:680px){
+      .grid{grid-template-columns:1fr}
+      .hero h2{font-size:25px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">
+        <div class="icon">&lt;/&gt;</div>
+        <div>
+          <h1>PrepCode</h1>
+          <p>LeetCode for JEE • Bookmarks</p>
+        </div>
+      </div>
+      <button class="btn btn-back" id="backBtn">← Back to Dashboard</button>
+    </header>
+
+    <section class="hero">
+      <h2>🔖 Your Bookmarks</h2>
+      <p>Review and practice your saved questions from Physics, Chemistry, and Mathematics.</p>
+    </section>
+
+    <section class="controls">
+      <input type="text" id="searchInput" class="input" placeholder="Search saved questions..." style="flex:1" />
+      <select id="subjectFilter" class="select">
+        <option value="all">All Subjects</option>
+        <option value="Physics">Physics</option>
+        <option value="Chemistry">Chemistry</option>
+        <option value="Mathematics">Mathematics</option>
+      </select>
+    </section>
+
+    <section class="grid" id="bookmarkGrid">
+      <div class="empty">Loading your bookmarks...</div>
+    </section>
+
+    <p class="footer">MVP • localStorage + Supabase sync</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+
+  <script>
+    const bookmarkGrid = document.getElementById("bookmarkGrid");
+    const subjectFilter = document.getElementById("subjectFilter");
+    const searchInput = document.getElementById("searchInput");
+    const backBtn = document.getElementById("backBtn");
+
+    let bookmarkedQuestions = [];
+    let currentUser = null;
+
+    function getSupabaseClient() {
+      return window.PC?.supabase || window.sb || null;
+    }
+
+    // Unify local bookmarks from all subjects
+    function getLocalBookmarkIds() {
+      const phy = JSON.parse(localStorage.getItem("phy_bookmark_ids") || "[]");
+      const chem = JSON.parse(localStorage.getItem("chem_bookmark_ids") || "[]");
+      const math = JSON.parse(localStorage.getItem("math_bookmark_ids") || "[]");
+      
+      // Also collect generic solve-problem ones if they exist
+      const generic = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("pc_bookmark_") && localStorage.getItem(key) === "true") {
+          generic.push(key.replace("pc_bookmark_", ""));
+        }
+      }
+
+      return [...new Set([...phy, ...chem, ...math, ...generic])].filter(Boolean);
+    }
+
+    async function loadBookmarks() {
+      bookmarkGrid.innerHTML = `<div class="empty">Loading your bookmarks...</div>`;
+      const sb = getSupabaseClient();
+      let ids = new Set(getLocalBookmarkIds());
+
+      // Fetch from Cloud if logged in
+      if (sb) {
+        if (window.PC?.getUser) currentUser = await window.PC.getUser();
+        
+        if (currentUser) {
+          const { data, error } = await sb
+            .from("bookmarks")
+            .select("problem_id")
+            .eq("user_id", currentUser.id);
+
+          if (!error && data) {
+            data.forEach(row => ids.add(row.problem_id));
+          }
+        }
+      }
+
+      const uniqueIds = Array.from(ids);
+
+      if (uniqueIds.length === 0) {
+        bookmarkedQuestions = [];
+        renderGrid();
+        return;
+      }
+
+      // Fetch the actual questions from DB
+      if (sb) {
+        const { data, error } = await sb
+          .from("questions")
+          .select("*")
+          .in("id", uniqueIds);
+
+        if (error) {
+          bookmarkGrid.innerHTML = `<div class="empty">Error loading questions: ${error.message}</div>`;
+          return;
+        }
+        bookmarkedQuestions = data || [];
+      } else {
+        bookmarkGrid.innerHTML = `<div class="empty">Supabase client missing. Unable to fetch questions.</div>`;
+        return;
+      }
+
+      renderGrid();
+    }
+
+    function removeBookmarkLocal(id, subject) {
+      // Remove from generic
+      localStorage.removeItem(`pc_bookmark_${id}`);
+      
+      // Remove from subject specific list
+      let subjectKey = "";
+      if (subject === "Physics") subjectKey = "phy_bookmark_ids";
+      else if (subject === "Chemistry") subjectKey = "chem_bookmark_ids";
+      else if (subject === "Mathematics") subjectKey = "math_bookmark_ids";
+
+      if (subjectKey) {
+        let arr = JSON.parse(localStorage.getItem(subjectKey) || "[]");
+        arr = arr.filter(x => String(x) !== String(id));
+        localStorage.setItem(subjectKey, JSON.stringify(arr));
+      }
+    }
+
+    async function handleRemoveBookmark(id, subject) {
+      const sb = getSupabaseClient();
+      removeBookmarkLocal(id, subject);
+
+      if (sb && currentUser) {
+        await sb.from("bookmarks")
+          .delete()
+          .eq("user_id", currentUser.id)
+          .eq("problem_id", id);
+      }
+
+      // Update UI immediately
+      bookmarkedQuestions = bookmarkedQuestions.filter(q => String(q.id) !== String(id));
+      renderGrid();
+    }
+
+    function buildSolveUrl(p){
+      const params = new URLSearchParams({
+        id: String(p.id),
+        subject: p.subject || "",
+        topic: p.topic || "",
+        difficulty: p.difficulty || "",
+        marks: String(p.marks || 4),
+        title: p.title || "",
+        text: p.text || "",
+        a: p.option_a || "",
+        b: p.option_b || "",
+        c: p.option_c || "",
+        d: p.option_d || "",
+        correct: p.correct || "",
+        explain: p.explain || "",
+        back: "bookmarks.html"
+      });
+      return `solve-problem.html?${params.toString()}`;
+    }
+
+    function difficultyClass(level){
+      if(level === "Easy") return "easy";
+      if(level === "Medium") return "medium";
+      return "hard";
+    }
+
+    function renderGrid() {
+      let filtered = bookmarkedQuestions;
+      
+      const search = searchInput.value.toLowerCase().trim();
+      const subject = subjectFilter.value;
+
+      if (subject !== "all") {
+        filtered = filtered.filter(q => q.subject === subject);
+      }
+      if (search) {
+        filtered = filtered.filter(q => 
+          (q.title || "").toLowerCase().includes(search) || 
+          (q.topic || "").toLowerCase().includes(search)
+        );
+      }
+
+      if (filtered.length === 0) {
+        bookmarkGrid.innerHTML = `<div class="empty">No bookmarks found. Go practice and save some questions!</div>`;
+        return;
+      }
+
+      bookmarkGrid.innerHTML = filtered.map(p => `
+        <article class="card">
+          <div class="head">
+            <h3 class="title">${p.title || "Untitled"}</h3>
+            <span class="badge ${difficultyClass(p.difficulty)}">${p.difficulty || "Easy"}</span>
+          </div>
+          <div class="meta">
+            <div>Subject<strong>${p.subject}</strong></div>
+            <div>Topic<strong>${p.topic}</strong></div>
+            <div>Marks<strong>+${p.marks || 4}</strong></div>
+            <div>Source<strong>${p.source || "PrepCode"}</strong></div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="window.location.href='${buildSolveUrl(p)}'">Solve Again</button>
+            <button class="btn btn-danger" onclick="handleRemoveBookmark('${p.id}', '${p.subject}')">Remove</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    // Event Listeners
+    searchInput.addEventListener("input", renderGrid);
+    subjectFilter.addEventListener("change", renderGrid);
+    backBtn.addEventListener("click", () => window.location.href = "index.html");
+
+    // Init
+    loadBookmarks();
+  </script>
+</body>
+</html>
