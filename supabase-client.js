@@ -2,7 +2,7 @@
 
 const SUPABASE_URL = "https://foxxccgiktgrwfdlxkrx.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZveHhjY2dpa3RncndmZGx4a3J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MjgwMTUsImV4cCI6MjA5NzEwNDAxNX0.2ba1TVUvHoCzQfSF0H97V4X-5KoZ6BbgIzzW1zPihHQ"; // keep your real key
-const PROD_REDIRECT_URL = "https://prepcodejee.vercel.app";
+const PROD_REDIRECT_URL = "https://prepcodejee.vercel.app/index.html";
 const LOCAL_REDIRECT_URL = "http://localhost:5500/index.html";
 
 if (!window.supabase) {
@@ -48,7 +48,7 @@ window.PC = {
   // expose client for pages
   supabase: sb,
 
-// -------------------------
+  // -------------------------
   // Auth
   // -------------------------
   async getUser() {
@@ -60,23 +60,23 @@ window.PC = {
     return data?.user || null;
   },
 
-async signInWithEmail(email) {
+  async signInWithEmail(email) {
     const cleanEmail = String(email || "").trim().toLowerCase();
     if (!cleanEmail) return { ok: false, error: { message: "Email is required." } };
 
-const { data, error } = await sb.auth.signInWithOtp({
+    const { data, error } = await sb.auth.signInWithOtp({
       email: cleanEmail,
       options: { emailRedirectTo: getEmailRedirectTo() }
     });
 
-if (error) {
+    if (error) {
       console.error("signInWithEmail error:", error);
       return { ok: false, error };
     }
     return { ok: true, data };
   },
 
-async signOut() {
+  async signOut() {
     const { error } = await sb.auth.signOut();
     if (error) {
       console.error("signOut error:", error);
@@ -85,100 +85,100 @@ async signOut() {
     return { ok: true };
   },
 
-// -------------------------
+  // -------------------------
   // Profile
   // profiles: id, email, role, created_at
   // -------------------------
   async ensureProfile(user) {
     if (!user?.id) return { ok: false, error: { message: "Invalid user." } };
 
-const payload = {
+    const payload = {
       id: user.id,
       email: user.email || null
       // role default can come from DB
     };
 
-const { data, error } = await sb
+    const { data, error } = await sb
       .from("profiles")
       .upsert(payload, { onConflict: "id" })
       .select()
       .single();
 
-if (error) {
+    if (error) {
       console.error("ensureProfile error:", error);
       return { ok: false, error };
     }
     return { ok: true, data };
   },
 
-async getProfile(userId) {
+  async getProfile(userId) {
     const { data, error } = await sb
       .from("profiles")
       .select("id,email,role,created_at")
       .eq("id", userId)
       .maybeSingle();
 
-if (error) {
+    if (error) {
       console.error("getProfile error:", error);
       return { ok: false, error };
     }
     return { ok: true, data };
   },
 
-// NEW: admin role check
+  // NEW: admin role check
   async isAdmin(userId) {
     if (!userId) return { ok: true, isAdmin: false };
 
-const { data, error } = await sb
+    const { data, error } = await sb
       .from("profiles")
       .select("role")
       .eq("id", userId)
       .maybeSingle();
 
-if (error) {
+    if (error) {
       console.error("isAdmin error:", error);
       return { ok: false, error, isAdmin: false };
     }
 
-return { ok: true, isAdmin: String(data?.role || "").toLowerCase() === "admin" };
+    return { ok: true, isAdmin: String(data?.role || "").toLowerCase() === "admin" };
   },
 
-// NEW: convenience helper for current session
+  // NEW: convenience helper for current session
   async canCurrentUserAccessAdmin() {
     const user = await this.getUser();
     if (!user) return { ok: true, canAccess: false, user: null };
 
-const roleRes = await this.isAdmin(user.id);
+    const roleRes = await this.isAdmin(user.id);
     if (!roleRes.ok) return { ok: false, canAccess: false, user, error: roleRes.error };
 
-return { ok: true, canAccess: roleRes.isAdmin, user };
+    return { ok: true, canAccess: roleRes.isAdmin, user };
   },
 
-// -------------------------
+  // -------------------------
   // Questions
   // -------------------------
   async getActiveQuestions(limit = 100) {
     const safeLimit = Math.max(1, Math.min(500, Number(limit) || 100));
 
-const { data, error } = await sb
+    const { data, error } = await sb
       .from("questions")
       .select("*")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(safeLimit);
 
-if (error) {
+    if (error) {
       console.error("getActiveQuestions error:", error);
       return { ok: false, error, data: [] };
     }
     return { ok: true, data: data || [] };
   },
 
-async getQuestionsBySubject(subject, limit = 100) {
+  async getQuestionsBySubject(subject, limit = 100) {
     const safeLimit = Math.max(1, Math.min(500, Number(limit) || 100));
     const normalized = normalizeSubject(subject);
 
-const { data, error } = await sb
+    const { data, error } = await sb
       .from("questions")
       .select("*")
       .eq("is_active", true)
@@ -186,14 +186,14 @@ const { data, error } = await sb
       .order("created_at", { ascending: false })
       .limit(safeLimit);
 
-if (error) {
+    if (error) {
       console.error("getQuestionsBySubject error:", error);
       return { ok: false, error, data: [] };
     }
     return { ok: true, data: data || [] };
   },
 
-// -------------------------
+  // -------------------------
   // Solved tracking
   // user_solved: user_id, question_id (uuid), is_correct
   // -------------------------
@@ -203,16 +203,16 @@ if (error) {
       .select("question_id")
       .eq("user_id", userId);
 
-if (error) {
+    if (error) {
       console.error("getUserSolvedIds error:", error);
       return { ok: false, error, data: [] };
     }
 
-const ids = (data || []).map(r => String(r.question_id));
+    const ids = (data || []).map(r => String(r.question_id));
     return { ok: true, data: ids };
   },
 
-async saveUserSolved(userId, questionId, isCorrect = true) {
+  async saveUserSolved(userId, questionId, isCorrect = true) {
     if (!userId) return { ok: false, error: { message: "userId is required." } };
     if (!isUuid(questionId)) {
       return {
@@ -221,53 +221,53 @@ async saveUserSolved(userId, questionId, isCorrect = true) {
       };
     }
 
-const payload = {
+    const payload = {
       user_id: userId,
       question_id: questionId,
       is_correct: !!isCorrect
     };
 
-const { data, error } = await sb
+    const { data, error } = await sb
       .from("user_solved")
       .upsert(payload, { onConflict: "user_id,question_id" })
       .select()
       .single();
 
-if (error) {
+    if (error) {
       console.error("saveUserSolved error:", error);
       return { ok: false, error };
     }
     return { ok: true, data };
   },
 
-// Backward-compatible alias
+  // Backward-compatible alias
   async markSolved(userId, subject, problemId, selectedOption, isCorrect) {
     return this.saveUserSolved(userId, problemId, !!isCorrect);
   },
 
-// -------------------------
+  // -------------------------
   // Recent activity compatibility (optional)
   // -------------------------
   async getRecentActivity(userId, limit = 20) {
     const safeLimit = Math.max(1, Math.min(50, Number(limit) || 20));
 
-const oldRes = await sb
+    const oldRes = await sb
       .from("recent_activity")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(safeLimit);
 
-if (!oldRes.error) {
+    if (!oldRes.error) {
       return { ok: true, data: oldRes.data || [] };
     }
 
-if (!isMissingRelationError(oldRes.error)) {
+    if (!isMissingRelationError(oldRes.error)) {
       console.error("getRecentActivity error:", oldRes.error);
       return { ok: false, error: oldRes.error, data: [] };
     }
 
-// fallback to questions
+    // fallback to questions
     const { data, error } = await sb
       .from("questions")
       .select("*")
@@ -275,12 +275,12 @@ if (!isMissingRelationError(oldRes.error)) {
       .order("created_at", { ascending: false })
       .limit(safeLimit);
 
-if (error) {
+    if (error) {
       console.error("getRecentActivity fallback error:", error);
       return { ok: false, error, data: [] };
     }
 
-const mapped = (data || []).map(q => ({
+    const mapped = (data || []).map(q => ({
       problem_id: q.id,
       subject: q.subject,
       topic: q.topic,
@@ -298,10 +298,10 @@ const mapped = (data || []).map(q => ({
       created_at: q.created_at
     }));
 
-return { ok: true, data: mapped };
+    return { ok: true, data: mapped };
   },
 
-async pushRecent(userId, p) {
+  async pushRecent(userId, p) {
     // optional only; safe if table missing
     const payload = {
       user_id: userId,
@@ -321,16 +321,16 @@ async pushRecent(userId, p) {
       created_at: new Date().toISOString()
     };
 
-const { data, error } = await sb.from("recent_activity").insert(payload).select();
+    const { data, error } = await sb.from("recent_activity").insert(payload).select();
 
-if (error) {
+    if (error) {
       if (!isMissingRelationError(error)) console.error("pushRecent error:", error);
       return { ok: false, error };
     }
     return { ok: true, data };
   },
 
-// -------------------------
+  // -------------------------
   // Streak methods
   // -------------------------
   async getStreak(userId) {
@@ -340,7 +340,7 @@ if (error) {
       .eq("user_id", userId)
       .maybeSingle();
 
-if (error) {
+    if (error) {
       if (isMissingRelationError(error)) {
         return {
           ok: true,
@@ -351,7 +351,7 @@ if (error) {
       return { ok: false, error };
     }
 
-if (!data) {
+    if (!data) {
       const seed = {
         user_id: userId,
         current_streak: 0,
@@ -359,13 +359,13 @@ if (!data) {
         last_solved_date: null
       };
 
-const { data: ins, error: insErr } = await sb
+      const { data: ins, error: insErr } = await sb
         .from("user_streaks")
         .insert(seed)
         .select()
         .single();
 
-if (insErr) {
+      if (insErr) {
         if (isMissingRelationError(insErr)) {
           return {
             ok: true,
@@ -376,31 +376,31 @@ if (insErr) {
         return { ok: false, error: insErr };
       }
 
-return { ok: true, data: ins };
+      return { ok: true, data: ins };
     }
 
-return { ok: true, data };
+    return { ok: true, data };
   },
 
-async updateStreakOnSolve(userId) {
+  async updateStreakOnSolve(userId) {
     const base = await this.getStreak(userId);
     if (!base.ok) return base;
 
-const row = base.data || {};
+    const row = base.data || {};
     const today = new Date().toISOString().slice(0, 10);
     const last = row.last_solved_date;
 
-let current = Number(row.current_streak || 0);
+    let current = Number(row.current_streak || 0);
     let best = Number(row.best_streak || 0);
 
-if (!last) {
+    if (!last) {
       current = 1;
     } else {
       const d1 = new Date(last + "T00:00:00Z");
       const d2 = new Date(today + "T00:00:00Z");
       const diff = Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
 
-if (diff === 0) {
+      if (diff === 0) {
         // already counted today
       } else if (diff === 1) {
         current += 1;
@@ -409,9 +409,9 @@ if (diff === 0) {
       }
     }
 
-if (current > best) best = current;
+    if (current > best) best = current;
 
-const { data, error } = await sb
+    const { data, error } = await sb
       .from("user_streaks")
       .upsert(
         {
@@ -425,7 +425,7 @@ const { data, error } = await sb
       .select()
       .single();
 
-if (error) {
+    if (error) {
       if (isMissingRelationError(error)) {
         return {
           ok: true,
@@ -436,15 +436,60 @@ if (error) {
       return { ok: false, error };
     }
 
-return { ok: true, data };
+    return { ok: true, data };
   },
 
-// Optional old API compatibility
-  async toggleBookmark() {
-    return {
-      ok: false,
-      error: { message: "Bookmarks table not configured in current schema." },
-      bookmarked: null
-    };
+  // -------------------------
+  // Bookmarks
+  // -------------------------
+  async toggleBookmark(userId, subject, problemId) {
+    if (!userId || !problemId) {
+      return { ok: false, error: { message: "Missing userId or problemId." } };
+    }
+
+    // 1. Check if the bookmark already exists
+    const { data: existing, error: fetchErr } = await sb
+      .from("bookmarks")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("problem_id", problemId)
+      .maybeSingle();
+
+    if (fetchErr) {
+      console.error("toggleBookmark fetch error:", fetchErr);
+      return { ok: false, error: fetchErr };
+    }
+
+    if (existing) {
+      // 2. If it exists, delete it (Un-bookmark)
+      const { error: delErr } = await sb
+        .from("bookmarks")
+        .delete()
+        .eq("id", existing.id);
+        
+      if (delErr) {
+        console.error("toggleBookmark delete error:", delErr);
+        return { ok: false, error: delErr };
+      }
+      return { ok: true, bookmarked: false };
+      
+    } else {
+      // 3. If it doesn't exist, insert it (Bookmark)
+      const payload = {
+        user_id: userId,
+        subject: normalizeSubject(subject),
+        problem_id: problemId
+      };
+      
+      const { error: insErr } = await sb
+        .from("bookmarks")
+        .insert(payload);
+        
+      if (insErr) {
+        console.error("toggleBookmark insert error:", insErr);
+        return { ok: false, error: insErr };
+      }
+      return { ok: true, bookmarked: true };
+    }
   }
 };
