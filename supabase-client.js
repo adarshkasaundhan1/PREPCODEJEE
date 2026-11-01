@@ -87,7 +87,6 @@ window.PC = {
 
   // -------------------------
   // Profile
-  // profiles: id, email, role, created_at
   // -------------------------
   async ensureProfile(user) {
     if (!user?.id) return { ok: false, error: { message: "Invalid user." } };
@@ -95,7 +94,6 @@ window.PC = {
     const payload = {
       id: user.id,
       email: user.email || null
-      // role default can come from DB
     };
 
     const { data, error } = await sb
@@ -125,7 +123,6 @@ window.PC = {
     return { ok: true, data };
   },
 
-  // NEW: admin role check
   async isAdmin(userId) {
     if (!userId) return { ok: true, isAdmin: false };
 
@@ -143,7 +140,6 @@ window.PC = {
     return { ok: true, isAdmin: String(data?.role || "").toLowerCase() === "admin" };
   },
 
-  // NEW: convenience helper for current session
   async canCurrentUserAccessAdmin() {
     const user = await this.getUser();
     if (!user) return { ok: true, canAccess: false, user: null };
@@ -155,14 +151,14 @@ window.PC = {
   },
 
   // -------------------------
-  // Questions
+  // Questions (SECURE: Excludes correct/explain)
   // -------------------------
   async getActiveQuestions(limit = 100) {
     const safeLimit = Math.max(1, Math.min(500, Number(limit) || 100));
 
     const { data, error } = await sb
       .from("questions")
-      .select("*")
+      .select("id, subject, topic, difficulty, marks, source, title, text, option_a, option_b, option_c, option_d, image_url, created_at, is_active")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(safeLimit);
@@ -180,7 +176,7 @@ window.PC = {
 
     const { data, error } = await sb
       .from("questions")
-      .select("*")
+      .select("id, subject, topic, difficulty, marks, source, title, text, option_a, option_b, option_c, option_d, image_url, created_at, is_active")
       .eq("is_active", true)
       .eq("subject", normalized)
       .order("created_at", { ascending: false })
@@ -194,8 +190,29 @@ window.PC = {
   },
 
   // -------------------------
+  // Secure Backend Grading
+  // -------------------------
+  async gradeQuestion(problemId, selectedOption) {
+    if (!problemId) {
+      return { ok: false, error: { message: "No problem ID" } };
+    }
+    
+    // Call the server-side RPC function
+    const { data, error } = await sb.rpc('grade_question', { 
+      question_uuid: problemId, 
+      selected_ans: selectedOption 
+    });
+
+    if (error) {
+      console.error("Grading error:", error);
+      return { ok: false, error };
+    }
+    
+    return { ok: true, data }; // Returns { is_correct, correct, explain }
+  },
+
+  // -------------------------
   // Solved tracking
-  // user_solved: user_id, question_id (uuid), is_correct
   // -------------------------
   async getUserSolvedIds(userId) {
     const { data, error } = await sb
@@ -240,13 +257,12 @@ window.PC = {
     return { ok: true, data };
   },
 
-  // Backward-compatible alias
   async markSolved(userId, subject, problemId, selectedOption, isCorrect) {
     return this.saveUserSolved(userId, problemId, !!isCorrect);
   },
 
   // -------------------------
-  // Recent activity compatibility (optional)
+  // Recent activity compatibility
   // -------------------------
   async getRecentActivity(userId, limit = 20) {
     const safeLimit = Math.max(1, Math.min(50, Number(limit) || 20));
@@ -267,10 +283,10 @@ window.PC = {
       return { ok: false, error: oldRes.error, data: [] };
     }
 
-    // fallback to questions
+    // fallback to questions (excluding secure answers)
     const { data, error } = await sb
       .from("questions")
-      .select("*")
+      .select("id, subject, topic, difficulty, marks, source, title, text, option_a, option_b, option_c, option_d, image_url, created_at, is_active")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(safeLimit);
@@ -293,8 +309,8 @@ window.PC = {
       option_b: q.option_b,
       option_c: q.option_c,
       option_d: q.option_d,
-      correct: q.correct,
-      explain: q.explain,
+      correct: "", // Secure hidden
+      explain: "", // Secure hidden
       created_at: q.created_at
     }));
 
@@ -302,7 +318,6 @@ window.PC = {
   },
 
   async pushRecent(userId, p) {
-    // optional only; safe if table missing
     const payload = {
       user_id: userId,
       subject: normalizeSubject(p?.subject),
@@ -447,7 +462,6 @@ window.PC = {
       return { ok: false, error: { message: "Missing userId or problemId." } };
     }
 
-    // 1. Check if the bookmark already exists
     const { data: existing, error: fetchErr } = await sb
       .from("bookmarks")
       .select("id")
@@ -461,7 +475,6 @@ window.PC = {
     }
 
     if (existing) {
-      // 2. If it exists, delete it (Un-bookmark)
       const { error: delErr } = await sb
         .from("bookmarks")
         .delete()
@@ -474,7 +487,6 @@ window.PC = {
       return { ok: true, bookmarked: false };
       
     } else {
-      // 3. If it doesn't exist, insert it (Bookmark)
       const payload = {
         user_id: userId,
         subject: normalizeSubject(subject),
@@ -499,11 +511,9 @@ window.PC = {
   async uploadQuestionImage(file) {
     if (!file) return { ok: false, error: { message: "No file provided" } };
     
-    // Generate a unique filename so files don't overwrite each other
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
     
-    // Upload to Supabase Storage
     const { data, error } = await sb.storage
       .from('question-images')
       .upload(`public/${fileName}`, file, { cacheControl: '3600', upsert: false });
@@ -513,7 +523,6 @@ window.PC = {
       return { ok: false, error };
     }
 
-    // Get the public URL to save in the database
     const { data: publicUrlData } = sb.storage
       .from('question-images')
       .getPublicUrl(`public/${fileName}`);
