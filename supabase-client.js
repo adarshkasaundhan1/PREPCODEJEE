@@ -491,5 +491,33 @@ window.PC = {
       }
       return { ok: true, bookmarked: true };
     }
+  },
+
+  // -------------------------
+  // File Uploads
+  // -------------------------
+  async uploadQuestionImage(file) {
+    if (!file) return { ok: false, error: { message: "No file provided" } };
+    
+    // Generate a unique filename so files don't overwrite each other
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    
+    // Upload to Supabase Storage
+    const { data, error } = await sb.storage
+      .from('question-images')
+      .upload(`public/${fileName}`, file, { cacheControl: '3600', upsert: false });
+
+    if (error) {
+      console.error("Image upload error:", error);
+      return { ok: false, error };
+    }
+
+    // Get the public URL to save in the database
+    const { data: publicUrlData } = sb.storage
+      .from('question-images')
+      .getPublicUrl(`public/${fileName}`);
+
+    return { ok: true, url: publicUrlData.publicUrl };
   }
 };
