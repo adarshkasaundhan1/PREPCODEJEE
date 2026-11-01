@@ -237,11 +237,11 @@
         return;
       }
 
-      // Fetch the actual questions from DB
+      // Fetch the actual questions from DB SECURELY
       if (sb) {
         const { data, error } = await sb
           .from("questions")
-          .select("*")
+          .select("id, subject, topic, difficulty, marks, source, title, text, option_a, option_b, option_c, option_d, image_url, created_at, is_active")
           .in("id", uniqueIds);
 
         if (error) {
@@ -299,13 +299,11 @@
         marks: String(p.marks || 4),
         title: p.title || "",
         text: p.text || "",
-        a: p.option_a || "",
-        b: p.option_b || "",
-        c: p.option_c || "",
-        d: p.option_d || "",
-        correct: p.correct || "",
-        explain: p.explain || "",
-        image_url: p.image_url || "", // NEW: Pass the URL
+        a: p.option_a || p.a || "",
+        b: p.option_b || p.b || "",
+        c: p.option_c || p.c || "",
+        d: p.option_d || p.d || "",
+        image_url: p.image_url || "", 
         back: "bookmarks.html"
       });
       return `solve-problem.html?${params.toString()}`;
