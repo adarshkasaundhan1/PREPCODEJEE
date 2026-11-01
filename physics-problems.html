@@ -284,7 +284,8 @@
           c: q.option_c || "",
           d: q.option_d || "",
           correct: (q.correct || "").toUpperCase(),
-          explain: q.explain || ""
+          explain: q.explain || "",
+          image_url: q.image_url || "" // NEW: Attach image
         };
       }
 
@@ -422,6 +423,7 @@
           d: p.d || "",
           correct: p.correct || "",
           explain: p.explain || "",
+          image_url: p.image_url || "", // NEW: Pass the URL
           back: "physics-problems.html"
         });
         return `solve-problem.html?${params.toString()}`;
