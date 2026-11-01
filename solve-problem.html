@@ -71,6 +71,15 @@
 
     .question-title{font-size:28px;line-height:1.35;margin-bottom:10px}
     .question-text{font-size:18px;line-height:1.6;color:#dce8ff;margin-bottom:16px}
+    
+    /* NEW: Styling for the problem image */
+    .question-image {
+      max-width: 100%;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      border: 1px solid var(--line);
+      display: none; /* Hidden by default */
+    }
 
     .options .opt{
       border:1px solid var(--line);
@@ -147,9 +156,13 @@
       </div>
 
       <h2 class="question-title" id="problemTitle">Velocity from Position Function</h2>
+      
       <p class="question-text" id="problemText">
         A particle moves along a straight line with position x(t)=3t²−4t+1. Find velocity at t=2 s.
       </p>
+      
+      <!-- NEW: Image Tag -->
+      <img id="problemImage" class="question-image" alt="Question Diagram" />
 
       <div class="options" id="optionsWrap"></div>
 
@@ -234,7 +247,8 @@
       c: "12 m/s",
       d: "14 m/s",
       correct: "A",
-      explain: "x(t)=3t²−4t+1 ⇒ v(t)=dx/dt=6t−4. At t=2, v=8 m/s. (Correct option: A)"
+      explain: "x(t)=3t²−4t+1 ⇒ v(t)=dx/dt=6t−4. At t=2, v=8 m/s. (Correct option: A)",
+      image_url: ""
     };
 
     const problem = {
@@ -251,6 +265,7 @@
       d: qs.get("d") || defaultProblem.d,
       correct: (qs.get("correct") || defaultProblem.correct).toUpperCase(),
       explain: qs.get("explain") || defaultProblem.explain,
+      image_url: qs.get("image_url") || defaultProblem.image_url, // NEW
       back: qs.get("back") || ""
     };
 
@@ -278,6 +293,7 @@
     const marksPill = byId("marksPill");
     const problemTitle = byId("problemTitle");
     const problemText = byId("problemText");
+    const problemImage = byId("problemImage"); // NEW
     const optionsWrap = byId("optionsWrap");
     const submitBtn = byId("submitBtn");
     const resetBtn = byId("resetBtn");
@@ -310,6 +326,12 @@
     problemText.textContent = problem.text;
     explainText.textContent = problem.explain;
     explainBox.style.display = "none";
+
+    // NEW: Display image if one exists
+    if (problem.image_url) {
+      problemImage.src = problem.image_url;
+      problemImage.style.display = "block";
+    }
 
     const labels = [
       { key: "A", text: problem.a },
@@ -354,6 +376,7 @@
         d: row.option_d || "",
         correct: String(row.correct || "A").toUpperCase(),
         explain: row.explain || "",
+        image_url: row.image_url || "", // NEW
         back: problem.back || "index.html"
       };
     }
@@ -373,6 +396,7 @@
         d: p.d || "",
         correct: p.correct || "A",
         explain: p.explain || "",
+        image_url: p.image_url || "", // NEW
         back: problem.back || "index.html"
       });
       return `solve-problem.html?${q.toString()}`;
