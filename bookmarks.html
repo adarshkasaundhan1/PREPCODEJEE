@@ -305,6 +305,7 @@
         d: p.option_d || "",
         correct: p.correct || "",
         explain: p.explain || "",
+        image_url: p.image_url || "", // NEW: Pass the URL
         back: "bookmarks.html"
       });
       return `solve-problem.html?${params.toString()}`;
