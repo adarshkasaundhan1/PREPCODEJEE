@@ -24,10 +24,12 @@
   <h1>PrepCode Admin Panel</h1>
   <div id="status">Checking admin access...</div>
 
-<div class="card">
+  <div class="card">
     <h3>Add / Edit Question</h3>
     <form id="qForm" class="grid">
       <input type="hidden" id="qid" />
+      <input type="hidden" id="existing_image_url" /> <!-- Hidden field for keeping old images on edit -->
+      
       <select id="subject" required>
         <option value="">Subject</option>
         <option>Physics</option>
@@ -35,32 +37,47 @@
         <option>Mathematics</option>
       </select>
       <input id="topic" placeholder="Topic" required />
+      
       <select id="difficulty" required>
         <option value="">Difficulty</option>
         <option>Easy</option><option>Medium</option><option>Hard</option>
       </select>
       <input id="marks" type="number" value="4" min="1" required />
+      
       <input id="source" placeholder="Source (optional)" />
       <input id="title" class="full" placeholder="Title" required />
       <textarea id="text" class="full" placeholder="Question text" required></textarea>
+      
       <input id="option_a" placeholder="Option A" required />
       <input id="option_b" placeholder="Option B" required />
       <input id="option_c" placeholder="Option C" required />
       <input id="option_d" placeholder="Option D" required />
+      
       <select id="correct" required>
         <option value="">Correct Option</option>
         <option>A</option><option>B</option><option>C</option><option>D</option>
       </select>
       <input id="explain" class="full" placeholder="Explanation (optional)" />
+      
+      <!-- NEW IMAGE UPLOAD FIELD -->
+      <div class="full" style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size: 14px; color: var(--muted);">Upload Image (Optional)</label>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <input type="file" id="imageInput" accept="image/*" style="flex:1" />
+            <span id="currentImageName" style="font-size: 12px; color: #86efac; display:none;">(Image already attached)</span>
+        </div>
+      </div>
+      
       <label class="full"><input id="is_active" type="checkbox" checked /> Active</label>
+      
       <div class="full">
-        <button type="submit">Save Question</button>
+        <button type="submit" id="saveBtn">Save Question</button>
         <button type="button" id="resetBtn" class="secondary">Reset</button>
       </div>
     </form>
   </div>
 
-<div class="card">
+  <div class="card">
     <h3>Questions</h3>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
       <select id="fSubject">
@@ -76,14 +93,14 @@
     <table>
       <thead>
         <tr>
-          <th>Subject</th><th>Topic</th><th>Difficulty</th><th>Title</th><th>Active</th><th>Actions</th>
+          <th>Subject</th><th>Topic</th><th>Difficulty</th><th>Title</th><th>Image</th><th>Active</th><th>Actions</th>
         </tr>
       </thead>
       <tbody id="qTable"></tbody>
     </table>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js?v=7"></script>
   <script>
     (function () {
@@ -91,14 +108,15 @@
       const $ = (id) => document.getElementById(id);
       const statusEl = $("status");
       const qTable = $("qTable");
+      const saveBtn = $("saveBtn");
       let cachedRows = [];
 
-function setStatus(msg, ok = true) {
+      function setStatus(msg, ok = true) {
         statusEl.textContent = msg;
         statusEl.style.color = ok ? "#86efac" : "#fca5a5";
       }
 
-function escapeHtml(s = "") {
+      function escapeHtml(s = "") {
         return String(s)
           .replaceAll("&", "&amp;")
           .replaceAll("<", "&lt;")
@@ -107,42 +125,42 @@ function escapeHtml(s = "") {
           .replaceAll("'", "&#039;");
       }
 
-async function getUserSafe() {
+      async function getUserSafe() {
         if (!db) return null;
         const { data } = await db.auth.getUser();
         return data?.user || null;
       }
 
-async function ensureAdmin() {
+      async function ensureAdmin() {
         if (!db) throw new Error("Supabase client missing.");
 
-const user = await (window.PC?.getUser?.() || getUserSafe());
+        const user = await (window.PC?.getUser?.() || getUserSafe());
         if (!user) throw new Error("not_logged_in");
 
-if (window.PC?.canCurrentUserAccessAdmin) {
+        if (window.PC?.canCurrentUserAccessAdmin) {
           const res = await window.PC.canCurrentUserAccessAdmin();
           if (res?.ok && res.canAccess) return user;
         }
 
-if (window.PC?.isAdmin) {
+        if (window.PC?.isAdmin) {
           const res = await window.PC.isAdmin(user.id);
           if (res?.ok && res.isAdmin) return user;
         }
 
-const { data: profile, error } = await db
+        const { data: profile, error } = await db
           .from("profiles")
           .select("role")
           .eq("id", user.id)
           .maybeSingle();
 
-if (error || !profile || String(profile.role).toLowerCase() !== "admin") {
+        if (error || !profile || String(profile.role).toLowerCase() !== "admin") {
           throw new Error("not_admin");
         }
 
-return user;
+        return user;
       }
 
-function getFormData() {
+      function getFormData() {
         return {
           subject: $("subject").value,
           topic: $("topic").value.trim(),
@@ -157,19 +175,22 @@ function getFormData() {
           option_d: $("option_d").value.trim(),
           correct: $("correct").value.trim().toUpperCase(),
           explain: $("explain").value.trim() || "",
-          is_active: $("is_active").checked
+          is_active: $("is_active").checked,
+          // image_url will be handled separately in the submit handler
         };
       }
 
-function validatePayload(p) {
+      function validatePayload(p) {
         if (!p.subject || !p.topic || !p.difficulty || !p.title || !p.text) return "Please fill all required fields.";
         if (!p.option_a || !p.option_b || !p.option_c || !p.option_d) return "All 4 options are required.";
         if (!["A","B","C","D"].includes(p.correct)) return "Correct option must be A/B/C/D.";
         return null;
       }
 
-function fillForm(q) {
+      function fillForm(q) {
         $("qid").value = q.id || "";
+        $("existing_image_url").value = q.image_url || ""; // Save old image url internally
+        
         $("subject").value = q.subject || "";
         $("topic").value = q.topic || "";
         $("difficulty").value = q.difficulty || "";
@@ -184,34 +205,42 @@ function fillForm(q) {
         $("correct").value = (q.correct || "").toUpperCase();
         $("explain").value = q.explain || "";
         $("is_active").checked = !!q.is_active;
+        
+        // Reset file input, but show label if image exists
+        $("imageInput").value = "";
+        $("currentImageName").style.display = q.image_url ? "inline" : "none";
+        
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
-function resetForm() {
+      function resetForm() {
         $("qForm").reset();
         $("qid").value = "";
+        $("existing_image_url").value = "";
+        $("currentImageName").style.display = "none";
         $("marks").value = 4;
         $("is_active").checked = true;
       }
 
-async function loadQuestions() {
+      async function loadQuestions() {
         let query = db.from("questions").select("*").order("created_at", { ascending: false }).limit(300);
 
-const fs = $("fSubject").value;
+        const fs = $("fSubject").value;
         const fd = $("fDifficulty").value;
         if (fs) query = query.eq("subject", fs);
         if (fd) query = query.eq("difficulty", fd);
 
-const { data, error } = await query;
+        const { data, error } = await query;
         if (error) return setStatus("Load failed: " + error.message, false);
 
-cachedRows = data || [];
+        cachedRows = data || [];
         qTable.innerHTML = cachedRows.map(q => `
           <tr>
             <td>${escapeHtml(q.subject)}</td>
             <td>${escapeHtml(q.topic)}</td>
             <td>${escapeHtml(q.difficulty)}</td>
             <td>${escapeHtml(q.title)}</td>
+            <td>${q.image_url ? "🖼️" : "-"}</td>
             <td>${q.is_active ? "Yes" : "No"}</td>
             <td class="row-actions">
               <button class="secondary" data-edit="${q.id}" type="button">Edit</button>
@@ -221,14 +250,14 @@ cachedRows = data || [];
           </tr>
         `).join("");
 
-qTable.querySelectorAll("[data-edit]").forEach(btn => {
+        qTable.querySelectorAll("[data-edit]").forEach(btn => {
           btn.onclick = () => {
             const q = cachedRows.find(x => String(x.id) === String(btn.dataset.edit));
             if (q) fillForm(q);
           };
         });
 
-qTable.querySelectorAll("[data-toggle]").forEach(btn => {
+        qTable.querySelectorAll("[data-toggle]").forEach(btn => {
           btn.onclick = async () => {
             const id = btn.dataset.toggle;
             const row = cachedRows.find(x => String(x.id) === String(id));
@@ -240,7 +269,7 @@ qTable.querySelectorAll("[data-toggle]").forEach(btn => {
           };
         });
 
-qTable.querySelectorAll("[data-delete]").forEach(btn => {
+        qTable.querySelectorAll("[data-delete]").forEach(btn => {
           btn.onclick = async () => {
             if (!confirm("Delete this question permanently?")) return;
             const { error } = await db.from("questions").delete().eq("id", btn.dataset.delete);
@@ -250,39 +279,77 @@ qTable.querySelectorAll("[data-delete]").forEach(btn => {
           };
         });
 
-setStatus(`Loaded ${cachedRows.length} questions.`);
+        setStatus(`Loaded ${cachedRows.length} questions.`);
       }
 
-$("qForm").addEventListener("submit", async (e) => {
+      $("qForm").addEventListener("submit", async (e) => {
         e.preventDefault();
+        
         const id = $("qid").value.trim();
         const payload = getFormData();
+        
         const err = validatePayload(payload);
         if (err) return setStatus(err, false);
 
-let result;
-        if (id) {
-          result = await db.from("questions").update(payload).eq("id", id).select().single();
-        } else {
-          result = await db.from("questions").insert(payload).select().single();
-        }
+        saveBtn.textContent = "Processing...";
+        saveBtn.disabled = true;
 
-if (result.error) {
-          console.error(result.error);
-          return setStatus("Save failed: " + result.error.message, false);
-        }
+        try {
+            // 1. Handle Image Upload if a file was selected
+            const imageFile = $("imageInput").files[0];
+            let finalImageUrl = $("existing_image_url").value; // Default to old image if editing
+            
+            if (imageFile) {
+                saveBtn.textContent = "Uploading Image...";
+                
+                if (!window.PC?.uploadQuestionImage) {
+                    throw new Error("uploadQuestionImage function missing from supabase-client.js");
+                }
+                
+                const uploadRes = await window.PC.uploadQuestionImage(imageFile);
+                if (uploadRes.ok) {
+                    finalImageUrl = uploadRes.url;
+                } else {
+                    throw new Error(uploadRes.error.message || "Failed to upload image.");
+                }
+            }
+            
+            // Attach the final image URL to the payload
+            payload.image_url = finalImageUrl || null;
 
-setStatus(id ? "Question updated successfully." : "Question added successfully.");
-        resetForm();
-        await loadQuestions();
+            saveBtn.textContent = "Saving to Database...";
+
+            // 2. Save Question
+            let result;
+            if (id) {
+              result = await db.from("questions").update(payload).eq("id", id).select().single();
+            } else {
+              result = await db.from("questions").insert(payload).select().single();
+            }
+
+            if (result.error) {
+              throw result.error;
+            }
+
+            setStatus(id ? "Question updated successfully." : "Question added successfully.");
+            resetForm();
+            await loadQuestions();
+            
+        } catch(error) {
+            console.error(error);
+            setStatus("Save failed: " + (error.message || error), false);
+        } finally {
+            saveBtn.textContent = "Save Question";
+            saveBtn.disabled = false;
+        }
       });
 
-$("resetBtn").onclick = resetForm;
+      $("resetBtn").onclick = resetForm;
       $("refreshBtn").onclick = loadQuestions;
       $("fSubject").onchange = loadQuestions;
       $("fDifficulty").onchange = loadQuestions;
 
-(async function init() {
+      (async function init() {
         try {
           await ensureAdmin();
           setStatus("Admin verified.");
