@@ -72,13 +72,12 @@
     .question-title{font-size:28px;line-height:1.35;margin-bottom:10px}
     .question-text{font-size:18px;line-height:1.6;color:#dce8ff;margin-bottom:16px}
     
-    /* NEW: Styling for the problem image */
     .question-image {
       max-width: 100%;
       border-radius: 10px;
       margin-bottom: 16px;
       border: 1px solid var(--line);
-      display: none; /* Hidden by default */
+      display: none; 
     }
 
     .options .opt{
@@ -156,12 +155,10 @@
       </div>
 
       <h2 class="question-title" id="problemTitle">Velocity from Position Function</h2>
-      
       <p class="question-text" id="problemText">
         A particle moves along a straight line with position x(t)=3t²−4t+1. Find velocity at t=2 s.
       </p>
       
-      <!-- NEW: Image Tag -->
       <img id="problemImage" class="question-image" alt="Question Diagram" />
 
       <div class="options" id="optionsWrap"></div>
@@ -180,26 +177,21 @@
 
       <div class="explain" id="explainBox">
         <strong>Explanation:</strong>
-        <span id="explainText">Differentiate x(t) to get v(t), then substitute t = 2.</span>
+        <span id="explainText"></span>
       </div>
 
-      <!-- NEW DISCUSSION SECTION -->
       <div id="discussSection" style="display: none; margin-top: 20px; border-top: 1px solid var(--line); padding-top: 16px;">
         <h3 style="margin-bottom: 12px; font-size: 18px;">Community Discussion</h3>
-        
         <div id="commentsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px; max-height: 300px; overflow-y: auto; padding-right: 5px;">
-          <!-- Comments inject here -->
         </div>
-        
         <div style="display:flex; flex-direction:column; gap:8px;">
           <textarea id="commentInput" placeholder="Share your approach or ask a doubt..." style="width:100%; min-height:80px; border-radius:10px; padding:10px; background:rgba(255,255,255,.03); border:1px solid var(--line); color:var(--text); outline:none; font-family:inherit; resize:vertical;"></textarea>
           <button id="postCommentBtn" class="btn btn-primary" style="align-self: flex-start;">Post Comment</button>
         </div>
       </div>
-      <!-- END NEW DISCUSSION SECTION -->
     </section>
 
-    <p class="footer">MVP • shared solver page for Physics/Chemistry/Math</p>
+    <p class="footer">MVP • Secure Server-Side Grading Active</p>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -263,16 +255,14 @@
       b: qs.get("b") || defaultProblem.b,
       c: qs.get("c") || defaultProblem.c,
       d: qs.get("d") || defaultProblem.d,
-      correct: (qs.get("correct") || defaultProblem.correct).toUpperCase(),
-      explain: qs.get("explain") || defaultProblem.explain,
-      image_url: qs.get("image_url") || defaultProblem.image_url, // NEW
+      correct: qs.get("correct") || defaultProblem.correct, // Empty from cloud!
+      explain: qs.get("explain") || defaultProblem.explain, // Empty from cloud!
+      image_url: qs.get("image_url") || defaultProblem.image_url,
       back: qs.get("back") || ""
     };
 
     const subjectNormalized = normalizeSubject(problem.subject);
-
     const ATTEMPT_KEY = `pc_attempt_${problem.id || "temp"}`;
-    // UPDATED: Sync BOOKMARK_KEY with subject pages
     const BOOKMARK_KEY = subjectNormalized === "Physics" ? "phy_bookmark_ids" :
                          subjectNormalized === "Chemistry" ? "chem_bookmark_ids" :
                          "math_bookmark_ids";
@@ -293,7 +283,7 @@
     const marksPill = byId("marksPill");
     const problemTitle = byId("problemTitle");
     const problemText = byId("problemText");
-    const problemImage = byId("problemImage"); // NEW
+    const problemImage = byId("problemImage");
     const optionsWrap = byId("optionsWrap");
     const submitBtn = byId("submitBtn");
     const resetBtn = byId("resetBtn");
@@ -311,11 +301,9 @@
     const commentInput = byId("commentInput");
     const postCommentBtn = byId("postCommentBtn");
 
-    // UPDATED: Array-based check for bookmarks
     let selected = localStorage.getItem(ATTEMPT_KEY) || "";
     let bookmarkArray = JSON.parse(localStorage.getItem(BOOKMARK_KEY) || "[]");
     let bookmarked = bookmarkArray.includes(String(problem.id));
-    
     let topicQuestionsCache = [];
 
     subjectPill.textContent = `Subject: ${subjectNormalized}`;
@@ -324,10 +312,8 @@
     marksPill.textContent = `Marks: +${problem.marks}`;
     problemTitle.textContent = problem.title;
     problemText.textContent = problem.text;
-    explainText.textContent = problem.explain;
     explainBox.style.display = "none";
 
-    // NEW: Display image if one exists
     if (problem.image_url) {
       problemImage.src = problem.image_url;
       problemImage.style.display = "block";
@@ -374,9 +360,9 @@
         b: row.option_b || "",
         c: row.option_c || "",
         d: row.option_d || "",
-        correct: String(row.correct || "A").toUpperCase(),
-        explain: row.explain || "",
-        image_url: row.image_url || "", // NEW
+        correct: "", // Kept hidden on grid page load!
+        explain: "", // Kept hidden on grid page load!
+        image_url: row.image_url || "", 
         back: problem.back || "index.html"
       };
     }
@@ -394,9 +380,9 @@
         b: p.b || "",
         c: p.c || "",
         d: p.d || "",
-        correct: p.correct || "A",
-        explain: p.explain || "",
-        image_url: p.image_url || "", // NEW
+        correct: "",
+        explain: "",
+        image_url: p.image_url || "",
         back: problem.back || "index.html"
       });
       return `solve-problem.html?${q.toString()}`;
@@ -408,11 +394,10 @@
         topicQuestionsCache = [];
         return;
       }
-
       try {
         const { data, error } = await sb
           .from("questions")
-          .select("*")
+          .select("id, subject, topic, difficulty, marks, source, title, text, option_a, option_b, option_c, option_d, image_url, created_at, is_active")
           .eq("is_active", true)
           .eq("subject", subjectNormalized)
           .eq("topic", problem.topic)
@@ -423,7 +408,6 @@
           topicQuestionsCache = [];
           return;
         }
-
         topicQuestionsCache = (data || []).map(normalizeDbRowToProblem);
       } catch (e) {
         console.error("loadTopicQuestions exception:", e);
@@ -434,11 +418,9 @@
     function goToNextQuestion() {
       if (!topicQuestionsCache.length) return alert("No questions found in this topic.");
       if (topicQuestionsCache.length === 1) return alert("Only 1 question exists in this topic right now.");
-
       const currentId = String(problem.id || "");
       let idx = topicQuestionsCache.findIndex(q => String(q.id) === currentId);
       if (idx < 0) idx = 0;
-
       const nextIdx = (idx + 1) % topicQuestionsCache.length;
       window.location.href = buildSolveUrlFromProblem(topicQuestionsCache[nextIdx]);
     }
@@ -446,11 +428,9 @@
     function goToPreviousQuestion() {
       if (!topicQuestionsCache.length) return alert("No questions found in this topic.");
       if (topicQuestionsCache.length === 1) return alert("Only 1 question exists in this topic right now.");
-
       const currentId = String(problem.id || "");
       let idx = topicQuestionsCache.findIndex(q => String(q.id) === currentId);
       if (idx < 0) idx = 0;
-
       const prevIdx = (idx - 1 + topicQuestionsCache.length) % topicQuestionsCache.length;
       window.location.href = buildSolveUrlFromProblem(topicQuestionsCache[prevIdx]);
     }
@@ -474,7 +454,6 @@
         isCorrect: true,
         solvedAt: new Date().toISOString()
       };
-
       const list = JSON.parse(localStorage.getItem(RECENT_LIST_KEY) || "[]");
       const filtered = list.filter(x => String(x.id) !== String(item.id));
       filtered.unshift(item);
@@ -488,11 +467,9 @@
     }
     renderBookmark();
 
-    // UPDATED: Sync logic for arrays
     bookmarkBtn.addEventListener("click", async () => {
       bookmarked = !bookmarked;
       
-      // 1. Update Local Storage Array
       let arr = JSON.parse(localStorage.getItem(BOOKMARK_KEY) || "[]");
       if (bookmarked && !arr.includes(String(problem.id))) {
         arr.push(String(problem.id));
@@ -503,7 +480,6 @@
       
       renderBookmark();
 
-      // 2. Sync to Supabase Cloud
       const user = await getCurrentUserOrNull();
       if (!user) return;
       if (!window.PC?.toggleBookmark) return;
@@ -512,14 +488,11 @@
       try {
         const res = await PC.toggleBookmark(user.id, subjectNormalized, problem.id);
         if (res?.ok && typeof res.bookmarked === "boolean") {
-          // Keep cloud state in sync if it overrides
           bookmarked = res.bookmarked;
-          
           let syncArr = JSON.parse(localStorage.getItem(BOOKMARK_KEY) || "[]");
           if (bookmarked && !syncArr.includes(String(problem.id))) syncArr.push(String(problem.id));
           else if (!bookmarked) syncArr = syncArr.filter(id => id !== String(problem.id));
           localStorage.setItem(BOOKMARK_KEY, JSON.stringify(syncArr));
-          
           renderBookmark();
         }
       } catch (e) {
@@ -527,6 +500,7 @@
       }
     });
 
+    // --- SECURE SUBMIT LOGIC ---
     submitBtn.addEventListener("click", async () => {
       successMsg.style.display = "none";
       errorMsg.style.display = "none";
@@ -537,45 +511,61 @@
       const ans = checked.value.toUpperCase();
       localStorage.setItem(ATTEMPT_KEY, ans);
 
-      const isCorrect = ans === problem.correct;
+      submitBtn.textContent = "Grading securely...";
+      submitBtn.disabled = true;
 
+      let isCorrect = false;
+      let actualCorrect = problem.correct;
+      let actualExplain = problem.explain;
+
+      if (isUuid(problem.id)) {
+        // Contact the secure RPC function
+        const gradeRes = await window.PC?.gradeQuestion(problem.id, ans);
+        
+        if (gradeRes?.ok) {
+          isCorrect = gradeRes.data.is_correct;
+          actualCorrect = gradeRes.data.correct;
+          actualExplain = gradeRes.data.explain;
+        } else {
+          submitBtn.textContent = "Submit";
+          submitBtn.disabled = false;
+          return alert("Failed to grade question securely. Check internet connection.");
+        }
+      } else {
+        // Fallback for default hardcoded UI preview (when no ID is present)
+        isCorrect = (ans === problem.correct);
+      }
+
+      submitBtn.textContent = "Submit";
+      submitBtn.disabled = false;
+
+      // Update UI with secure results
       if (isCorrect) {
         successMsg.style.display = "block";
         errorMsg.style.display = "none";
         markSolvedInSubject(subjectNormalized, problem.id);
+        
+        problem.correct = actualCorrect;
+        problem.explain = actualExplain;
         saveRecentProblemLocal(problem, ans, true);
       } else {
-        errorMsg.textContent = `❌ Wrong answer. Correct option is ${problem.correct}.`;
+        errorMsg.textContent = `❌ Wrong answer. Correct option is ${actualCorrect}.`;
         errorMsg.style.display = "block";
       }
 
+      explainText.textContent = actualExplain || "No explanation provided.";
       explainBox.style.display = "block";
 
+      // Sync attempt back to DB
       const user = await getCurrentUserOrNull();
       if (!user) return;
 
       try {
-        if (isUuid(problem.id)) {
-          if (window.PC?.saveUserSolved) {
-            await PC.saveUserSolved(user.id, problem.id, isCorrect);
-          } else if (window.PC?.markSolved) {
-            await PC.markSolved(user.id, subjectNormalized, problem.id, ans, isCorrect);
-          }
-        } else {
-          console.warn("Skipping DB save: invalid/non-UUID question id:", problem.id);
+        if (isUuid(problem.id) && window.PC?.saveUserSolved) {
+          await PC.saveUserSolved(user.id, problem.id, isCorrect);
         }
-
         if (isCorrect && window.PC?.updateStreakOnSolve) {
-          const streakRes = await PC.updateStreakOnSolve(user.id);
-          console.log("updateStreakOnSolve:", streakRes);
-        }
-
-        if (isCorrect && window.PC?.pushRecent) {
-          try {
-            await PC.pushRecent(user.id, { ...problem, subject: subjectNormalized });
-          } catch (e) {
-            console.warn("pushRecent skipped/failed:", e?.message || e);
-          }
+          await PC.updateStreakOnSolve(user.id);
         }
       } catch (e) {
         console.error("Submit sync error:", e);
@@ -621,14 +611,13 @@
         .replaceAll("'", "&#039;");
     }
 
-    // Toggle Discussion Panel
+    // Discussion Panel
     discussBtn.addEventListener("click", () => {
       const isHidden = discussSection.style.display === "none";
       discussSection.style.display = isHidden ? "block" : "none";
       if (isHidden) loadComments();
     });
 
-    // Fetch Comments from Supabase
     async function loadComments() {
       commentsList.innerHTML = '<div style="color:var(--muted)">Loading discussions...</div>';
       const sb = getSupabaseClient();
@@ -665,7 +654,6 @@
       `).join("");
     }
 
-    // Post a New Comment
     postCommentBtn.addEventListener("click", async () => {
       const content = commentInput.value.trim();
       if (!content) return alert("Comment cannot be empty!");
@@ -692,8 +680,8 @@
       if (error) {
         alert("Error posting comment: " + error.message);
       } else {
-        commentInput.value = ""; // Clear input
-        loadComments(); // Refresh the list
+        commentInput.value = ""; 
+        loadComments(); 
       }
     });
 
