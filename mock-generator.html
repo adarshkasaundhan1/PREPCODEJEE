@@ -17,7 +17,7 @@
       --danger:#ef4444;
     }
 
-*{box-sizing:border-box;margin:0;padding:0}
+    *{box-sizing:border-box;margin:0;padding:0}
     body{
       font-family:Inter,Segoe UI,Arial,sans-serif;
       color:var(--text);
@@ -29,12 +29,12 @@
       padding:24px;
     }
 
-.wrap{max-width:980px;margin:0 auto}
+    .wrap{max-width:980px;margin:0 auto}
     .top{
       display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;
     }
 
-.title h1{font-size:30px;margin-bottom:4px}
+    .title h1{font-size:30px;margin-bottom:4px}
     .title p{color:var(--muted)}
     .btn{
       border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;
@@ -43,9 +43,12 @@
     .btn-outline{
       background:transparent;border:1px solid var(--line);color:var(--text);
     }
+    .btn-blue{
+      background:#1d4ed8;border:none;border-radius:10px;padding:10px 13px;font-weight:700;color:#fff;cursor:pointer;
+    }
     .btn:disabled{opacity:.6;cursor:not-allowed}
 
-.panel{
+    .panel{
       border:1px solid var(--line);
       border-radius:14px;
       background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
@@ -53,14 +56,14 @@
       margin-bottom:14px;
     }
 
-.grid{
+    .grid{
       display:grid;
       grid-template-columns:1fr 1fr;
       gap:14px;
     }
     @media (max-width:840px){ .grid{grid-template-columns:1fr} }
 
-label{display:block;font-weight:700;margin-bottom:8px}
+    label{display:block;font-weight:700;margin-bottom:8px}
     .muted{color:var(--muted);font-size:13px}
     .input, select{
       width:100%;
@@ -76,7 +79,7 @@ label{display:block;font-weight:700;margin-bottom:8px}
       box-shadow:0 0 0 3px rgba(34,197,94,.15);
     }
 
-.chips{display:flex;flex-wrap:wrap;gap:10px}
+    .chips{display:flex;flex-wrap:wrap;gap:10px}
     .chip{
       border:1px solid var(--line);
       border-radius:999px;
@@ -93,7 +96,7 @@ label{display:block;font-weight:700;margin-bottom:8px}
       color:#b7ffd2;
     }
 
-.topics-wrap{
+    .topics-wrap{
       max-height:260px;
       overflow:auto;
       border:1px solid var(--line);
@@ -102,10 +105,22 @@ label{display:block;font-weight:700;margin-bottom:8px}
       background:rgba(255,255,255,.02);
     }
 
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .danger{color:#ffc8c8;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.35);padding:10px;border-radius:10px;display:none}
     .ok{color:#b7ffd2;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.35);padding:10px;border-radius:10px;display:none}
     .footer{color:var(--muted);font-size:13px}
+
+    /* MODAL STYLES FOR AUTH PROMPT */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+      display: none; justify-content: center; align-items: center; z-index: 9999;
+    }
+    .modal-content {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 14px; width: 90%; max-width: 400px; padding: 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -122,7 +137,7 @@ label{display:block;font-weight:700;margin-bottom:8px}
       </div>
     </div>
 
-<div class="panel">
+    <div class="panel">
       <div class="grid">
         <div>
           <label>Subjects</label>
@@ -134,7 +149,7 @@ label{display:block;font-weight:700;margin-bottom:8px}
           <p class="muted" style="margin-top:8px;">Select at least one subject.</p>
         </div>
 
-<div>
+        <div>
           <label for="timerMin">Timer (minutes)</label>
           <select id="timerMin">
             <option value="15">15 min</option>
@@ -150,7 +165,7 @@ label{display:block;font-weight:700;margin-bottom:8px}
       </div>
     </div>
 
-<div class="panel">
+    <div class="panel">
       <div class="grid">
         <div>
           <label for="questionCount">Number of Questions</label>
@@ -166,7 +181,7 @@ label{display:block;font-weight:700;margin-bottom:8px}
         </div>
       </div>
 
-<div id="topicsBlock" style="margin-top:14px;display:none;">
+      <div id="topicsBlock" style="margin-top:14px;display:none;">
         <label>Topics (multi-select)</label>
         <div id="topicsWrap" class="topics-wrap">
           <p class="muted">Select subjects first to load topics.</p>
@@ -174,22 +189,32 @@ label{display:block;font-weight:700;margin-bottom:8px}
       </div>
     </div>
 
-<div class="panel">
+    <div class="panel">
       <div id="errorBox" class="danger"></div>
       <div id="okBox" class="ok"></div>
 
-<div class="row" style="margin-top:10px;">
+      <div class="row" style="margin-top:10px;">
         <button id="previewBtn" class="btn btn-outline">Check available questions</button>
         <button id="generateBtn" class="btn">Generate Mock Test</button>
       </div>
 
-<p class="footer" style="margin-top:12px;">
+      <p class="footer" style="margin-top:12px;">
         Test questions are randomly selected from active DB questions based on your filters.
       </p>
     </div>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- AUTHENTICATION MODAL -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-content">
+      <div style="font-size: 40px; margin-bottom: 15px;">🔒</div>
+      <h3 style="font-size: 22px; margin-bottom: 10px;">Authentication Required</h3>
+      <p style="color: var(--muted); margin-bottom: 25px; line-height: 1.5;">You need to be logged in to generate mock tests. Please sign in to continue.</p>
+      <button class="btn-blue" id="authLoginBtn" style="width: 100%; padding: 12px; font-size: 16px;">Go to Login</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script>
     const subjectChips = document.getElementById("subjectChips");
@@ -206,11 +231,15 @@ label{display:block;font-weight:700;margin-bottom:8px}
     const backBtn = document.getElementById("backBtn");
     const historyBtn = document.getElementById("historyBtn");
 
-function getSb() {
+    // Modal elements
+    const authModal = document.getElementById("authModal");
+    const authLoginBtn = document.getElementById("authLoginBtn");
+
+    function getSb() {
       return window.PC?.supabase || window.sb || null;
     }
 
-function normalizeSubject(s = "") {
+    function normalizeSubject(s = "") {
       const v = String(s).trim().toLowerCase();
       if (v.includes("phys")) return "Physics";
       if (v.includes("chem")) return "Chemistry";
@@ -218,103 +247,110 @@ function normalizeSubject(s = "") {
       return "";
     }
 
-function selectedSubjects() {
+    function selectedSubjects() {
       return [...subjectChips.querySelectorAll("input[type='checkbox']:checked")].map(i => i.value);
     }
 
-function selectedTopics() {
+    function selectedTopics() {
       return [...topicsWrap.querySelectorAll("input[type='checkbox']:checked")].map(i => i.value);
     }
 
-function showError(msg) {
+    function showError(msg) {
       errorBox.style.display = "block";
       errorBox.textContent = msg;
     }
 
-function hideError() {
+    function hideError() {
       errorBox.style.display = "none";
       errorBox.textContent = "";
     }
 
-function showOk(msg) {
+    function showOk(msg) {
       okBox.style.display = "block";
       okBox.textContent = msg;
     }
 
-function hideOk() {
+    function hideOk() {
       okBox.style.display = "none";
       okBox.textContent = "";
     }
 
-function setChipActiveState() {
+    function setChipActiveState() {
       subjectChips.querySelectorAll(".chip").forEach(chip => {
         const input = chip.querySelector("input");
         chip.classList.toggle("active", input.checked);
       });
     }
 
-async function requireLogin() {
+    async function requireLogin() {
       const getUser = window.PC?.getUser;
       if (!getUser) {
         showError("Auth client is not ready (supabase-client.js).");
         return false;
       }
       const user = await getUser();
+      
+      // NEW CUSTOM MODAL INSTEAD OF ALERT
       if (!user) {
-        alert("Please login first to generate mock tests.");
-        window.location.href = "index.html";
-        return false;
+        authModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; 
+        
+        authLoginBtn.addEventListener('click', () => {
+          window.location.href = "index.html";
+        });
+        
+        return false; 
       }
       return true;
     }
 
-async function loadTopicsForSubjects(subjects) {
+    async function loadTopicsForSubjects(subjects) {
       topicsWrap.innerHTML = '<p class="muted">Loading topics...</p>';
 
-const sb = getSb();
+      const sb = getSb();
       if (!sb) {
         topicsWrap.innerHTML = '<p class="muted">DB connection not available.</p>';
         return;
       }
 
-if (!subjects.length) {
+      if (!subjects.length) {
         topicsWrap.innerHTML = '<p class="muted">Select subjects first to load topics.</p>';
         return;
       }
 
-const { data, error } = await sb
+      const { data, error } = await sb
         .from("questions")
         .select("subject, topic")
         .eq("is_active", true)
         .in("subject", subjects)
         .limit(5000);
 
-if (error) {
+      if (error) {
         topicsWrap.innerHTML = '<p class="muted">Failed to load topics.</p>';
         return;
       }
 
-const set = new Set();
+      const set = new Set();
       (data || []).forEach(row => {
         const sub = normalizeSubject(row.subject || "");
         const topic = String(row.topic || "").trim();
         if (subjects.includes(sub) && topic) set.add(topic);
       });
 
-const list = [...set].sort((a, b) => a.localeCompare(b));
+      const list = [...set].sort((a, b) => a.localeCompare(b));
       if (!list.length) {
         topicsWrap.innerHTML = '<p class="muted">No topics found for selected subject(s).</p>';
         return;
       }
 
-topicsWrap.innerHTML = list.map(t => `
+      topicsWrap.innerHTML = list.map(t => `
         <label class="chip" style="margin:0 8px 8px 0;display:inline-block;">
           <input type="checkbox" value="${escapeHtml(t)}" />
           ${escapeHtml(t)}
         </label>
       `).join("");
 
-topicsWrap.querySelectorAll(".chip").forEach(chip => {
+      topicsWrap.querySelectorAll(".chip").forEach(chip => {
         const input = chip.querySelector("input");
         chip.addEventListener("click", () => {
           setTimeout(() => chip.classList.toggle("active", input.checked), 0);
@@ -322,7 +358,7 @@ topicsWrap.querySelectorAll(".chip").forEach(chip => {
       });
     }
 
-function escapeHtml(str = "") {
+    function escapeHtml(str = "") {
       return String(str)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
@@ -331,35 +367,35 @@ function escapeHtml(str = "") {
         .replaceAll("'", "&#039;");
     }
 
-async function countAvailableQuestions({ subjects, topics, useCustomTopics }) {
+    async function countAvailableQuestions({ subjects, topics, useCustomTopics }) {
       const sb = getSb();
       if (!sb) throw new Error("DB not connected.");
 
-let query = sb.from("questions").select("id,subject,topic", { count: "exact" }).eq("is_active", true);
+      let query = sb.from("questions").select("id,subject,topic", { count: "exact" }).eq("is_active", true);
 
-if (subjects.length) query = query.in("subject", subjects);
+      if (subjects.length) query = query.in("subject", subjects);
       if (useCustomTopics && topics.length) query = query.in("topic", topics);
 
-const { count, error } = await query.limit(1);
+      const { count, error } = await query.limit(1);
       if (error) throw new Error(error.message || "Count failed.");
       return count || 0;
     }
 
-async function fetchQuestions({ subjects, topics, useCustomTopics }) {
+    async function fetchQuestions({ subjects, topics, useCustomTopics }) {
       const sb = getSb();
       if (!sb) throw new Error("DB not connected.");
 
-let query = sb.from("questions").select("*").eq("is_active", true);
+      let query = sb.from("questions").select("*").eq("is_active", true);
 
-if (subjects.length) query = query.in("subject", subjects);
+      if (subjects.length) query = query.in("subject", subjects);
       if (useCustomTopics && topics.length) query = query.in("topic", topics);
 
-const { data, error } = await query.limit(5000);
+      const { data, error } = await query.limit(5000);
       if (error) throw new Error(error.message || "Fetch failed.");
       return data || [];
     }
 
-function shuffle(arr = []) {
+    function shuffle(arr = []) {
       const a = [...arr];
       for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -368,14 +404,14 @@ function shuffle(arr = []) {
       return a;
     }
 
-function validateForm() {
+    function validateForm() {
       const subjects = selectedSubjects();
       const useCustomTopics = topicMode.value === "custom";
       const topics = selectedTopics();
       const count = Number(questionCount.value || 0);
       const timer = Number(timerMin.value || 0);
 
-if (!subjects.length) return { ok:false, msg:"Please select at least one subject." };
+      if (!subjects.length) return { ok:false, msg:"Please select at least one subject." };
       if (!Number.isFinite(count) || count < 5 || count > 200) {
         return { ok:false, msg:"Question count must be between 5 and 200." };
       }
@@ -386,20 +422,20 @@ if (!subjects.length) return { ok:false, msg:"Please select at least one subject
         return { ok:false, msg:"Please select at least one topic (or switch to All topics)." };
       }
 
-return { ok:true, subjects, topics, useCustomTopics, count, timer };
+      return { ok:true, subjects, topics, useCustomTopics, count, timer };
     }
 
-async function handlePreview() {
+    async function handlePreview() {
       hideError(); hideOk();
 
-const v = validateForm();
+      const v = validateForm();
       if (!v.ok) return showError(v.msg);
 
-try {
+      try {
         previewBtn.disabled = true;
         previewBtn.textContent = "Checking...";
 
-const available = await countAvailableQuestions(v);
+        const available = await countAvailableQuestions(v);
         if (available === 0) {
           showError("No active questions found for your selected filters.");
         } else {
@@ -413,25 +449,25 @@ const available = await countAvailableQuestions(v);
       }
     }
 
-async function handleGenerate() {
+    async function handleGenerate() {
       hideError(); hideOk();
 
-const v = validateForm();
+      const v = validateForm();
       if (!v.ok) return showError(v.msg);
 
-try {
+      try {
         generateBtn.disabled = true;
         generateBtn.textContent = "Generating...";
 
-const pool = await fetchQuestions(v);
+        const pool = await fetchQuestions(v);
         if (!pool.length) return showError("No active questions found for selected filters.");
         if (pool.length < v.count) {
           return showError(`Only ${pool.length} questions available. Reduce question count or broaden filters.`);
         }
 
-const selected = shuffle(pool).slice(0, v.count);
+        const selected = shuffle(pool).slice(0, v.count);
 
-sessionStorage.setItem("pc_mock_current", JSON.stringify({
+        sessionStorage.setItem("pc_mock_current", JSON.stringify({
           config: {
             subjects: v.subjects,
             topics: v.useCustomTopics ? v.topics : [],
@@ -443,7 +479,7 @@ sessionStorage.setItem("pc_mock_current", JSON.stringify({
           questions: selected
         }));
 
-window.location.href = "mock-test.html";
+        window.location.href = "mock-test.html";
       } catch (e) {
         showError(e.message || "Failed to generate mock test.");
       } finally {
@@ -452,7 +488,7 @@ window.location.href = "mock-test.html";
       }
     }
 
-topicMode.addEventListener("change", async () => {
+    topicMode.addEventListener("change", async () => {
       const show = topicMode.value === "custom";
       topicsBlock.style.display = show ? "block" : "none";
       if (show) {
@@ -460,7 +496,7 @@ topicMode.addEventListener("change", async () => {
       }
     });
 
-subjectChips.querySelectorAll("input[type='checkbox']").forEach(inp => {
+    subjectChips.querySelectorAll("input[type='checkbox']").forEach(inp => {
       inp.addEventListener("change", async () => {
         setChipActiveState();
         if (topicMode.value === "custom") {
@@ -469,26 +505,26 @@ subjectChips.querySelectorAll("input[type='checkbox']").forEach(inp => {
       });
     });
 
-previewBtn.addEventListener("click", handlePreview);
+    previewBtn.addEventListener("click", handlePreview);
     generateBtn.addEventListener("click", handleGenerate);
 
-historyBtn.addEventListener("click", () => {
+    historyBtn.addEventListener("click", () => {
       window.location.href = "mock-history.html";
     });
 
-logoutBtn.addEventListener("click", async () => {
+    logoutBtn.addEventListener("click", async () => {
       try { await window.PC?.signOut?.(); } catch {}
       window.location.href = "index.html";
     });
 
-backBtn.addEventListener("click", () => {
+    backBtn.addEventListener("click", () => {
       window.location.href = "index.html";
     });
 
-(async function init() {
+    (async function init() {
       setChipActiveState();
       const ok = await requireLogin();
-      if (!ok) return;
+      if (!ok) return; // Prevent rest of the page logic if not logged in
     })();
   </script>
 </body>
