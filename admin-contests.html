@@ -20,7 +20,7 @@
       --purple:#8b5cf6;
     }
 
-*{box-sizing:border-box;margin:0;padding:0}
+    *{box-sizing:border-box;margin:0;padding:0}
     body{
       font-family:Inter,Segoe UI,Arial,sans-serif;
       color:var(--text);
@@ -31,7 +31,7 @@
         linear-gradient(180deg,var(--bg2),var(--bg));
     }
 
-.container{max-width:1220px;margin:0 auto;padding:16px}
+    .container{max-width:1220px;margin:0 auto;padding:16px}
     .topbar{
       border:1px solid var(--line);
       border-radius:14px;
@@ -58,33 +58,33 @@
       background:var(--blue);font-weight:700;
     }
 
-.row{
+    .row{
       display:grid;
       grid-template-columns:1fr;
       gap:14px;
     }
 
-.panel{
+    .panel{
       border:1px solid var(--line);
       border-radius:14px;
       padding:14px;
       background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
     }
 
-.panel h2{
+    .panel h2{
       font-size:20px;
       margin-bottom:6px;
     }
     .muted{color:var(--muted)}
 
-.form-grid{
+    .form-grid{
       margin-top:12px;
       display:grid;
       grid-template-columns:repeat(3, minmax(220px,1fr));
       gap:10px;
     }
 
-.input,.select{
+    .input,.select{
       width:100%;
       border:1px solid var(--line);
       border-radius:10px;
@@ -94,15 +94,16 @@
       outline:none;
     }
     .input::placeholder{color:#8ca2cd}
+    textarea.input { min-height: 80px; resize: vertical; }
 
-.actions{
+    .actions{
       margin-top:10px;
       display:flex;
       gap:8px;
       flex-wrap:wrap;
     }
 
-button{
+    button{
       border:none;cursor:pointer;border-radius:10px;padding:10px 13px;font-weight:700;color:#fff;
     }
     .btn-green{background:#15803d}
@@ -116,21 +117,21 @@ button{
       background:#334155;color:#cbd5e1;cursor:not-allowed;
     }
 
-.toolbar{
+    .toolbar{
       display:grid;
       grid-template-columns:1fr .6fr .6fr;
       gap:10px;
       margin-top:12px;
     }
 
-.grid{
+    .grid{
       margin-top:12px;
       display:grid;
       grid-template-columns:repeat(2, minmax(280px,1fr));
       gap:12px;
     }
 
-.contest-card{
+    .contest-card{
       border:1px solid var(--line);
       border-radius:14px;
       padding:14px;
@@ -151,7 +152,7 @@ button{
     .upcoming{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#ffdca3}
     .ended{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#ffc5c5}
 
-.meta{
+    .meta{
       display:grid;grid-template-columns:1fr 1fr;gap:8px;
       color:var(--muted);font-size:13px;
     }
@@ -163,7 +164,7 @@ button{
     }
     .meta strong{display:block;color:var(--text);margin-top:3px;font-size:14px}
 
-.inline-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .inline-actions{display:flex;gap:8px;flex-wrap:wrap}
     .empty{
       border:1px dashed var(--line);
       border-radius:12px;
@@ -172,7 +173,7 @@ button{
       text-align:center;
     }
 
-.toast{
+    .toast{
       margin-top:10px;
       padding:10px 12px;
       border-radius:10px;
@@ -192,7 +193,7 @@ button{
       color:#bfffd5;
     }
 
-.picker-wrap{
+    .picker-wrap{
       margin-top:12px;
       border:1px solid var(--line);
       border-radius:12px;
@@ -233,17 +234,42 @@ button{
     }
     .q-row:last-child{border-bottom:none}
     .q-row:hover{background:rgba(255,255,255,.03)}
-    .q-title{font-weight:700;font-size:14px}
+    .q-title{font-weight:700;font-size:14px; display:flex; align-items:center;}
     .q-meta{color:var(--muted);font-size:12px;margin-top:3px}
 
-.footer{
+    /* MODAL STYLES */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      display: none; justify-content: center; align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      width: 90%; max-width: 700px;
+      max-height: 90vh; overflow-y: auto;
+      padding: 20px;
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 15px; border-bottom: 1px solid var(--line); padding-bottom: 10px;
+    }
+    .modal-header h3 { font-size: 20px; margin: 0; }
+    .close-btn { background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer; padding: 0; }
+    .close-btn:hover { color: var(--text); }
+    .full-width { grid-column: 1 / -1; }
+
+    .footer{
       margin-top:14px;
       color:var(--muted);
       font-size:12px;
       text-align:center;
     }
 
-@media(max-width:1020px){
+    @media(max-width:1020px){
       .form-grid{grid-template-columns:1fr 1fr}
       .toolbar{grid-template-columns:1fr}
       .grid{grid-template-columns:1fr}
@@ -269,11 +295,11 @@ button{
       </div>
     </header>
 
-<section class="panel">
+    <section class="panel">
       <h2>Create Contest</h2>
       <p class="muted">Only admins can create contests. Active contests are visible to users on Contest Home.</p>
 
-<div class="form-grid">
+      <div class="form-grid">
         <input id="titleInput" class="input" placeholder="Contest title (e.g., Physics Sprint #13)" />
         <select id="subjectInput" class="select">
           <option value="Physics">Physics</option>
@@ -283,11 +309,11 @@ button{
         </select>
         <input id="questionsInput" class="input" type="number" min="1" placeholder="Questions (e.g., 30)" />
 
-<input id="durationInput" class="input" type="number" min="1" placeholder="Duration in minutes (e.g., 90)" />
+        <input id="durationInput" class="input" type="number" min="1" placeholder="Duration in minutes (e.g., 90)" />
         <input id="prizeInput" class="input" type="number" min="0" placeholder="Prize in ₹ (e.g., 5000)" />
         <input id="participantsInput" class="input" type="number" min="0" placeholder="Participants (default 0)" />
 
-<input id="startsAtInput" class="input" type="datetime-local" />
+        <input id="startsAtInput" class="input" type="datetime-local" />
         <input id="endsAtInput" class="input" type="datetime-local" />
         <select id="isActiveInput" class="select">
           <option value="true">Active (show to users)</option>
@@ -295,29 +321,32 @@ button{
         </select>
       </div>
 
-<div class="picker-wrap">
+      <div class="picker-wrap">
         <div class="picker-head">
-          <strong>Attach Questions to This Contest</strong>
+          <div style="display:flex; align-items:center; gap: 10px;">
+            <strong>Attach Questions to This Contest</strong>
+            <button class="btn-blue" id="openModalBtn" style="padding: 5px 10px; font-size:12px;">➕ Create New Question</button>
+          </div>
           <span class="picker-count" id="selectedCount">Selected: 0</span>
         </div>
         <input id="qSearchInput" class="input" placeholder="Search question title/topic/subject..." />
         <div id="questionPicker" class="picker-list" style="margin-top:10px;"></div>
       </div>
 
-<div class="actions">
+      <div class="actions">
         <button class="btn-green" id="createBtn">Create Contest</button>
         <button class="btn-outline" id="resetBtn">Reset Form</button>
         <button class="btn-blue" id="goHomeBtn">Open Contest Home</button>
       </div>
 
-<div class="toast" id="toast"></div>
+      <div class="toast" id="toast"></div>
     </section>
 
-<section class="panel">
+    <section class="panel">
       <h2>Manage Contests</h2>
       <p class="muted">Toggle active status or delete contests. Status badge (LIVE/UPCOMING/ENDED) is based on time.</p>
 
-<div class="toolbar">
+      <div class="toolbar">
         <input id="searchInput" class="input" placeholder="Search by title or subject..." />
         <select id="filterActive" class="select">
           <option value="all">Filter: All</option>
@@ -332,20 +361,71 @@ button{
         </select>
       </div>
 
-<div id="contestGrid" class="grid"></div>
+      <div id="contestGrid" class="grid"></div>
     </section>
 
-<p class="footer">Admin Panel • Supabase RLS protected</p>
+    <p class="footer">Admin Panel • Supabase RLS protected</p>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- NEW QUESTION MODAL -->
+  <div class="modal-overlay" id="newQuestionModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>➕ Create New Question</h3>
+        <button class="close-btn" id="closeModalBtn">×</button>
+      </div>
+      <p style="font-size: 13px; color: var(--amber); margin-bottom: 15px;">
+        <em>Note: Questions created here are "Contest Exclusive". They are hidden from the practice bank and will automatically publish when the contest ends.</em>
+      </p>
+      <form id="nqForm" class="form-grid" style="grid-template-columns: 1fr 1fr;">
+        <select id="nqSubject" class="select" required>
+          <option value="">Subject</option>
+          <option>Physics</option>
+          <option>Chemistry</option>
+          <option>Mathematics</option>
+        </select>
+        <input id="nqTopic" class="input" placeholder="Topic" required />
+        <select id="nqDifficulty" class="select" required>
+          <option value="">Difficulty</option>
+          <option>Easy</option><option>Medium</option><option>Hard</option>
+        </select>
+        <input id="nqMarks" class="input" type="number" value="4" min="1" required />
+        
+        <input id="nqTitle" class="input full-width" placeholder="Title" required />
+        <textarea id="nqText" class="input full-width" placeholder="Question text" required></textarea>
+        
+        <input id="nqOptA" class="input" placeholder="Option A" required />
+        <input id="nqOptB" class="input" placeholder="Option B" required />
+        <input id="nqOptC" class="input" placeholder="Option C" required />
+        <input id="nqOptD" class="input" placeholder="Option D" required />
+        
+        <select id="nqCorrect" class="select" required>
+          <option value="">Correct Option</option>
+          <option>A</option><option>B</option><option>C</option><option>D</option>
+        </select>
+        <input id="nqExplain" class="input" placeholder="Explanation (optional)" />
+
+        <div class="full-width" style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size: 14px; color: var(--muted);">Upload Image (Optional)</label>
+          <input type="file" id="nqImageInput" accept="image/*" class="input" />
+        </div>
+        
+        <div class="full-width" style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn-outline" id="cancelModalBtn">Cancel</button>
+          <button type="submit" class="btn-green" id="saveQuestionBtn">Save & Attach</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
 
-<script>
+  <script>
     const userNameEl = document.getElementById("userName");
     const avatarLetterEl = document.getElementById("avatarLetter");
 
-const titleInput = document.getElementById("titleInput");
+    const titleInput = document.getElementById("titleInput");
     const subjectInput = document.getElementById("subjectInput");
     const questionsInput = document.getElementById("questionsInput");
     const durationInput = document.getElementById("durationInput");
@@ -355,28 +435,35 @@ const titleInput = document.getElementById("titleInput");
     const endsAtInput = document.getElementById("endsAtInput");
     const isActiveInput = document.getElementById("isActiveInput");
 
-const qSearchInput = document.getElementById("qSearchInput");
+    const qSearchInput = document.getElementById("qSearchInput");
     const questionPicker = document.getElementById("questionPicker");
     const selectedCount = document.getElementById("selectedCount");
 
-const createBtn = document.getElementById("createBtn");
+    const createBtn = document.getElementById("createBtn");
     const resetBtn = document.getElementById("resetBtn");
     const goHomeBtn = document.getElementById("goHomeBtn");
 
-const searchInput = document.getElementById("searchInput");
+    const searchInput = document.getElementById("searchInput");
     const filterActive = document.getElementById("filterActive");
     const sortSelect = document.getElementById("sortSelect");
     const contestGrid = document.getElementById("contestGrid");
     const toast = document.getElementById("toast");
 
-let currentUser = null;
+    // Modal Elements
+    const newQuestionModal = document.getElementById("newQuestionModal");
+    const openModalBtn = document.getElementById("openModalBtn");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const cancelModalBtn = document.getElementById("cancelModalBtn");
+    const nqForm = document.getElementById("nqForm");
+    const saveQuestionBtn = document.getElementById("saveQuestionBtn");
+
+    let currentUser = null;
     let contests = [];
     let contestsChannel = null;
-
-let questionBank = [];
+    let questionBank = [];
     let selectedQuestionIds = new Set();
 
-function showToast(message, type = "") {
+    function showToast(message, type = "") {
       toast.textContent = message;
       toast.className = "toast";
       if (type) toast.classList.add(type);
@@ -384,11 +471,11 @@ function showToast(message, type = "") {
       setTimeout(() => { toast.style.display = "none"; }, 2500);
     }
 
-function getSupabaseClient() {
+    function getSupabaseClient() {
       return window.PC?.supabase || window.sb || null;
     }
 
-async function getAuthUser() {
+    async function getAuthUser() {
       if (window.PC?.getUser) return await window.PC.getUser();
       const sb = getSupabaseClient();
       if (!sb) return null;
@@ -396,34 +483,26 @@ async function getAuthUser() {
       return data?.user || null;
     }
 
-async function canAccessAdmin(user) {
+    async function canAccessAdmin(user) {
       if (!user) return false;
-
-if (window.PC?.canCurrentUserAccessAdmin) {
+      if (window.PC?.canCurrentUserAccessAdmin) {
         const res = await window.PC.canCurrentUserAccessAdmin();
         return !!res?.canAccess;
       }
-
-if (window.PC?.isAdmin) {
+      if (window.PC?.isAdmin) {
         const res = await window.PC.isAdmin(user.id);
         return !!res?.isAdmin;
       }
-
-const sb = getSupabaseClient();
+      const sb = getSupabaseClient();
       if (!sb) return false;
-      const { data, error } = await sb
-        .from("admin_users")
-        .select("user_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-if (error) return false;
+      const { data, error } = await sb.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
+      if (error) return false;
       return !!data;
     }
 
-function nowMs() { return Date.now(); }
+    function nowMs() { return Date.now(); }
 
-function getTimeStatus(c) {
+    function getTimeStatus(c) {
       const n = nowMs();
       const s = new Date(c.starts_at).getTime();
       const e = new Date(c.ends_at).getTime();
@@ -432,42 +511,38 @@ function getTimeStatus(c) {
       return "ended";
     }
 
-function formatDate(iso) {
+    function formatDate(iso) {
       return new Date(iso).toLocaleString([], {
         day: "2-digit", month: "short", year: "numeric",
         hour: "2-digit", minute: "2-digit"
       });
     }
 
-function toISOFromDatetimeLocal(v) {
+    function toISOFromDatetimeLocal(v) {
       const d = new Date(v);
       return d.toISOString();
     }
 
-function isValidForm() {
+    function isValidForm() {
       if (!titleInput.value.trim()) return "Title is required.";
       if (!subjectInput.value) return "Subject is required.";
       if (!startsAtInput.value) return "Start time is required.";
       if (!endsAtInput.value) return "End time is required.";
-
-const s = new Date(startsAtInput.value).getTime();
+      const s = new Date(startsAtInput.value).getTime();
       const e = new Date(endsAtInput.value).getTime();
       if (!Number.isFinite(s) || !Number.isFinite(e)) return "Invalid date/time.";
       if (e <= s) return "End time must be after start time.";
-
-const q = Number(questionsInput.value || 0);
+      const q = Number(questionsInput.value || 0);
       const d = Number(durationInput.value || 0);
       const p = Number(prizeInput.value || 0);
       const part = Number(participantsInput.value || 0);
-
-if (q < 1) return "Questions must be at least 1.";
+      if (q < 1) return "Questions must be at least 1.";
       if (d < 1) return "Duration must be at least 1 minute.";
       if (p < 0 || part < 0) return "Prize/Participants cannot be negative.";
-
-return null;
+      return null;
     }
 
-function resetForm() {
+    function resetForm() {
       titleInput.value = "";
       subjectInput.value = "Physics";
       questionsInput.value = "";
@@ -477,63 +552,54 @@ function resetForm() {
       startsAtInput.value = "";
       endsAtInput.value = "";
       isActiveInput.value = "true";
-
-selectedQuestionIds.clear();
+      selectedQuestionIds.clear();
       updateSelectedCount();
       renderQuestionPicker();
     }
 
-async function loadContests() {
+    async function loadContests() {
       const sb = getSupabaseClient();
       if (!sb) {
         showToast("Supabase client not found.", "error");
         return;
       }
-
-const { data, error } = await sb
-        .from("contests")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-if (error) {
+      const { data, error } = await sb.from("contests").select("*").order("created_at", { ascending: false });
+      if (error) {
         console.error("loadContests error:", error.message);
         showToast(error.message || "Failed to load contests.", "error");
         return;
       }
-
-contests = data || [];
+      contests = data || [];
       renderGrid();
     }
 
-async function loadQuestionBank() {
+    async function loadQuestionBank() {
       const sb = getSupabaseClient();
       if (!sb) return;
-
-const { data, error } = await sb
+      
+      // NOTICE: We removed .eq("is_active", true) so admins can attach hidden questions
+      const { data, error } = await sb
         .from("questions")
-        .select("id, subject, topic, title, difficulty")
-        .eq("is_active", true)
+        .select("id, subject, topic, title, difficulty, is_active")
         .order("created_at", { ascending: false })
         .limit(500);
 
-if (error) {
+      if (error) {
         console.error("loadQuestionBank error:", error.message);
         showToast("Failed to load question bank.", "error");
         return;
       }
-
-questionBank = data || [];
+      questionBank = data || [];
       renderQuestionPicker();
     }
 
-function updateSelectedCount() {
+    function updateSelectedCount() {
       selectedCount.textContent = `Selected: ${selectedQuestionIds.size}`;
     }
 
-function renderQuestionPicker() {
+    function renderQuestionPicker() {
       const q = (qSearchInput.value || "").trim().toLowerCase();
-
-const rows = questionBank.filter(row => {
+      const rows = questionBank.filter(row => {
         if (!q) return true;
         return (
           String(row.title || "").toLowerCase().includes(q) ||
@@ -542,25 +608,26 @@ const rows = questionBank.filter(row => {
         );
       });
 
-if (!rows.length) {
+      if (!rows.length) {
         questionPicker.innerHTML = `<div class="empty" style="margin:8px;">No questions found.</div>`;
         return;
       }
 
-questionPicker.innerHTML = rows.map(row => {
+      questionPicker.innerHTML = rows.map(row => {
         const isChecked = selectedQuestionIds.has(row.id) ? "checked" : "";
+        const exclusiveBadge = row.is_active === false ? '<span class="badge upcoming" style="padding:2px 6px; margin-left:6px; font-size:10px;">Exclusive</span>' : '';
         return `
           <label class="q-row">
             <input type="checkbox" data-qid="${row.id}" ${isChecked} />
             <div>
-              <div class="q-title">${escapeHtml(row.title || "Untitled Question")}</div>
+              <div class="q-title">${escapeHtml(row.title || "Untitled Question")} ${exclusiveBadge}</div>
               <div class="q-meta">${escapeHtml(row.subject || "")} • ${escapeHtml(row.topic || "")} • ${escapeHtml(row.difficulty || "Easy")}</div>
             </div>
           </label>
         `;
       }).join("");
 
-questionPicker.querySelectorAll("input[type='checkbox'][data-qid]").forEach(cb => {
+      questionPicker.querySelectorAll("input[type='checkbox'][data-qid]").forEach(cb => {
         cb.addEventListener("change", () => {
           const qid = cb.dataset.qid;
           if (!qid) return;
@@ -571,42 +638,31 @@ questionPicker.querySelectorAll("input[type='checkbox'][data-qid]").forEach(cb =
       });
     }
 
-function getFilteredContests() {
+    function getFilteredContests() {
       const q = searchInput.value.trim().toLowerCase();
       const activeFilter = filterActive.value;
       const sortBy = sortSelect.value;
+      let data = [...contests];
 
-let data = [...contests];
-
-if (q) {
-        data = data.filter(c =>
-          String(c.title || "").toLowerCase().includes(q) ||
-          String(c.subject || "").toLowerCase().includes(q)
-        );
+      if (q) {
+        data = data.filter(c => String(c.title || "").toLowerCase().includes(q) || String(c.subject || "").toLowerCase().includes(q));
       }
-
-if (activeFilter === "active") data = data.filter(c => c.is_active === true);
+      if (activeFilter === "active") data = data.filter(c => c.is_active === true);
       if (activeFilter === "inactive") data = data.filter(c => c.is_active === false);
 
-if (sortBy === "start_asc") {
-        data.sort((a,b) => new Date(a.starts_at) - new Date(b.starts_at));
-      } else if (sortBy === "start_desc") {
-        data.sort((a,b) => new Date(b.starts_at) - new Date(a.starts_at));
-      } else if (sortBy === "prize_desc") {
-        data.sort((a,b) => Number(b.prize || 0) - Number(a.prize || 0));
-      } else {
-        data.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-      }
+      if (sortBy === "start_asc") data.sort((a,b) => new Date(a.starts_at) - new Date(b.starts_at));
+      else if (sortBy === "start_desc") data.sort((a,b) => new Date(b.starts_at) - new Date(a.starts_at));
+      else if (sortBy === "prize_desc") data.sort((a,b) => Number(b.prize || 0) - Number(a.prize || 0));
+      else data.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
 
-return data;
+      return data;
     }
 
-function cardHTML(c) {
+    function cardHTML(c) {
       const timeStatus = getTimeStatus(c);
       const activeCls = c.is_active ? "active" : "inactive";
       const activeText = c.is_active ? "ACTIVE" : "INACTIVE";
-
-return `
+      return `
         <article class="contest-card">
           <div class="row-top">
             <h3 class="title">${escapeHtml(c.title || "Untitled Contest")}</h3>
@@ -615,8 +671,7 @@ return `
               <span class="badge ${timeStatus}">${timeStatus.toUpperCase()}</span>
             </div>
           </div>
-
-<div class="meta">
+          <div class="meta">
             <div>Subject<strong>${escapeHtml(c.subject || "Mixed")}</strong></div>
             <div>Questions<strong>${Number(c.questions || 0)}</strong></div>
             <div>Duration<strong>${Number(c.duration_min || 0)} min</strong></div>
@@ -624,50 +679,37 @@ return `
             <div>Prize<strong>₹${Number(c.prize || 0).toLocaleString("en-IN")}</strong></div>
             <div>Start<strong>${formatDate(c.starts_at)}</strong></div>
           </div>
-
-<div class="inline-actions">
+          <div class="inline-actions">
             <button class="btn-blue" data-action="toggle" data-id="${c.id}" data-active="${c.is_active}">
               ${c.is_active ? "Disable" : "Enable"}
             </button>
-            <button class="btn-red" data-action="delete" data-id="${c.id}">
-              Delete
-            </button>
+            <button class="btn-red" data-action="delete" data-id="${c.id}">Delete</button>
           </div>
         </article>
       `;
     }
 
-function escapeHtml(str = "") {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    function escapeHtml(str = "") {
+      return String(str).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
     }
 
-function renderGrid() {
+    function renderGrid() {
       const data = getFilteredContests();
-
-if (!data.length) {
+      if (!data.length) {
         contestGrid.innerHTML = `<div class="empty">No contests found.</div>`;
         return;
       }
-
-contestGrid.innerHTML = data.map(cardHTML).join("");
-
-contestGrid.querySelectorAll("button[data-action]").forEach(btn => {
+      contestGrid.innerHTML = data.map(cardHTML).join("");
+      contestGrid.querySelectorAll("button[data-action]").forEach(btn => {
         btn.addEventListener("click", async () => {
           const action = btn.dataset.action;
           const id = btn.dataset.id;
           if (!id) return;
-
-if (action === "toggle") {
+          if (action === "toggle") {
             const current = btn.dataset.active === "true";
             await toggleContestActive(id, !current);
           }
-
-if (action === "delete") {
+          if (action === "delete") {
             const ok = confirm("Delete this contest permanently?");
             if (!ok) return;
             await deleteContest(id);
@@ -676,25 +718,18 @@ if (action === "delete") {
       });
     }
 
-async function createContest() {
+    async function createContest() {
       const err = isValidForm();
-      if (err) {
-        showToast(err, "error");
-        return;
-      }
+      if (err) { showToast(err, "error"); return; }
 
-const sb = getSupabaseClient();
-      if (!sb) {
-        showToast("Supabase client not found.", "error");
-        return;
-      }
+      const sb = getSupabaseClient();
+      if (!sb) { showToast("Supabase client not found.", "error"); return; }
 
-createBtn.disabled = true;
+      createBtn.disabled = true;
       createBtn.textContent = "Creating...";
+      const finalQuestionCount = Number(questionsInput.value || 0);
 
-const finalQuestionCount = Number(questionsInput.value || 0);
-
-const payload = {
+      const payload = {
         title: titleInput.value.trim(),
         subject: subjectInput.value,
         starts_at: toISOFromDatetimeLocal(startsAtInput.value),
@@ -707,13 +742,9 @@ const payload = {
         created_by: currentUser?.id || null
       };
 
-const { data: inserted, error } = await sb
-        .from("contests")
-        .insert(payload)
-        .select("id")
-        .single();
+      const { data: inserted, error } = await sb.from("contests").insert(payload).select("id").single();
 
-if (error) {
+      if (error) {
         createBtn.disabled = false;
         createBtn.textContent = "Create Contest";
         console.error("createContest error:", error.message);
@@ -721,10 +752,10 @@ if (error) {
         return;
       }
 
-const contestId = inserted?.id;
+      const contestId = inserted?.id;
       let mappingFailed = false;
 
-if (contestId && selectedQuestionIds.size > 0) {
+      if (contestId && selectedQuestionIds.size > 0) {
         const rows = Array.from(selectedQuestionIds).map((qid, idx) => ({
           contest_id: contestId,
           question_id: qid,
@@ -732,121 +763,161 @@ if (contestId && selectedQuestionIds.size > 0) {
           marks: 4,
           negative_marks: 1
         }));
-
-const { error: mapErr } = await sb.from("contest_questions").insert(rows);
+        const { error: mapErr } = await sb.from("contest_questions").insert(rows);
         if (mapErr) {
           mappingFailed = true;
           console.error("contest_questions insert error:", mapErr.message);
         }
       }
 
-createBtn.disabled = false;
+      createBtn.disabled = false;
       createBtn.textContent = "Create Contest";
 
-if (mappingFailed) {
-        showToast("Contest created, but attaching questions failed.", "error");
-      } else {
-        showToast("Contest created successfully.", "success");
-      }
+      if (mappingFailed) showToast("Contest created, but attaching questions failed.", "error");
+      else showToast("Contest created successfully.", "success");
 
-resetForm();
+      resetForm();
       await loadContests();
     }
 
-async function toggleContestActive(id, nextActive) {
+    async function toggleContestActive(id, nextActive) {
       const sb = getSupabaseClient();
       if (!sb) return showToast("Supabase client not found.", "error");
-
-const { error } = await sb
-        .from("contests")
-        .update({ is_active: nextActive })
-        .eq("id", id);
-
-if (error) {
+      const { error } = await sb.from("contests").update({ is_active: nextActive }).eq("id", id);
+      if (error) {
         console.error("toggleContestActive error:", error.message);
         showToast(error.message || "Failed to update contest.", "error");
         return;
       }
-
-showToast(`Contest ${nextActive ? "enabled" : "disabled"}.`, "success");
+      showToast(`Contest ${nextActive ? "enabled" : "disabled"}.`, "success");
       await loadContests();
     }
 
-async function deleteContest(id) {
+    async function deleteContest(id) {
       const sb = getSupabaseClient();
       if (!sb) return showToast("Supabase client not found.", "error");
-
-const { error } = await sb
-        .from("contests")
-        .delete()
-        .eq("id", id);
-
-if (error) {
+      const { error } = await sb.from("contests").delete().eq("id", id);
+      if (error) {
         console.error("deleteContest error:", error.message);
         showToast(error.message || "Failed to delete contest.", "error");
         return;
       }
-
-showToast("Contest deleted.", "success");
+      showToast("Contest deleted.", "success");
       await loadContests();
     }
 
-function subscribeRealtime() {
+    function subscribeRealtime() {
       const sb = getSupabaseClient();
       if (!sb) return;
-
-if (contestsChannel) {
-        try { sb.removeChannel(contestsChannel); } catch {}
-      }
-
-contestsChannel = sb
-        .channel("admin-contests-live")
-        .on("postgres_changes", { event: "*", schema: "public", table: "contests" }, async () => {
-          await loadContests();
-        })
+      if (contestsChannel) { try { sb.removeChannel(contestsChannel); } catch {} }
+      contestsChannel = sb.channel("admin-contests-live")
+        .on("postgres_changes", { event: "*", schema: "public", table: "contests" }, async () => { await loadContests(); })
         .subscribe();
     }
 
-createBtn.addEventListener("click", createContest);
+    // Modal Logic
+    openModalBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevent accidental form submission
+      newQuestionModal.style.display = "flex";
+      document.body.style.overflow = "hidden"; // Prevent background scrolling
+    });
+
+    function closeAndResetModal() {
+      newQuestionModal.style.display = "none";
+      document.body.style.overflow = "auto";
+      nqForm.reset();
+    }
+
+    closeModalBtn.addEventListener("click", closeAndResetModal);
+    cancelModalBtn.addEventListener("click", closeAndResetModal);
+
+    // Save New Question Logic
+    nqForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      saveQuestionBtn.textContent = "Processing...";
+      saveQuestionBtn.disabled = true;
+
+      try {
+        const sb = getSupabaseClient();
+        
+        let finalImageUrl = null;
+        const imageFile = document.getElementById("nqImageInput").files[0];
+        
+        if (imageFile) {
+          if (!window.PC?.uploadQuestionImage) throw new Error("uploadQuestionImage function missing.");
+          const uploadRes = await window.PC.uploadQuestionImage(imageFile);
+          if (uploadRes.ok) finalImageUrl = uploadRes.url;
+          else throw new Error(uploadRes.error.message || "Failed to upload image.");
+        }
+
+        const payload = {
+          subject: document.getElementById("nqSubject").value,
+          topic: document.getElementById("nqTopic").value.trim(),
+          difficulty: document.getElementById("nqDifficulty").value,
+          marks: Math.max(1, Number(document.getElementById("nqMarks").value || 4)),
+          source: "PrepCode Contest", // Identifies where it came from
+          title: document.getElementById("nqTitle").value.trim(),
+          text: document.getElementById("nqText").value.trim(),
+          option_a: document.getElementById("nqOptA").value.trim(),
+          option_b: document.getElementById("nqOptB").value.trim(),
+          option_c: document.getElementById("nqOptC").value.trim(),
+          option_d: document.getElementById("nqOptD").value.trim(),
+          correct: document.getElementById("nqCorrect").value.trim().toUpperCase(),
+          explain: document.getElementById("nqExplain").value.trim() || "",
+          is_active: false, // EXCLUSIVE TO CONTEST (HIDDEN FROM PRACTICE BANK)
+          image_url: finalImageUrl
+        };
+
+        const { data, error } = await sb.from("questions").insert(payload).select().single();
+        
+        if (error) throw error;
+
+        // Add to local state and auto-select
+        questionBank.unshift(data); // Add to top of list
+        selectedQuestionIds.add(data.id);
+        
+        renderQuestionPicker();
+        updateSelectedCount();
+        closeAndResetModal();
+        showToast("Question created and attached!", "success");
+
+      } catch (err) {
+        console.error(err);
+        showToast("Failed to save: " + (err.message || err), "error");
+      } finally {
+        saveQuestionBtn.textContent = "Save & Attach";
+        saveQuestionBtn.disabled = false;
+      }
+    });
+
+    createBtn.addEventListener("click", createContest);
     resetBtn.addEventListener("click", resetForm);
     goHomeBtn.addEventListener("click", () => { window.location.href = "contest-home.html"; });
-
-searchInput.addEventListener("input", renderGrid);
+    searchInput.addEventListener("input", renderGrid);
     filterActive.addEventListener("change", renderGrid);
     sortSelect.addEventListener("change", renderGrid);
     qSearchInput.addEventListener("input", renderQuestionPicker);
 
-window.addEventListener("beforeunload", () => {
+    window.addEventListener("beforeunload", () => {
       const sb = getSupabaseClient();
-      if (sb && contestsChannel) {
-        try { sb.removeChannel(contestsChannel); } catch {}
-      }
+      if (sb && contestsChannel) { try { sb.removeChannel(contestsChannel); } catch {} }
     });
 
-(async function init() {
+    (async function init() {
       const user = await getAuthUser();
-      if (!user) {
-        alert("Please login first.");
-        window.location.href = "index.html";
-        return;
-      }
+      if (!user) { alert("Please login first."); window.location.href = "index.html"; return; }
       currentUser = user;
 
-const display = user.email ? user.email.split("@")[0] : "Admin";
+      const display = user.email ? user.email.split("@")[0] : "Admin";
       userNameEl.textContent = `${display} ▾`;
       avatarLetterEl.textContent = display.charAt(0).toUpperCase();
 
-const allowed = await canAccessAdmin(user);
-      if (!allowed) {
-        alert("Access denied. Admin only.");
-        window.location.href = "index.html";
-        return;
-      }
+      const allowed = await canAccessAdmin(user);
+      if (!allowed) { alert("Access denied. Admin only."); window.location.href = "index.html"; return; }
 
-await loadQuestionBank();
+      await loadQuestionBank();
       updateSelectedCount();
-
-await loadContests();
+      await loadContests();
       subscribeRealtime();
     })();
   </script>
