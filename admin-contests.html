@@ -131,13 +131,20 @@
       gap:12px;
     }
 
+    /* NEW: Pointer cursor and hover effect for clickable cards */
     .contest-card{
       border:1px solid var(--line);
       border-radius:14px;
       padding:14px;
       background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
       display:flex;flex-direction:column;gap:10px;
+      cursor: pointer;
+      transition: border-color 0.2s;
     }
+    .contest-card:hover {
+      border-color: rgba(59,130,246,.5);
+    }
+    
     .row-top{
       display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
     }
@@ -311,7 +318,8 @@
 
         <input id="durationInput" class="input" type="number" min="1" placeholder="Duration in minutes (e.g., 90)" />
         <input id="prizeInput" class="input" type="number" min="0" placeholder="Prize in ₹ (e.g., 5000)" />
-        <input id="participantsInput" class="input" type="number" min="0" placeholder="Participants (default 0)" />
+        
+        <!-- DELETED PARTICIPANTS INPUT FIELD -->
 
         <input id="startsAtInput" class="input" type="datetime-local" />
         <input id="endsAtInput" class="input" type="datetime-local" />
@@ -344,7 +352,7 @@
 
     <section class="panel">
       <h2>Manage Contests</h2>
-      <p class="muted">Toggle active status or delete contests. Status badge (LIVE/UPCOMING/ENDED) is based on time.</p>
+      <p class="muted">Click on a card after a contest ends to view total participants.</p>
 
       <div class="toolbar">
         <input id="searchInput" class="input" placeholder="Search by title or subject..." />
@@ -367,6 +375,22 @@
     <p class="footer">Admin Panel • Supabase RLS protected</p>
   </div>
 
+  <!-- CONTEST DETAILS MODAL -->
+  <div class="modal-overlay" id="contestDetailsModal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="detailsTitle">Contest Details</h3>
+        <button class="close-btn" id="closeDetailsModalBtn">×</button>
+      </div>
+      <div id="detailsContent" style="line-height: 1.6; font-size: 15px;">
+        <p>Loading details...</p>
+      </div>
+      <div style="margin-top: 20px; text-align: right;">
+        <button class="btn-outline" id="closeDetailsBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- NEW QUESTION MODAL -->
   <div class="modal-overlay" id="newQuestionModal">
     <div class="modal-content">
@@ -375,7 +399,7 @@
         <button class="close-btn" id="closeModalBtn">×</button>
       </div>
       <p style="font-size: 13px; color: var(--amber); margin-bottom: 15px;">
-        <em>Note: Questions created here are "Contest Exclusive". They are hidden from the practice bank and will automatically publish when the contest ends.</em>
+        <em>Note: Questions created here are hidden from the general practice bank unless changed manually.</em>
       </p>
       <form id="nqForm" class="form-grid" style="grid-template-columns: 1fr 1fr;">
         <select id="nqSubject" class="select" required>
@@ -430,7 +454,7 @@
     const questionsInput = document.getElementById("questionsInput");
     const durationInput = document.getElementById("durationInput");
     const prizeInput = document.getElementById("prizeInput");
-    const participantsInput = document.getElementById("participantsInput");
+    // Removed participantsInput reference
     const startsAtInput = document.getElementById("startsAtInput");
     const endsAtInput = document.getElementById("endsAtInput");
     const isActiveInput = document.getElementById("isActiveInput");
@@ -456,6 +480,13 @@
     const cancelModalBtn = document.getElementById("cancelModalBtn");
     const nqForm = document.getElementById("nqForm");
     const saveQuestionBtn = document.getElementById("saveQuestionBtn");
+
+    // Details Modal
+    const contestDetailsModal = document.getElementById("contestDetailsModal");
+    const closeDetailsModalBtn = document.getElementById("closeDetailsModalBtn");
+    const closeDetailsBtn = document.getElementById("closeDetailsBtn");
+    const detailsContent = document.getElementById("detailsContent");
+    const detailsTitle = document.getElementById("detailsTitle");
 
     let currentUser = null;
     let contests = [];
@@ -535,10 +566,10 @@
       const q = Number(questionsInput.value || 0);
       const d = Number(durationInput.value || 0);
       const p = Number(prizeInput.value || 0);
-      const part = Number(participantsInput.value || 0);
+      
       if (q < 1) return "Questions must be at least 1.";
       if (d < 1) return "Duration must be at least 1 minute.";
-      if (p < 0 || part < 0) return "Prize/Participants cannot be negative.";
+      if (p < 0) return "Prize cannot be negative.";
       return null;
     }
 
@@ -548,7 +579,6 @@
       questionsInput.value = "";
       durationInput.value = "";
       prizeInput.value = "";
-      participantsInput.value = "";
       startsAtInput.value = "";
       endsAtInput.value = "";
       isActiveInput.value = "true";
@@ -577,7 +607,6 @@
       const sb = getSupabaseClient();
       if (!sb) return;
       
-      // NOTICE: We removed .eq("is_active", true) so admins can attach hidden questions
       const { data, error } = await sb
         .from("questions")
         .select("id, subject, topic, title, difficulty, is_active")
@@ -663,7 +692,7 @@
       const activeCls = c.is_active ? "active" : "inactive";
       const activeText = c.is_active ? "ACTIVE" : "INACTIVE";
       return `
-        <article class="contest-card">
+        <article class="contest-card" data-contest-id="${c.id}" data-status="${timeStatus}">
           <div class="row-top">
             <h3 class="title">${escapeHtml(c.title || "Untitled Contest")}</h3>
             <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
@@ -675,9 +704,8 @@
             <div>Subject<strong>${escapeHtml(c.subject || "Mixed")}</strong></div>
             <div>Questions<strong>${Number(c.questions || 0)}</strong></div>
             <div>Duration<strong>${Number(c.duration_min || 0)} min</strong></div>
-            <div>Participants<strong>${Number(c.participants || 0).toLocaleString()}</strong></div>
             <div>Prize<strong>₹${Number(c.prize || 0).toLocaleString("en-IN")}</strong></div>
-            <div>Start<strong>${formatDate(c.starts_at)}</strong></div>
+            <div style="grid-column: 1 / -1;">Start<strong>${formatDate(c.starts_at)}</strong></div>
           </div>
           <div class="inline-actions">
             <button class="btn-blue" data-action="toggle" data-id="${c.id}" data-active="${c.is_active}">
@@ -693,6 +721,23 @@
       return String(str).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
     }
 
+    // NEW: Fetch actual participants dynamically from contest_attempts table
+    async function fetchActualParticipants(contestId) {
+      const sb = getSupabaseClient();
+      if (!sb) return 0;
+      
+      const { data, error, count } = await sb
+        .from('contest_attempts')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('contest_id', contestId);
+        
+      if (error && !error.message.includes('relation "contest_attempts" does not exist')) {
+        console.error("fetchActualParticipants error:", error.message);
+        return 0;
+      }
+      return count || 0;
+    }
+
     function renderGrid() {
       const data = getFilteredContests();
       if (!data.length) {
@@ -700,8 +745,11 @@
         return;
       }
       contestGrid.innerHTML = data.map(cardHTML).join("");
+      
+      // Stop button clicks from bubbling up to the card
       contestGrid.querySelectorAll("button[data-action]").forEach(btn => {
-        btn.addEventListener("click", async () => {
+        btn.addEventListener("click", async (e) => {
+          e.stopPropagation();
           const action = btn.dataset.action;
           const id = btn.dataset.id;
           if (!id) return;
@@ -716,7 +764,46 @@
           }
         });
       });
+
+      // Handle card clicks for details
+      contestGrid.querySelectorAll(".contest-card").forEach(card => {
+        card.addEventListener("click", async () => {
+          const contestId = card.dataset.contestId;
+          const status = card.dataset.status;
+          
+          if (status !== 'ended') {
+            showToast("Details are only available after the contest ends.", "error");
+            return;
+          }
+
+          const contest = contests.find(c => c.id === contestId);
+          if (!contest) return;
+
+          detailsTitle.textContent = contest.title;
+          detailsContent.innerHTML = `<p>Loading participant data...</p>`;
+          contestDetailsModal.style.display = "flex";
+          document.body.style.overflow = "hidden";
+
+          const participantCount = await fetchActualParticipants(contest.id);
+
+          detailsContent.innerHTML = `
+            <p><strong>Subject:</strong> ${escapeHtml(contest.subject)}</p>
+            <p><strong>Total Questions:</strong> ${Number(contest.questions || 0)}</p>
+            <p><strong>Duration:</strong> ${Number(contest.duration_min || 0)} min</p>
+            <p><strong>Prize:</strong> ₹${Number(contest.prize || 0).toLocaleString("en-IN")}</p>
+            <hr style="border: 0; height: 1px; background: var(--line); margin: 15px 0;">
+            <p><strong>Total Unique Participants:</strong> <span style="color:var(--green); font-weight:bold; font-size:18px;">${participantCount}</span></p>
+          `;
+        });
+      });
     }
+
+    function closeDetailsModal() {
+      contestDetailsModal.style.display = "none";
+      document.body.style.overflow = "auto";
+    }
+    closeDetailsModalBtn.addEventListener("click", closeDetailsModal);
+    closeDetailsBtn.addEventListener("click", closeDetailsModal);
 
     async function createContest() {
       const err = isValidForm();
@@ -735,7 +822,7 @@
         starts_at: toISOFromDatetimeLocal(startsAtInput.value),
         ends_at: toISOFromDatetimeLocal(endsAtInput.value),
         prize: Number(prizeInput.value || 0),
-        participants: Number(participantsInput.value || 0),
+        participants: 0, // Hardcoded to 0 initial participants
         questions: finalQuestionCount,
         duration_min: Number(durationInput.value || 0),
         is_active: isActiveInput.value === "true",
@@ -817,9 +904,9 @@
 
     // Modal Logic
     openModalBtn.addEventListener("click", (e) => {
-      e.preventDefault(); // Prevent accidental form submission
+      e.preventDefault(); 
       newQuestionModal.style.display = "flex";
-      document.body.style.overflow = "hidden"; // Prevent background scrolling
+      document.body.style.overflow = "hidden"; 
     });
 
     function closeAndResetModal() {
@@ -855,7 +942,7 @@
           topic: document.getElementById("nqTopic").value.trim(),
           difficulty: document.getElementById("nqDifficulty").value,
           marks: Math.max(1, Number(document.getElementById("nqMarks").value || 4)),
-          source: "PrepCode Contest", // Identifies where it came from
+          source: "PrepCode Admin", 
           title: document.getElementById("nqTitle").value.trim(),
           text: document.getElementById("nqText").value.trim(),
           option_a: document.getElementById("nqOptA").value.trim(),
@@ -864,7 +951,7 @@
           option_d: document.getElementById("nqOptD").value.trim(),
           correct: document.getElementById("nqCorrect").value.trim().toUpperCase(),
           explain: document.getElementById("nqExplain").value.trim() || "",
-          is_active: false, // EXCLUSIVE TO CONTEST (HIDDEN FROM PRACTICE BANK)
+          is_active: false,
           image_url: finalImageUrl
         };
 
