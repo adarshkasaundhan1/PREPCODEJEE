@@ -28,7 +28,7 @@
     .brand h1{font-size:24px;line-height:1}
     .brand p{font-size:12px;color:var(--muted);margin-top:2px}
 
-.top-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .top-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .rating-pill{
       display:flex;align-items:center;gap:8px;
       border:1px solid var(--line);border-radius:999px;padding:6px 10px;
@@ -41,7 +41,7 @@
     .rating-pill strong{font-size:14px}
     .rating-pill .small{color:var(--muted);font-size:12px}
 
-.rank-icon{
+    .rank-icon{
       width:28px;
       height:28px;
       object-fit:contain;
@@ -49,7 +49,7 @@
       filter:drop-shadow(0 0 8px rgba(255,255,255,.18));
     }
 
-.rank-badge{
+    .rank-badge{
       display:inline-flex;
       align-items:center;
       justify-content:center;
@@ -74,48 +74,36 @@
     .rank-badge.master{border-color:rgba(236,72,153,.45); color:#fbcfe8}
     .rank-badge.grandmaster{border-color:rgba(245,158,11,.5); color:#fde68a}
 
-@keyframes badgePulse {
-      0% {
-        box-shadow:
-          0 0 0 rgba(255,255,255,0),
-          0 0 8px rgba(255,255,255,.06);
-      }
-      50% {
-        box-shadow:
-          0 0 14px rgba(255,255,255,.16),
-          0 0 26px rgba(255,255,255,.12);
-      }
-      100% {
-        box-shadow:
-          0 0 0 rgba(255,255,255,0),
-          0 0 8px rgba(255,255,255,.06);
-      }
+    @keyframes badgePulse {
+      0% { box-shadow: 0 0 0 rgba(255,255,255,0), 0 0 8px rgba(255,255,255,.06); }
+      50% { box-shadow: 0 0 14px rgba(255,255,255,.16), 0 0 26px rgba(255,255,255,.12); }
+      100% { box-shadow: 0 0 0 rgba(255,255,255,0), 0 0 8px rgba(255,255,255,.06); }
     }
 
-.rank-badge.legend,
+    .rank-badge.legend,
     .rank-badge.master,
     .rank-badge.grandmaster{
       animation: badgePulse 2.4s ease-in-out infinite;
       will-change: box-shadow;
     }
 
-.rank-icon.legend,
+    .rank-icon.legend,
     .rank-icon.master,
     .rank-icon.grandmaster{
       animation: badgePulse 2.4s ease-in-out infinite;
     }
 
-.rank-badge.legend{ box-shadow: 0 0 10px rgba(249,115,22,.22); }
+    .rank-badge.legend{ box-shadow: 0 0 10px rgba(249,115,22,.22); }
     .rank-badge.master{ box-shadow: 0 0 10px rgba(236,72,153,.22); }
     .rank-badge.grandmaster{ box-shadow: 0 0 12px rgba(245,158,11,.28); }
 
-.user{
+    .user{
       display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;
       padding:6px 10px 6px 6px;background:rgba(255,255,255,.03);font-size:14px;
     }
     .avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--blue);font-weight:700}
 
-.hero{
+    .hero{
       border:1px solid var(--line);border-radius:14px;padding:16px;
       background:linear-gradient(180deg, rgba(59,130,246,.12), rgba(255,255,255,.02));margin-bottom:14px;
     }
@@ -128,7 +116,7 @@
     .btn-purple{background:#6d28d9}
     .btn-outline{background:transparent;border:1px solid var(--line);color:var(--text)}
 
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
     .card{
       border:1px solid var(--line);border-radius:14px;padding:14px;
       background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
@@ -137,7 +125,7 @@
     .value{font-size:28px;font-weight:800;margin-top:6px}
     .ok{color:#b9ffd0}.warn{color:#ffdca3}.bad{color:#ffc5c5}
 
-.controls{display:grid;grid-template-columns:1.3fr .7fr .7fr;gap:10px;margin-bottom:14px}
+    .controls{display:grid;grid-template-columns:1.3fr .7fr .7fr;gap:10px;margin-bottom:14px}
     .input,.select{
       width:100%;border:1px solid var(--line);border-radius:10px;background:var(--panel);
       color:var(--text);padding:11px 12px;outline:none;
@@ -181,6 +169,19 @@
       grid-column:1/-1;border:1px dashed var(--line);border-radius:12px;color:var(--muted);padding:20px;text-align:center;
     }
     .footer{margin-top:14px;color:var(--muted);font-size:12px;text-align:center}
+
+    /* MODAL STYLES FOR AUTH PROMPT */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+      display: none; justify-content: center; align-items: center; z-index: 9999;
+    }
+    .modal-content {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 14px; width: 90%; max-width: 400px; padding: 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center;
+    }
+
     @media(max-width:1020px){
       .stats{grid-template-columns:repeat(2,1fr)} .grid{grid-template-columns:repeat(2,minmax(220px,1fr))} .controls{grid-template-columns:1fr}
     }
@@ -202,15 +203,15 @@
         </div>
       </div>
 
-<div class="top-right">
+      <div class="top-right">
         <div class="rating-pill">
           <span class="dot"></span>
           <span>Rating <strong id="myRating">1200</strong></span>
           <span class="small" id="myTier">0 ranked contests</span>
 
-<img id="rankBadgeIcon" class="rank-icon" src="assets/badges/beginner.png" alt="Beginner badge" />
+          <img id="rankBadgeIcon" class="rank-icon" src="assets/badges/beginner.png" alt="Beginner badge" />
 
-<span class="rank-badge beginner" id="rankBadgeWrap" title="Beginner">
+          <span class="rank-badge beginner" id="rankBadgeWrap" title="Beginner">
             <span id="rankBadgeText">Beginner</span>
           </span>
         </div>
@@ -221,7 +222,7 @@
       </div>
     </header>
 
-<section class="hero">
+    <section class="hero">
       <h2>Contest Home</h2>
       <p>Practice with live contests, register for upcoming events, and track your results.</p>
       <div class="quick">
@@ -232,14 +233,14 @@
       </div>
     </section>
 
-<section class="stats">
+    <section class="stats">
       <article class="card"><div class="label">Total Contests</div><div class="value" id="totalCount">0</div></article>
       <article class="card"><div class="label">Live Now</div><div class="value ok" id="liveCount">0</div></article>
       <article class="card"><div class="label">Joined</div><div class="value warn" id="joinedCount">0</div></article>
       <article class="card"><div class="label">Ended</div><div class="value bad" id="endedCount">0</div></article>
     </section>
 
-<section class="controls">
+    <section class="controls">
       <input id="searchInput" class="input" placeholder="Search contest (Physics, Mock, Sprint...)" />
       <select id="subjectSelect" class="select">
         <option value="all">Subject: All</option>
@@ -255,7 +256,7 @@
       </select>
     </section>
 
-<section class="tabs" id="statusTabs">
+    <section class="tabs" id="statusTabs">
       <button class="tab active" data-status="all">All</button>
       <button class="tab" data-status="live">Live</button>
       <button class="tab" data-status="upcoming">Upcoming</button>
@@ -263,11 +264,21 @@
       <button class="tab" data-status="joined">Joined</button>
     </section>
 
-<section class="grid" id="contestGrid"></section>
+    <section class="grid" id="contestGrid"></section>
     <p class="footer">MVP • Pure HTML/CSS/JS • Supabase + localStorage enabled</p>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- AUTHENTICATION MODAL -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-content">
+      <div style="font-size: 40px; margin-bottom: 15px;">🔒</div>
+      <h3 style="font-size: 22px; margin-bottom: 10px;">Authentication Required</h3>
+      <p style="color: var(--muted); margin-bottom: 25px; line-height: 1.5;">You need to be logged in to view and participate in contests. Please sign in to continue.</p>
+      <button class="btn-blue" id="authLoginBtn" style="width: 100%; padding: 12px; font-size: 16px;">Go to Login</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script>
     const LS = {
@@ -283,30 +294,34 @@
       resultArray: "prepcode_contest_results"
     };
 
-const BASE_RATING = 1200;
+    const BASE_RATING = 1200;
 
-const contestGrid = document.getElementById("contestGrid");
+    const contestGrid = document.getElementById("contestGrid");
     const searchInput = document.getElementById("searchInput");
     const subjectSelect = document.getElementById("subjectSelect");
     const sortSelect = document.getElementById("sortSelect");
     const statusTabs = document.getElementById("statusTabs");
 
-const totalCount = document.getElementById("totalCount");
+    const totalCount = document.getElementById("totalCount");
     const liveCount = document.getElementById("liveCount");
     const joinedCount = document.getElementById("joinedCount");
     const endedCount = document.getElementById("endedCount");
     const myRating = document.getElementById("myRating");
     const myTier = document.getElementById("myTier");
 
-const goList = document.getElementById("goList");
+    const goList = document.getElementById("goList");
     const goAttempt = document.getElementById("goAttempt");
     const goResult = document.getElementById("goResult");
     const resetHome = document.getElementById("resetHome");
 
-const userName = document.getElementById("userName");
+    const userName = document.getElementById("userName");
     const avatarLetter = document.getElementById("avatarLetter");
 
-let contests = [];
+    // Modal elements
+    const authModal = document.getElementById("authModal");
+    const authLoginBtn = document.getElementById("authLoginBtn");
+
+    let contests = [];
     let joined = JSON.parse(localStorage.getItem(LS.joined) || "[]").map(String).filter(Boolean);
     let activeStatus = localStorage.getItem(LS.status) || "all";
     let searchText = localStorage.getItem(LS.search) || "";
@@ -315,17 +330,17 @@ let contests = [];
     let contestsChannel = null;
     let currentUser = null;
 
-searchInput.value = searchText;
+    searchInput.value = searchText;
     subjectSelect.value = subject;
     sortSelect.value = sortBy;
     setActiveTab(activeStatus);
 
-const rankedContestLabel = (n) => `${n} ranked contest${n === 1 ? "" : "s"}`;
+    const rankedContestLabel = (n) => `${n} ranked contest${n === 1 ? "" : "s"}`;
 
-function getSupabaseClient() { return window.PC?.supabase || window.sb || null; }
+    function getSupabaseClient() { return window.PC?.supabase || window.sb || null; }
     function isUuid(v) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || "")); }
 
-async function getAuthUser() {
+    async function getAuthUser() {
       if (window.PC?.getUser) return await window.PC.getUser();
       const sb = getSupabaseClient();
       if (!sb) return null;
@@ -333,13 +348,21 @@ async function getAuthUser() {
       return data?.user || null;
     }
 
-async function guardAuthAndHydrateUser() {
+    async function guardAuthAndHydrateUser() {
       const user = await getAuthUser();
+      
+      // NEW CUSTOM MODAL INSTEAD OF ALERT
       if (!user) {
-        alert("Please login first to access Contest Home.");
-        window.location.href = "index.html";
-        return null;
+        authModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Stop background scrolling
+        
+        authLoginBtn.addEventListener('click', () => {
+          window.location.href = "index.html";
+        });
+        
+        return null; // Halt execution so page doesn't load data
       }
+      
       const display = user.email ? user.email.split("@")[0] : "PrepCoder";
       userName.textContent = `${display} ▾`;
       avatarLetter.textContent = display.charAt(0).toUpperCase();
@@ -347,7 +370,7 @@ async function guardAuthAndHydrateUser() {
       return user;
     }
 
-function normalizeContestRow(row) {
+    function normalizeContestRow(row) {
       const startsAt = row.starts_at || row.start_time || row.start_at || null;
       const durationMin = Number(row.duration_min ?? row.duration ?? 0);
       const computedEnd = startsAt ? new Date(new Date(startsAt).getTime() + durationMin * 60000).toISOString() : null;
@@ -364,33 +387,33 @@ function normalizeContestRow(row) {
       };
     }
 
-async function loadContestsFromDb() {
+    async function loadContestsFromDb() {
       const sb = getSupabaseClient();
       if (!sb) { contests = []; render(); return; }
 
-let data = null, error = null;
+      let data = null, error = null;
       ({ data, error } = await sb.from("contests").select("*").eq("is_active", true).order("starts_at", { ascending: true }));
       if (error) ({ data, error } = await sb.from("contests").select("*").order("starts_at", { ascending: true }));
 
-if (error) {
+      if (error) {
         console.error("loadContestsFromDb error:", error.message);
         contests = [];
       } else {
         contests = (data || []).map(normalizeContestRow).filter(c => isUuid(c.id) && c.startsAt && c.endsAt);
       }
 
-const valid = new Set(contests.map(c => c.id));
+      const valid = new Set(contests.map(c => c.id));
       joined = [...new Set(joined)].filter(id => valid.has(id));
       localStorage.setItem(LS.joined, JSON.stringify(joined));
       render();
     }
 
-function subscribeContestRealtime() {
+    function subscribeContestRealtime() {
       const sb = getSupabaseClient();
       if (!sb) return;
       if (contestsChannel) try { sb.removeChannel(contestsChannel); } catch {}
 
-contestsChannel = sb
+      contestsChannel = sb
         .channel("contests-live-public")
         .on("postgres_changes", { event: "*", schema: "public", table: "contests" }, async () => {
           await loadContestsFromDb();
@@ -399,7 +422,7 @@ contestsChannel = sb
         .subscribe();
     }
 
-function nowMs(){ return Date.now(); }
+    function nowMs(){ return Date.now(); }
     function getStatus(c){
       const now = nowMs(), s = new Date(c.startsAt).getTime(), e = new Date(c.endsAt).getTime();
       if(now >= s && now <= e) return "live";
@@ -407,29 +430,29 @@ function nowMs(){ return Date.now(); }
       return "ended";
     }
 
-function formatDate(iso){
+    function formatDate(iso){
       const d = new Date(iso);
       return d.toLocaleString([], { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
     }
 
-function formatCountdown(ms){
+    function formatCountdown(ms){
       if(ms <= 0) return "00:00:00";
       const sec = Math.floor(ms/1000), h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
       return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
     }
 
-function timerText(c, status){
+    function timerText(c, status){
       const now = nowMs(), s = new Date(c.startsAt).getTime(), e = new Date(c.endsAt).getTime();
       if(status === "live") return `Ends in ${formatCountdown(e-now)}`;
       if(status === "upcoming") return `Starts in ${formatCountdown(s-now)}`;
       return `Ended on ${formatDate(c.endsAt)}`;
     }
 
-function setActiveTab(status){
+    function setActiveTab(status){
       [...statusTabs.querySelectorAll(".tab")].forEach(t => t.classList.toggle("active", t.dataset.status === status));
     }
 
-function setSelectedContest(contest){
+    function setSelectedContest(contest){
       if (!contest || !isUuid(contest.id)) return;
       localStorage.setItem(LS.selectedContest, contest.id);
       localStorage.setItem(LS.selectedContestMeta, JSON.stringify({
@@ -437,9 +460,9 @@ function setSelectedContest(contest){
       }));
     }
 
-function getContestById(id){ return contests.find(c => c.id === id) || null; }
+    function getContestById(id){ return contests.find(c => c.id === id) || null; }
 
-function getDefaultContestId(){
+    function getDefaultContestId(){
       const withStatus = contests.map(c => ({ ...c, status: getStatus(c) }));
       const joinedLive = withStatus.find(c => joined.includes(c.id) && c.status === "live");
       if (joinedLive) return joinedLive.id;
@@ -452,18 +475,18 @@ function getDefaultContestId(){
       return contests[0]?.id || null;
     }
 
-function computeStats(){
+    function computeStats(){
       const withStatus = contests.map(c=>({...c,status:getStatus(c)}));
       const validContestIds = new Set(contests.map(c => c.id));
       const uniqueJoined = [...new Set(joined)].filter(id => validContestIds.has(id));
 
-totalCount.textContent = withStatus.length;
+      totalCount.textContent = withStatus.length;
       liveCount.textContent = withStatus.filter(c=>c.status==="live").length;
       joinedCount.textContent = uniqueJoined.length;
       endedCount.textContent = withStatus.filter(c=>c.status==="ended").length;
     }
 
-function getFiltered(){
+    function getFiltered(){
       let data = contests.map(c=>({...c,status:getStatus(c)}));
       if(searchText.trim()){
         const q = searchText.toLowerCase();
@@ -473,17 +496,17 @@ function getFiltered(){
       if(activeStatus === "joined") data = data.filter(c => joined.includes(c.id));
       else if(activeStatus !== "all") data = data.filter(c => c.status === activeStatus);
 
-if(sortBy === "prize") data.sort((a,b)=>b.prize-a.prize);
+      if(sortBy === "prize") data.sort((a,b)=>b.prize-a.prize);
       else if(sortBy === "participants") data.sort((a,b)=>b.participants-a.participants);
       else data.sort((a,b)=>Math.abs(new Date(a.startsAt)-nowMs()) - Math.abs(new Date(b.startsAt)-nowMs()));
       return data;
     }
 
-function cardHTML(c){
+    function cardHTML(c){
       const isJoined = joined.includes(c.id);
       let actions = "";
 
-if(c.status === "ended"){
+      if(c.status === "ended"){
         actions = `
           <button class="btn-sm btn-outline" data-action="result" data-id="${c.id}">View Result</button>
           <button class="btn-sm btn-disabled" disabled>Contest Ended</button>
@@ -502,7 +525,7 @@ if(c.status === "ended"){
           : `<button class="btn-sm btn-join" data-action="join" data-id="${c.id}">Register</button>`;
       }
 
-return `
+      return `
         <article class="contest-card">
           <div class="row-top">
             <h3 class="title">${c.title}</h3>
@@ -522,37 +545,37 @@ return `
       `;
     }
 
-function render(){
+    function render(){
       computeStats();
       const data = getFiltered();
 
-if(!data.length){
+      if(!data.length){
         contestGrid.innerHTML = `<div class="empty">No contests found for selected filters.</div>`;
         return;
       }
 
-contestGrid.innerHTML = data.map(cardHTML).join("");
+      contestGrid.innerHTML = data.map(cardHTML).join("");
       contestGrid.querySelectorAll("button[data-action]").forEach(btn=>{
         btn.addEventListener("click", ()=>{
           const action = btn.dataset.action;
           const id = String(btn.dataset.id || "");
           if (!id) return;
 
-if(action === "join"){
+          if(action === "join"){
             if(!joined.includes(id)) joined.push(id);
             localStorage.setItem(LS.joined, JSON.stringify([...new Set(joined)]));
             render();
             return;
           }
 
-if(action === "leave"){
+          if(action === "leave"){
             joined = joined.filter(x=>x!==id);
             localStorage.setItem(LS.joined, JSON.stringify(joined));
             render();
             return;
           }
 
-if(action === "attempt"){
+          if(action === "attempt"){
             const contest = getContestById(id);
             if (!contest) return alert("Contest not found.");
             setSelectedContest(contest);
@@ -560,7 +583,7 @@ if(action === "attempt"){
             return;
           }
 
-if(action === "result"){
+          if(action === "result"){
             const contest = getContestById(id);
             if (!contest) return alert("Contest not found.");
             setSelectedContest(contest);
@@ -570,7 +593,7 @@ if(action === "result"){
       });
     }
 
-function getTier(rating){
+    function getTier(rating){
       if (rating >= 2300) return "Grandmaster";
       if (rating >= 2050) return "Master";
       if (rating >= 1850) return "Legend";
@@ -580,45 +603,45 @@ function getTier(rating){
       return "Beginner";
     }
 
-function getBadgeMeta(tier){
+    function getBadgeMeta(tier){
       const label = String(tier || "Beginner");
       const key = label.toLowerCase();
       return { label, className: key, icon: `assets/badges/${key}.png` };
     }
 
-function paintRankBadge(tier){
+    function paintRankBadge(tier){
       const wrap = document.getElementById("rankBadgeWrap");
       const icon = document.getElementById("rankBadgeIcon");
       const text = document.getElementById("rankBadgeText");
       if (!wrap || !icon || !text) return;
 
-const meta = getBadgeMeta(tier);
+      const meta = getBadgeMeta(tier);
       wrap.className = `rank-badge ${meta.className}`;
       wrap.title = meta.label;
       text.textContent = meta.label;
 
-icon.className = `rank-icon ${meta.className}`;
+      icon.className = `rank-icon ${meta.className}`;
       icon.src = meta.icon;
       icon.alt = `${meta.label} badge`;
       icon.onerror = () => { icon.src = "assets/badges/beginner.png"; };
     }
 
-function ratingDeltaFromRank(rank, participants){
+    function ratingDeltaFromRank(rank, participants){
       const r = Number(rank || 0);
       const p = Math.max(2, Number(participants || 0) || 100);
       if (!Number.isFinite(r) || r <= 0) return 0;
 
-let delta = Math.round((0.5 - (r - 1) / (p - 1)) * 50);
+      let delta = Math.round((0.5 - (r - 1) / (p - 1)) * 50);
       if (r === 1) delta += 15;
       else if (r === 2) delta += 10;
       else if (r === 3) delta += 6;
       if (r <= Math.ceil(p * 0.10)) delta += 6;
       if (r > Math.floor(p * 0.80)) delta -= 4;
 
-return Math.max(-30, Math.min(60, delta));
+      return Math.max(-30, Math.min(60, delta));
     }
 
-function computeRankRowsFromSubmissions(rows, userId) {
+    function computeRankRowsFromSubmissions(rows, userId) {
       const grouped = new Map();
       for (const r of rows) {
         const cid = String(r.contest_id || "");
@@ -632,7 +655,7 @@ function computeRankRowsFromSubmissions(rows, userId) {
         });
       }
 
-const out = [];
+      const out = [];
       for (const [contestId, arr] of grouped.entries()) {
         arr.sort((a, b) => (b.score - a.score) || (a.submittedAt - b.submittedAt));
         const idx = arr.findIndex(x => x.userId === String(userId));
@@ -643,18 +666,18 @@ const out = [];
       return out;
     }
 
-async function getRankRecordsFromDb(user){
+    async function getRankRecordsFromDb(user){
       const sb = getSupabaseClient();
       if (!sb || !user?.id) return [];
 
-try {
+      try {
         const { data: mine, error: mineErr } = await sb
           .from("contest_submissions")
           .select("contest_id")
           .eq("user_id", user.id)
           .limit(2000);
 
-if (!mineErr && Array.isArray(mine) && mine.length) {
+        if (!mineErr && Array.isArray(mine) && mine.length) {
           const contestIds = [...new Set(mine.map(x => x.contest_id).filter(Boolean))];
           if (contestIds.length) {
             const { data: allRows, error: allErr } = await sb
@@ -663,20 +686,20 @@ if (!mineErr && Array.isArray(mine) && mine.length) {
               .in("contest_id", contestIds)
               .limit(50000);
 
-if (!allErr && Array.isArray(allRows) && allRows.length) {
+            if (!allErr && Array.isArray(allRows) && allRows.length) {
               return computeRankRowsFromSubmissions(allRows, user.id).filter(x => isUuid(x.contestId) && x.rank > 0);
             }
           }
         }
       } catch {}
 
-const tableTries = [
+      const tableTries = [
         { table: "contest_participants", contest: "contest_id", rank: "rank", participants: "participants_count" },
         { table: "contest_results", contest: "contest_id", rank: "rank", participants: "total_participants" },
         { table: "contest_leaderboard", contest: "contest_id", rank: "rank", participants: "participants_count" }
       ];
 
-for (const t of tableTries) {
+      for (const t of tableTries) {
         try {
           const { data, error } = await sb
             .from(t.table)
@@ -685,7 +708,7 @@ for (const t of tableTries) {
             .not(t.rank, "is", null)
             .limit(500);
 
-if (!error && Array.isArray(data) && data.length) {
+          if (!error && Array.isArray(data) && data.length) {
             return data.map(row => ({
               contestId: String(row[t.contest] || ""),
               rank: Number(row[t.rank] || 0),
@@ -695,14 +718,14 @@ if (!error && Array.isArray(data) && data.length) {
         } catch {}
       }
 
-return [];
+      return [];
     }
 
-function getRankRecordsFromLocal(user){
+    function getRankRecordsFromLocal(user){
       const records = [];
       const displayName = user?.email ? user.email.split("@")[0].toLowerCase() : "";
 
-for (const c of contests) {
+      for (const c of contests) {
         const keys = [
           `prepcode_contest_result_${c.id}`,
           `contest_result_${c.id}`,
@@ -710,14 +733,14 @@ for (const c of contests) {
           `contest_leaderboard_${c.id}`
         ];
 
-for (const key of keys) {
+        for (const key of keys) {
           const raw = localStorage.getItem(key);
           if (!raw) continue;
 
-try {
+          try {
             const obj = JSON.parse(raw);
 
-if (obj && Number(obj.rank) > 0) {
+            if (obj && Number(obj.rank) > 0) {
               records.push({
                 contestId: c.id,
                 rank: Number(obj.rank),
@@ -726,7 +749,7 @@ if (obj && Number(obj.rank) > 0) {
               continue;
             }
 
-const lb = Array.isArray(obj?.leaderboard) ? obj.leaderboard : (Array.isArray(obj?.rows) ? obj.rows : null);
+            const lb = Array.isArray(obj?.leaderboard) ? obj.leaderboard : (Array.isArray(obj?.rows) ? obj.rows : null);
             if (lb) {
               const mine = lb.find(x =>
                 String(x.user_id || x.userId || "") === String(user?.id || "") ||
@@ -745,7 +768,7 @@ const lb = Array.isArray(obj?.leaderboard) ? obj.leaderboard : (Array.isArray(ob
         }
       }
 
-try {
+      try {
         const raw = localStorage.getItem(LS.resultArray);
         const arr = JSON.parse(raw || "[]");
         if (Array.isArray(arr) && arr.length) {
@@ -754,7 +777,7 @@ try {
             String(r.user || "").toLowerCase() === displayName
           );
 
-const latestByContest = new Map();
+          const latestByContest = new Map();
           for (const r of mineRows) {
             const cid = String(r.contestId || "");
             if (!cid) continue;
@@ -763,7 +786,7 @@ const latestByContest = new Map();
             if (!prev || ts > prev.ts) latestByContest.set(cid, { row: r, ts });
           }
 
-for (const [contestId, { row }] of latestByContest.entries()) {
+          for (const [contestId, { row }] of latestByContest.entries()) {
             const sameContest = arr
               .filter(x => String(x.contestId || "") === contestId)
               .map(x => ({
@@ -773,7 +796,7 @@ for (const [contestId, { row }] of latestByContest.entries()) {
               }))
               .sort((a,b) => (b.score - a.score) || (a.submittedAt - b.submittedAt));
 
-const idx = sameContest.findIndex(x => x.userId === String(row.userId || ""));
+            const idx = sameContest.findIndex(x => x.userId === String(row.userId || ""));
             if (idx >= 0) {
               records.push({
                 contestId: String(contestId),
@@ -785,35 +808,35 @@ const idx = sameContest.findIndex(x => x.userId === String(row.userId || ""));
         }
       } catch {}
 
-return records;
+      return records;
     }
 
-async function refreshRating(){
+    async function refreshRating(){
       if (!currentUser) return;
 
-const dbRecords = await getRankRecordsFromDb(currentUser);
+      const dbRecords = await getRankRecordsFromDb(currentUser);
       const localRecords = getRankRecordsFromLocal(currentUser);
 
-// Prevent double counting: prefer DB, fallback to local if DB unavailable
+      // Prevent double counting: prefer DB, fallback to local if DB unavailable
       const all = dbRecords.length ? dbRecords : localRecords;
 
-const byContest = new Map();
+      const byContest = new Map();
       for (const r of all) {
         if (!isUuid(r.contestId) || r.rank <= 0) continue;
 
-const contest = getContestById(r.contestId);
+        const contest = getContestById(r.contestId);
         if (!contest) continue;
 
-if (getStatus(contest) !== "ended") continue;
+        if (getStatus(contest) !== "ended") continue;
 
-const prev = byContest.get(r.contestId);
+        const prev = byContest.get(r.contestId);
         if (!prev || r.rank < prev.rank) byContest.set(r.contestId, r);
       }
 
-let rating = BASE_RATING;
+      let rating = BASE_RATING;
       let rankedContests = 0;
 
-[...byContest.values()]
+      [...byContest.values()]
         .sort((a,b) => {
           const aEnd = new Date(getContestById(a.contestId)?.endsAt || 0).getTime();
           const bEnd = new Date(getContestById(b.contestId)?.endsAt || 0).getTime();
@@ -826,23 +849,23 @@ let rating = BASE_RATING;
           rankedContests += 1;
         });
 
-rating = Math.max(0, Math.round(rating));
+      rating = Math.max(0, Math.round(rating));
       const tier = getTier(rating);
 
-myRating.textContent = String(rating);
+      myRating.textContent = String(rating);
       myTier.textContent = rankedContestLabel(rankedContests);
       paintRankBadge(tier);
 
-localStorage.setItem(LS.ratingProfile, JSON.stringify({
+      localStorage.setItem(LS.ratingProfile, JSON.stringify({
         rating, tier, rankedContests, updatedAt: new Date().toISOString()
       }));
     }
 
-searchInput.addEventListener("input", e => { searchText = e.target.value; localStorage.setItem(LS.search, searchText); render(); });
+    searchInput.addEventListener("input", e => { searchText = e.target.value; localStorage.setItem(LS.search, searchText); render(); });
     subjectSelect.addEventListener("change", e => { subject = e.target.value; localStorage.setItem(LS.subject, subject); render(); });
     sortSelect.addEventListener("change", e => { sortBy = e.target.value; localStorage.setItem(LS.sort, sortBy); render(); });
 
-statusTabs.addEventListener("click", e => {
+    statusTabs.addEventListener("click", e => {
       const tab = e.target.closest(".tab");
       if(!tab) return;
       activeStatus = tab.dataset.status;
@@ -851,9 +874,9 @@ statusTabs.addEventListener("click", e => {
       render();
     });
 
-goList.addEventListener("click", () => { window.location.href = "contest-page.html"; });
+    goList.addEventListener("click", () => { window.location.href = "contest-page.html"; });
 
-goAttempt.addEventListener("click", () => {
+    goAttempt.addEventListener("click", () => {
       const id = getDefaultContestId();
       if (!id) return alert("No contest available.");
       const contest = getContestById(id);
@@ -862,7 +885,7 @@ goAttempt.addEventListener("click", () => {
       window.location.href = `contest-attempt.html?contestId=${encodeURIComponent(contest.id)}`;
     });
 
-goResult.addEventListener("click", () => {
+    goResult.addEventListener("click", () => {
       const last = localStorage.getItem(LS.lastSubmittedContest);
       const id = (last && isUuid(last)) ? last : getDefaultContestId();
       if (!id) return alert("No contest available.");
@@ -871,7 +894,7 @@ goResult.addEventListener("click", () => {
       window.location.href = `contest-result.html?contestId=${encodeURIComponent(id)}`;
     });
 
-resetHome.addEventListener("click", ()=>{
+    resetHome.addEventListener("click", ()=>{
       localStorage.removeItem(LS.status);
       localStorage.removeItem(LS.search);
       localStorage.removeItem(LS.subject);
@@ -882,14 +905,14 @@ resetHome.addEventListener("click", ()=>{
       render();
     });
 
-setInterval(render, 1000);
+    setInterval(render, 1000);
     setInterval(() => { refreshRating().catch(() => {}); }, 30000);
 
-(async function init() {
+    (async function init() {
       const user = await guardAuthAndHydrateUser();
-      if (!user) return;
+      if (!user) return; // Halted by the custom modal
 
-const cached = JSON.parse(localStorage.getItem(LS.ratingProfile) || "null");
+      const cached = JSON.parse(localStorage.getItem(LS.ratingProfile) || "null");
       if (cached?.rating != null) {
         myRating.textContent = String(cached.rating);
         myTier.textContent = rankedContestLabel(Number(cached.rankedContests || 0));
@@ -899,17 +922,17 @@ const cached = JSON.parse(localStorage.getItem(LS.ratingProfile) || "null");
         paintRankBadge("Beginner");
       }
 
-await loadContestsFromDb();
+      await loadContestsFromDb();
       await refreshRating();
       subscribeContestRealtime();
     })();
 
-window.addEventListener("focus", () => { refreshRating().catch(() => {}); });
+    window.addEventListener("focus", () => { refreshRating().catch(() => {}); });
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) refreshRating().catch(() => {});
     });
 
-window.addEventListener("beforeunload", () => {
+    window.addEventListener("beforeunload", () => {
       const sb = getSupabaseClient();
       if (sb && contestsChannel) {
         try { sb.removeChannel(contestsChannel); } catch {}
