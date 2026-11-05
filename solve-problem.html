@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PrepCode • Solve Problem</title>
-   <link rel="icon" type="image/png" href="prepcode_navbar_icon.png" />
+  <link rel="icon" type="image/png" href="prepcode_navbar_icon.png" />
   <style>
     :root{
       --bg:#070d1a;
@@ -774,8 +774,8 @@
     const aiInput = byId("aiInput");
     const aiSendBtn = byId("aiSendBtn");
 
-    // ADD YOUR GEMINI KEY RIGHT HERE
-    const GEMINI_API_KEY = "AQ.Ab8RN6IaYvCEn5NgJHAgaF86V7WPgn4TkBoC2KE0-M7F04S_mg";
+    // GEMINI API KEY (Replace with your restricted key or use environment variables)
+    const GEMINI_API_KEY = "YOUR_API_KEY_HERE";
 
     aiToggleBtn.addEventListener("click", () => aiPanel.classList.add("open"));
     aiCloseBtn.addEventListener("click", () => aiPanel.classList.remove("open"));
@@ -784,7 +784,6 @@
       const msgDiv = document.createElement("div");
       msgDiv.className = `ai-message ${sender}`;
       
-      // Clean formatting: parse bold text and convert newlines to <br> tags
       let formattedText = text
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, '<br>');
@@ -799,7 +798,6 @@
       aiInput.value = "";
       aiSendBtn.disabled = true;
 
-      // Updated prompt to force plain text math and structured paragraphs
       const systemPrompt = `You are a helpful expert tutor for JEE (Engineering entrance exam in India). 
       The student is currently looking at this question:
       Title: ${problem.title}
@@ -820,7 +818,6 @@
       5. FORMATTING: Use plain text for math (e.g., x^2, a/b). DO NOT use LaTeX formatting like $$, \\frac, or \\text.
       6. Break your response into short paragraphs for easy reading.`;
 
-      // 1. Start with the text prompt
       let apiParts = [{ text: systemPrompt }];
 
       try {
@@ -828,7 +825,6 @@
         aiChatBox.insertAdjacentHTML('beforeend', `<div id="${typingId}" class="ai-message bot" style="opacity:0.7;">Thinking...</div>`);
         aiChatBox.scrollTop = aiChatBox.scrollHeight;
 
-        // 2. If there is an image, convert it to Base64 and add it to the API request
         if (problem.image_url) {
           try {
             const imgResponse = await fetch(problem.image_url);
@@ -847,12 +843,10 @@
             });
           } catch (imgErr) {
             console.error("Failed to load image for AI analysis:", imgErr);
-            // It will continue without the image if the fetch fails
           }
         }
 
-        // 3. Send the combined request to Google Gemini
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
